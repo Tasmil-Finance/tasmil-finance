@@ -1,11 +1,11 @@
 import equal from "fast-deep-equal";
 import { memo } from "react";
 import { toast } from "sonner";
-import { useSWRConfig } from "swr";
 import { useCopyToClipboard } from "usehooks-ts";
 import type { Vote } from "@/lib/db/schema";
 import type { ChatMessage } from "@/lib/types";
-import { voteApi } from "@/lib/api/vote";
+import { useVoteControllerGetVotes, useVoteControllerVote } from "@/gen/hooks/vote-hooks";
+import { $ } from "@/lib/kubb-config";
 import { Action, Actions } from "./elements/actions";
 import { CopyIcon, PencilEditIcon, ThumbDownIcon, ThumbUpIcon } from "./icons";
 
@@ -22,7 +22,18 @@ export function PureMessageActions({
   isLoading: boolean;
   setMode?: (mode: "view" | "edit") => void;
 }) {
-  const { mutate } = useSWRConfig();
+  const voteMutation = useVoteControllerVote({
+    ...$,
+  });
+  const getVotesQuery = useVoteControllerGetVotes(
+    { chatId },
+    {
+      ...$,
+      query: {
+        enabled: !!chatId,
+      },
+    }
+  );
   const [_, copyToClipboard] = useCopyToClipboard();
 
   if (isLoading) {
@@ -76,40 +87,22 @@ export function PureMessageActions({
 
       <Action
         data-testid="message-upvote"
-        disabled={vote?.isUpvoted}
+        disabled={vote?.isUpvoted || voteMutation.isPending}
         onClick={() => {
-          const upvote = voteApi.vote(chatId, message.id, "up");
-
-          toast.promise(upvote, {
-            loading: "Upvoting Response...",
-            success: () => {
-              mutate<Vote[]>(
-                `vote-${chatId}`,
-                (currentVotes) => {
-                  if (!currentVotes) {
-                    return [];
-                  }
-
-                  const votesWithoutCurrent = currentVotes.filter(
-                    (currentVote) => currentVote.messageId !== message.id
-                  );
-
-                  return [
-                    ...votesWithoutCurrent,
-                    {
-                      chatId,
-                      messageId: message.id,
-                      isUpvoted: true,
-                    },
-                  ];
-                },
-                { revalidate: false }
-              );
-
-              return "Upvoted Response!";
+          voteMutation.mutate(
+            {
+              data: { chatId, messageId: message.id, type: "up" } as any,
             },
-            error: "Failed to upvote response.",
-          });
+            {
+              onSuccess: () => {
+                getVotesQuery.refetch();
+                toast.success("Upvoted Response!");
+              },
+              onError: () => {
+                toast.error("Failed to upvote response.");
+              },
+            }
+          );
         }}
         tooltip="Upvote Response"
       >
@@ -118,40 +111,22 @@ export function PureMessageActions({
 
       <Action
         data-testid="message-downvote"
-        disabled={vote && !vote.isUpvoted}
+        disabled={(vote && !vote.isUpvoted) || voteMutation.isPending}
         onClick={() => {
-          const downvote = voteApi.vote(chatId, message.id, "down");
-
-          toast.promise(downvote, {
-            loading: "Downvoting Response...",
-            success: () => {
-              mutate<Vote[]>(
-                `vote-${chatId}`,
-                (currentVotes) => {
-                  if (!currentVotes) {
-                    return [];
-                  }
-
-                  const votesWithoutCurrent = currentVotes.filter(
-                    (currentVote) => currentVote.messageId !== message.id
-                  );
-
-                  return [
-                    ...votesWithoutCurrent,
-                    {
-                      chatId,
-                      messageId: message.id,
-                      isUpvoted: false,
-                    },
-                  ];
-                },
-                { revalidate: false }
-              );
-
-              return "Downvoted Response!";
+          voteMutation.mutate(
+            {
+              data: { chatId, messageId: message.id, type: "down" } as any,
             },
-            error: "Failed to downvote response.",
-          });
+            {
+              onSuccess: () => {
+                getVotesQuery.refetch();
+                toast.success("Downvoted Response!");
+              },
+              onError: () => {
+                toast.error("Failed to downvote response.");
+              },
+            }
+          );
         }}
         tooltip="Downvote Response"
       >

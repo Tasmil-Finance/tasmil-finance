@@ -58,9 +58,12 @@ export const VersionFooter = ({
 
             mutate(
               `document-${artifact.documentId}`,
-              await documentApi.deleteDocument(
-                artifact.documentId,
-                getDocumentTimestampByIndex(documents, currentVersionIndex)
+              await documentControllerDeleteDocument(
+                {
+                  id: artifact.documentId,
+                  timestamp: getDocumentTimestampByIndex(documents, currentVersionIndex),
+                },
+                withAuth
               ),
               {
                 optimisticData: documents

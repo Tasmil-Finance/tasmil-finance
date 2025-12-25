@@ -27,6 +27,8 @@ import type { Chat } from "@/lib/db/schema";
 import { fetcher } from "@/lib/utils";
 import { LoaderIcon } from "./icons";
 import { ChatItem } from "./sidebar-history-item";
+import { chatControllerDeleteChat } from "@/gen/client";
+import { withAuth } from "@/lib/kubb-config";
 
 type GroupedChats = {
   today: Chat[];
@@ -124,17 +126,13 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     ? paginatedChatHistories.every((page) => page.chats.length === 0)
     : false;
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     const chatToDelete = deleteId;
     const isCurrentChat = pathname === `/chat/${chatToDelete}`;
 
     setShowDeleteDialog(false);
 
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-    const deletePromise = fetch(`${API_BASE_URL}/api/chat?id=${chatToDelete}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
+    const deletePromise = chatControllerDeleteChat({ id: chatToDelete! }, withAuth);
 
     toast.promise(deletePromise, {
       loading: "Deleting chat...",

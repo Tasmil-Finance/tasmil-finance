@@ -4,9 +4,9 @@ import { useChat, type UseChatHelpers } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import useSWR, { useSWRConfig } from "swr";
+import { useSWRConfig } from "swr";
 import { unstable_serialize } from "swr/infinite";
-import { ChatHeader } from "@/components/chat-header";
+import { useWallet } from "@/contexts/wallet-context";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,11 +20,11 @@ import {
 import { useArtifactSelector } from "@/hooks/use-artifact";
 import { useAutoResume } from "@/hooks/use-auto-resume";
 import { useChatVisibility } from "@/hooks/use-chat-visibility";
-import type { Vote } from "@repo/db";
 import { ChatSDKError } from "@repo/api";
 import type { Attachment, ChatMessage } from "@repo/api";
 import { fetchWithErrorHandlers, generateUUID } from "@/lib/utils";
-import { voteApi } from "@/lib/api/vote";
+import { useVoteControllerGetVotes } from "@/gen/hooks/vote-hooks";
+import { $ } from "@/lib/kubb-config";
 import { Artifact } from "./artifact";
 import { useDataStream } from "./data-stream-provider";
 import { Messages } from "./messages";
@@ -40,6 +40,7 @@ export function Chat({
   initialVisibilityType,
   isReadonly,
   autoResume,
+  agentId,
 }: {
   id: string;
   initialMessages: ChatMessage[];
@@ -47,8 +48,10 @@ export function Chat({
   initialVisibilityType: VisibilityType;
   isReadonly: boolean;
   autoResume: boolean;
+  agentId?: string;
 }) {
   const router = useRouter();
+  const { address } = useWallet();
 
   const { visibilityType } = useChatVisibility({
     chatId: id,
@@ -108,8 +111,14 @@ export function Chat({
       return shouldContinue;
     },
     transport: new DefaultChatTransport({
-      api: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/api/chat`,
-      fetch: fetchWithErrorHandlers,
+      api: (() => {
+        let baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9337";
+        baseUrl = baseUrl.replace(/\/api$/, '').replace(/\/$/, '');
+        return `${baseUrl}/api/chat`;
+      })(),
+      fetch: (url, options) => {
+        return fetchWithErrorHandlers(url, options);
+      },
       prepareSendMessagesRequest(request) {
         const lastMessage = request.messages.at(-1);
 
@@ -127,7 +136,7 @@ export function Chat({
             })
           );
 
-        return {
+        const requestBody = {
           body: {
             id: request.id,
             // Send all messages for tool approval continuation, otherwise just the last user message
@@ -136,18 +145,19 @@ export function Chat({
               : { message: lastMessage }),
             selectedChatModel: currentModelIdRef.current,
             selectedVisibilityType: visibilityType,
+            walletAddress: address || undefined,
+            agentId: agentId,
             ...request.body,
           },
         };
+        
+        return requestBody;
       },
     }),
     onData: (dataPart) => {
       setDataStream((ds) => (ds ? [...ds, dataPart] : []));
     },
-    onFinish: ({ finishReason, usage }) => {
-      if (usage) {
-        console.log("[Chat] Usage:", usage);
-      }
+    onFinish: () => {
       mutate(unstable_serialize(getChatHistoryPaginationKey));
     },
     onError: (error) => {
@@ -181,15 +191,29 @@ export function Chat({
       });
 
       setHasAppendedQuery(true);
-      window.history.replaceState({}, "", `/chat/${id}`);
+      // Only update URL if not in agent context
+      if (!agentId) {
+        window.history.replaceState({}, "", `/chat/${id}`);
+      }
     }
-  }, [query, sendMessage, hasAppendedQuery, id]);
+  }, [query, sendMessage, hasAppendedQuery, id, agentId]);
 
-  // Use voteApi instead of direct fetcher to ensure correct API URL
-  const { data: votes } = useSWR<Vote[]>(
-    messages.length >= 2 ? `vote-${id}` : null,
-    () => voteApi.getVotes(id)
+  // Use Kubb React Query hook for votes directly
+  const getVotesQuery = useVoteControllerGetVotes(
+    { chatId: id },
+    {
+      ...$,
+      query: {
+        // Only fetch votes if:
+        // 1. Chat has at least 2 messages (user + assistant)
+        // 2. Chat ID is valid
+        // 3. Initial messages exist (indicating chat exists in DB)
+        enabled: messages.length >= 2 && !!id && initialMessages.length > 0,
+      },
+    }
   );
+  // Backend returns array directly, but Kubb type is empty - cast to expected type
+  const votes = (getVotesQuery.data as unknown as { chatId: string; messageId: string; isUpvoted: boolean }[] | undefined) || undefined;
 
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
@@ -204,12 +228,6 @@ export function Chat({
   return (
     <>
       <div className="overscroll-behavior-contain flex h-dvh min-w-0 touch-pan-y flex-col bg-background">
-        <ChatHeader
-          chatId={id}
-          isReadonly={isReadonly}
-          selectedVisibilityType={initialVisibilityType}
-        />
-
         <Messages
           addToolApprovalResponse={addToolApprovalResponse}
           chatId={id}

@@ -45,12 +45,10 @@ export function AppSidebar({ user }: { user: User | undefined }) {
   const { mutate } = useSWRConfig();
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
 
-  const handleDeleteAll = () => {
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-    const deletePromise = fetch(`${API_BASE_URL}/api/history`, {
-      method: "DELETE",
-      credentials: "include",
-    });
+  const handleDeleteAll = async () => {
+    const { historyControllerDeleteAllHistory } = await import('@/gen/client');
+    const { withAuth } = await import('@/lib/kubb-config');
+    const deletePromise = historyControllerDeleteAllHistory(withAuth);
 
     toast.promise(deletePromise, {
       loading: "Deleting all chats...",
@@ -84,7 +82,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               </Link>
               <div className="flex flex-row gap-1">
                 {user && (
-                  <Tooltip>
+                  <Tooltip key="delete-all">
                     <TooltipTrigger asChild>
                       <Button
                         className="h-8 p-1 md:h-fit md:p-2"
@@ -100,7 +98,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                     </TooltipContent>
                   </Tooltip>
                 )}
-                <Tooltip>
+                <Tooltip key="new-chat">
                   <TooltipTrigger asChild>
                     <Button
                       className="h-8 p-1 md:h-fit md:p-2"

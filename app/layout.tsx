@@ -1,30 +1,30 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { Toaster } from "sonner";
-import { ThemeProvider } from "@/components/theme-provider";
-import { AuthProvider } from "@/contexts/auth-context";
+import { Inter } from "next/font/google";
+
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
+import { AppProvider } from "@/providers";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001"),
-  title: "AI Chatbot",
-  description: "AI chatbot using the AI SDK.",
+  title: "Tasmil Finance | AI-Powered DeFi Trading, Swaps & AI Chatbot",
+  icons: {
+    icon: "/favicon.ico",
+  },
+  description:
+    "Trade smarter with Tasmil Finance: AI-powered DeFi swaps, liquidity management, and real-time market insights. Secure, decentralized, and user-friendly.",
+  keywords:
+    "DeFi, AI trading, crypto swaps, liquidity, blockchain, decentralized finance, trading bot, artificial intelligence, U2U, wallet connect, DEX, chatbot",
+  authors: [{ name: "Tasmil Finance Team" }],
 };
 
 export const viewport = {
   maximumScale: 1, // Disable auto-zoom on mobile Safari
 };
 
-const geist = Geist({
+const inter = Inter({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-geist",
-});
-
-const geistMono = Geist_Mono({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-geist-mono",
+  variable: "--font-inter",
 });
 
 const LIGHT_THEME_COLOR = "hsl(0 0% 100%)";
@@ -41,6 +41,12 @@ const THEME_COLOR_SCRIPT = `\
   function updateThemeColor() {
     var isDark = html.classList.contains('dark');
     meta.setAttribute('content', isDark ? '${DARK_THEME_COLOR}' : '${LIGHT_THEME_COLOR}');
+    // Also set data-dark attribute for RainbowKit theme switching
+    if (isDark) {
+      html.setAttribute('data-dark', '');
+    } else {
+      html.removeAttribute('data-dark');
+    }
   }
   var observer = new MutationObserver(updateThemeColor);
   observer.observe(html, { attributes: true, attributeFilter: ['class'] });
@@ -54,7 +60,11 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      className={`${geist.variable} ${geistMono.variable}`}
+      className={`${inter.variable}`}
+      // `next-themes` injects an extra classname to the body element to avoid
+      // visual flicker before hydration. Hence the `suppressHydrationWarning`
+      // prop is necessary to avoid the React hydration mismatch warning.
+      // https://github.com/pacocoursey/next-themes?tab=readme-ov-file#with-app
       lang="en"
       suppressHydrationWarning
     >
@@ -67,17 +77,8 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          disableTransitionOnChange
-          enableSystem
-        >
-          <AuthProvider>
-            <Toaster position="top-center" />
-            {children}
-          </AuthProvider>
-        </ThemeProvider>
+        <AppProvider>{children}</AppProvider>
+        <Analytics />
       </body>
     </html>
   );

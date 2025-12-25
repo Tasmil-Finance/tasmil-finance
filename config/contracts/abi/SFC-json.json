@@ -1,0 +1,321 @@
+[
+  {
+    "type": "function",
+    "name": "createValidator",
+    "inputs": [
+      { "name": "pubkey", "type": "bytes", "internalType": "bytes", "indexed": false }
+    ],
+    "stateMutability": "payable",
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "getValidatorID",
+    "inputs": [
+      { "name": "auth", "type": "address" }
+    ],
+    "stateMutability": "view",
+    "outputs": [
+      { "name": "", "type": "uint256" }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "getValidator",
+    "inputs": [
+      { "name": "validatorID", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "outputs": [
+      { "name": "status", "type": "uint256" },
+      { "name": "createdEpoch", "type": "uint256" },
+      { "name": "createdTime", "type": "uint256" },
+      { "name": "deactivatedTime", "type": "uint256" },
+      { "name": "deactivatedEpoch", "type": "uint256" },
+      { "name": "auth", "type": "address" }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "getSelfStake",
+    "inputs": [
+      { "name": "validatorID", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "outputs": [
+      { "name": "", "type": "uint256" }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "delegate",
+    "inputs": [
+      { "name": "toValidatorID", "type": "uint256" }
+    ],
+    "stateMutability": "payable",
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "undelegate",
+    "inputs": [
+      { "name": "toValidatorID", "type": "uint256" },
+      { "name": "wrID", "type": "uint256" },
+      { "name": "amount", "type": "uint256" }
+    ],
+    "stateMutability": "nonpayable",
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "withdraw",
+    "inputs": [
+      { "name": "toValidatorID", "type": "uint256" },
+      { "name": "wrID", "type": "uint256" }
+    ],
+    "stateMutability": "nonpayable",
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "getStake",
+    "inputs": [
+      { "name": "delegator", "type": "address" },
+      { "name": "toValidatorID", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "outputs": [
+      { "name": "", "type": "uint256" }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "getUnlockedStake",
+    "inputs": [
+      { "name": "delegator", "type": "address" },
+      { "name": "toValidatorID", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "outputs": [
+      { "name": "", "type": "uint256" }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "pendingRewards",
+    "inputs": [
+      { "name": "delegator", "type": "address" },
+      { "name": "toValidatorID", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "outputs": [
+      { "name": "", "type": "uint256" }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "rewardsStash",
+    "inputs": [
+      { "name": "delegator", "type": "address" },
+      { "name": "toValidatorID", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "outputs": [
+      { "name": "", "type": "uint256" }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "claimRewards",
+    "inputs": [
+      { "name": "toValidatorID", "type": "uint256" }
+    ],
+    "stateMutability": "nonpayable",
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "restakeRewards",
+    "inputs": [
+      { "name": "toValidatorID", "type": "uint256" }
+    ],
+    "stateMutability": "nonpayable",
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "stashRewards",
+    "inputs": [
+      { "name": "delegator", "type": "address" },
+      { "name": "toValidatorID", "type": "uint256" }
+    ],
+    "stateMutability": "nonpayable",
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "lockStake",
+    "inputs": [
+      { "name": "toValidatorID", "type": "uint256" },
+      { "name": "lockupDuration", "type": "uint256" },
+      { "name": "amount", "type": "uint256" }
+    ],
+    "stateMutability": "nonpayable",
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "relockStake",
+    "inputs": [
+      { "name": "toValidatorID", "type": "uint256" },
+      { "name": "lockupDuration", "type": "uint256" },
+      { "name": "amount", "type": "uint256" }
+    ],
+    "stateMutability": "nonpayable",
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "unlockStake",
+    "inputs": [
+      { "name": "toValidatorID", "type": "uint256" },
+      { "name": "amount", "type": "uint256" }
+    ],
+    "stateMutability": "nonpayable",
+    "outputs": [
+      { "name": "", "type": "uint256" }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "getLockupInfo",
+    "inputs": [
+      { "name": "delegator", "type": "address" },
+      { "name": "toValidatorID", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "outputs": [
+      { "name": "lockedStake", "type": "uint256" },
+      { "name": "fromEpoch", "type": "uint256" },
+      { "name": "endTime", "type": "uint256" },
+      { "name": "duration", "type": "uint256" }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "currentEpoch",
+    "inputs": [],
+    "stateMutability": "view",
+    "outputs": [
+      { "name": "", "type": "uint256" }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "currentSealedEpoch",
+    "inputs": [],
+    "stateMutability": "view",
+    "outputs": [
+      { "name": "", "type": "uint256" }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "totalStake",
+    "inputs": [],
+    "stateMutability": "view",
+    "outputs": [
+      { "name": "", "type": "uint256" }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "totalActiveStake",
+    "inputs": [],
+    "stateMutability": "view",
+    "outputs": [
+      { "name": "", "type": "uint256" }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "CreatedValidator",
+    "inputs": [
+      { "name": "validatorID", "type": "uint256", "indexed": true },
+      { "name": "auth", "type": "address", "indexed": true },
+      { "name": "createdEpoch", "type": "uint256", "indexed": false },
+      { "name": "createdTime", "type": "uint256", "indexed": false }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "Delegated",
+    "inputs": [
+      { "name": "delegator", "type": "address", "indexed": true },
+      { "name": "toValidatorID", "type": "uint256", "indexed": true },
+      { "name": "amount", "type": "uint256", "indexed": false }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "Undelegated",
+    "inputs": [
+      { "name": "delegator", "type": "address", "indexed": true },
+      { "name": "toValidatorID", "type": "uint256", "indexed": true },
+      { "name": "wrID", "type": "uint256", "indexed": true },
+      { "name": "amount", "type": "uint256", "indexed": false }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "Withdrawn",
+    "inputs": [
+      { "name": "delegator", "type": "address", "indexed": true },
+      { "name": "toValidatorID", "type": "uint256", "indexed": true },
+      { "name": "wrID", "type": "uint256", "indexed": true },
+      { "name": "amount", "type": "uint256", "indexed": false }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "ClaimedRewards",
+    "inputs": [
+      { "name": "delegator", "type": "address", "indexed": true },
+      { "name": "toValidatorID", "type": "uint256", "indexed": true },
+      { "name": "lockupExtraReward", "type": "uint256", "indexed": false },
+      { "name": "lockupBaseReward", "type": "uint256", "indexed": false },
+      { "name": "unlockedReward", "type": "uint256", "indexed": false }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "RestakedRewards",
+    "inputs": [
+      { "name": "delegator", "type": "address", "indexed": true },
+      { "name": "toValidatorID", "type": "uint256", "indexed": true },
+      { "name": "lockupExtraReward", "type": "uint256", "indexed": false },
+      { "name": "lockupBaseReward", "type": "uint256", "indexed": false },
+      { "name": "unlockedReward", "type": "uint256", "indexed": false }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "LockedUpStake",
+    "inputs": [
+      { "name": "delegator", "type": "address", "indexed": true },
+      { "name": "validatorID", "type": "uint256", "indexed": true },
+      { "name": "duration", "type": "uint256", "indexed": false },
+      { "name": "amount", "type": "uint256", "indexed": false }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "UnlockedStake",
+    "inputs": [
+      { "name": "delegator", "type": "address", "indexed": true },
+      { "name": "validatorID", "type": "uint256", "indexed": true },
+      { "name": "amount", "type": "uint256", "indexed": false },
+      { "name": "penalty", "type": "uint256", "indexed": false }
+    ]
+  }
+]

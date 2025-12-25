@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { ChatMessage } from "@repo/api";
 import { generateUUID } from "@/lib/utils";
-import { chatApi } from "@/lib/api/chat";
-import { apiClient } from "@/lib/api/client";
+import { getApiBaseUrl } from "@/lib/api-client";
 
 export function useChatApi({
   id,
@@ -61,14 +60,36 @@ export function useChatApi({
       streamProtocol: "sse",
       send: async ({ body }) => {
         const requestBody = typeof body === "string" ? JSON.parse(body) : body;
-        const stream = await chatApi.createChat({
-          id,
-          message: requestBody.message,
-          messages: requestBody.messages,
-          selectedChatModel: currentModelIdRef.current,
-          selectedVisibilityType: initialVisibilityType,
+        const API_BASE_URL = getApiBaseUrl();
+        const { accessToken } = (await import('@/store/use-auth')).useAuthStore.getState();
+        
+        const response = await fetch(`${API_BASE_URL}/api/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            id,
+            message: requestBody.message,
+            messages: requestBody.messages,
+            selectedChatModel: currentModelIdRef.current,
+            selectedVisibilityType: initialVisibilityType,
+          }),
         });
-        return stream;
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          const { ChatSDKError } = await import('@repo/api');
+          throw new ChatSDKError(errorData.code, errorData.cause);
+        }
+
+        if (!response.body) {
+          throw new Error('Response body is null');
+        }
+
+        return response.body;
       },
     },
   });

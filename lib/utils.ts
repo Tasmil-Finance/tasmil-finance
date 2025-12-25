@@ -67,12 +67,37 @@ export function getTextFromMessage(message: ChatMessage): string {
 }
 
 export const fetcher = async (url: string) => {
-  // Use absolute URL if it's already absolute, otherwise prepend API base URL
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+  // Get API base URL without /api prefix (Kubb URLs already have /api)
+  let API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9337";
+  API_BASE_URL = API_BASE_URL.replace(/\/api$/, '').replace(/\/$/, '');
+  // Kubb-generated URLs already include /api prefix
   const absoluteUrl = url.startsWith("http") ? url : `${API_BASE_URL}${url}`;
+  
+  // Get auth token from store or localStorage
+  let authToken: string | null = null;
+  if (typeof window !== 'undefined') {
+    try {
+      const { useAuthStore } = await import('@/store/use-auth');
+      authToken = useAuthStore.getState().accessToken;
+      if (!authToken) {
+        authToken = localStorage.getItem('auth_token');
+      }
+    } catch {
+      authToken = localStorage.getItem('auth_token');
+    }
+  }
+  
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+  
+  if (authToken) {
+    headers["Authorization"] = `Bearer ${authToken}`;
+  }
   
   const response = await fetch(absoluteUrl, {
     credentials: "include",
+    headers,
   });
 
   if (!response.ok) {

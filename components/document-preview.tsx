@@ -13,7 +13,8 @@ import useSWR from "swr";
 import { useArtifact } from "@/hooks/use-artifact";
 import type { Document } from "@/lib/db/schema";
 import { cn } from "@/lib/utils";
-import { documentApi } from "@/lib/api/document";
+import { documentControllerGetDocument } from "@/gen/client";
+import { withAuth } from "@/lib/kubb-config";
 import type { ArtifactKind, UIArtifact } from "./artifact";
 import { CodeEditor } from "./code-editor";
 import { DocumentToolCall, DocumentToolResult } from "./document";
@@ -44,7 +45,7 @@ export function DocumentPreview({
       if (!result?.id) {
         return [];
       }
-      return documentApi.getDocument(result.id);
+      return documentControllerGetDocument({ id: result.id }, withAuth) as Promise<Document[]>;
     }
   );
 

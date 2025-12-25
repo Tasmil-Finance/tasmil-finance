@@ -145,7 +145,10 @@ function PureMultimodalInput({
   const [uploadQueue, setUploadQueue] = useState<string[]>([]);
 
   const submitForm = useCallback(() => {
-    window.history.pushState({}, "", `/chat/${chatId}`);
+    // Only update URL if not in agent context (check if URL contains /agents/)
+    if (!window.location.pathname.includes("/agents/")) {
+      window.history.pushState({}, "", `/chat/${chatId}`);
+    }
 
     sendMessage({
       role: "user",

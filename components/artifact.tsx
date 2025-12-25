@@ -19,7 +19,8 @@ import { textArtifact } from "@/artifacts/text/client";
 import { useArtifact } from "@/hooks/use-artifact";
 import type { Document, Vote } from "@repo/db";
 import type { Attachment, ChatMessage } from "@repo/api";
-import { documentApi } from "@/lib/api/document";
+import { documentControllerGetDocument, documentControllerCreateDocument } from "@/gen/client";
+import { withAuth } from "@/lib/kubb-config";
 import { ArtifactActions } from "./artifact-actions";
 import { ArtifactCloseButton } from "./artifact-close-button";
 import { ArtifactMessages } from "./artifact-messages";
@@ -135,7 +136,7 @@ function PureArtifact({
       if (!id || id === "init") {
         return [];
       }
-      const result = (await documentApi.getDocument(id)) as Document[];
+      const result = (await documentControllerGetDocument({ id }, withAuth)) as Document[];
       return result;
     }
   );
@@ -190,11 +191,14 @@ function PureArtifact({
           }
 
           if (currentDocument.content !== updatedContent) {
-            await documentApi.createDocument(
-              artifact.documentId,
-              artifact.title,
-              artifact.kind,
-              updatedContent
+            await documentControllerCreateDocument(
+              {
+                id: artifact.documentId,
+                title: artifact.title,
+                kind: artifact.kind,
+                content: updatedContent,
+              },
+              withAuth
             );
 
             setIsContentDirty(false);

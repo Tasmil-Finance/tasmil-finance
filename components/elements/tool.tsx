@@ -10,6 +10,7 @@ import {
   XCircleIcon,
 } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
+import { isValidElement } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
   Collapsible,
@@ -118,7 +119,7 @@ export const ToolInput = ({ className, input, ...props }: ToolInputProps) => (
 );
 
 export type ToolOutputProps = ComponentProps<"div"> & {
-  output: ReactNode;
+  output: ToolUIPart["output"] | ReactNode;
   errorText: ToolUIPart["errorText"];
 };
 
@@ -130,6 +131,25 @@ export const ToolOutput = ({
 }: ToolOutputProps) => {
   if (!(output || errorText)) {
     return null;
+  }
+
+  // Format output based on type (similar to ai-chatbot)
+  let Output: ReactNode;
+
+  // Check if output is already a React element first
+  if (isValidElement(output)) {
+    Output = output;
+  } else if (typeof output === "object" && output !== null) {
+    // If output is a plain object, format as JSON
+    Output = (
+      <CodeBlock code={JSON.stringify(output, null, 2)} language="json" />
+    );
+  } else if (typeof output === "string") {
+    // If output is a string, display in code block
+    Output = <CodeBlock code={output} language="json" />;
+  } else {
+    // For other types (number, boolean, etc.), convert to string
+    Output = <div>{String(output ?? "")}</div>;
   }
 
   return (
@@ -146,7 +166,7 @@ export const ToolOutput = ({
         )}
       >
         {errorText && <div>{errorText}</div>}
-        {output && <div>{output}</div>}
+        {Output}
       </div>
     </div>
   );

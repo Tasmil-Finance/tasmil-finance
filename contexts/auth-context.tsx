@@ -1,7 +1,9 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { authApi } from "@/lib/api/auth";
+import { authControllerLogin, authControllerRegister, authControllerGuest, authControllerGetSession } from "@/gen/client";
+import { withAuth } from "@/lib/kubb-config";
+import { useAuthStore } from "@/store/use-auth";
 
 interface User {
   id: string;
@@ -25,11 +27,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    authApi.init();
+    // Initialize auth from localStorage
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        const { setTokens } = useAuthStore.getState();
+        setTokens(token);
+      }
+    }
+    
     // Try to load user from session
-    authApi
-      .getSession()
-      .then(({ user: sessionUser }) => {
+    authControllerGetSession(withAuth)
+      .then((response) => {
+        const sessionUser = (response as { user?: User }).user;
         if (sessionUser) {
           setUser(sessionUser);
         }
@@ -44,22 +54,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const { user: loggedInUser } = await authApi.login({ email, password });
-    setUser(loggedInUser);
+    const response = await authControllerLogin({ email, password }, withAuth) as { access_token?: string; user?: User };
+    if (response.access_token) {
+      const { setTokens } = useAuthStore.getState();
+      setTokens(response.access_token);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('auth_token', response.access_token);
+      }
+    }
+    if (response.user) {
+      setUser(response.user);
+    }
   };
 
   const register = async (email: string, password: string) => {
-    const { user: registeredUser } = await authApi.register({ email, password });
-    setUser(registeredUser);
+    const response = await authControllerRegister({ email, password }, withAuth) as { access_token?: string; user?: User };
+    if (response.access_token) {
+      const { setTokens } = useAuthStore.getState();
+      setTokens(response.access_token);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('auth_token', response.access_token);
+      }
+    }
+    if (response.user) {
+      setUser(response.user);
+    }
   };
 
   const guest = async () => {
-    const { user: guestUser } = await authApi.guest();
-    setUser(guestUser);
+    const response = await authControllerGuest(withAuth) as { access_token?: string; user?: User };
+    if (response.access_token) {
+      const { setTokens } = useAuthStore.getState();
+      setTokens(response.access_token);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('auth_token', response.access_token);
+      }
+    }
+    if (response.user) {
+      setUser(response.user);
+    }
   };
 
   const logout = () => {
-    authApi.logout();
+    const { logout } = useAuthStore.getState();
+    logout();
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_token');
+    }
     setUser(null);
   };
 
