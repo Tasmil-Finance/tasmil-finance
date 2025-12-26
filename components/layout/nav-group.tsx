@@ -78,7 +78,7 @@ const SidebarMenuLink = ({
   const { setOpenMobile } = useSidebar();
   // Check if this is a main nav item that should match sub-routes
   const isMainNav =
-    item.url === "/defi-agent" ||
+    item.url === "/agents" ||
     item.url === "/explore-agent" ||
     item.url === "/custom-agent" ||
     item.url === "/agents";
@@ -265,7 +265,7 @@ function checkIsActive(pathname: string, item: NavItem, mainNav = false) {
   }
 
   // For main nav items, check if current path starts with the item URL
-  // This handles cases like /defi-agent/[id] matching /defi-agent
+  // This handles cases like /agents/[id] matching /agents
   if (mainNav && item.url && pathname.startsWith(item.url + "/")) {
     return true;
   }

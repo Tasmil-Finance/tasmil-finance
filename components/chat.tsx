@@ -93,7 +93,7 @@ export function Chat({
   } = useChat<ChatMessage>({
     id,
     messages: initialMessages,
-    experimental_throttle: 0,
+    experimental_throttle: 50, // Slow down to see typing effect more clearly (default is 0)
     generateId: generateUUID,
     // Auto-continue after tool approval (only for APPROVED tools)
     // Denied tools don't need server continuation - state is saved on next user message
@@ -241,7 +241,7 @@ export function Chat({
           votes={votes}
         />
 
-        <div className="sticky bottom-0 z-1 mx-auto flex w-full max-w-4xl gap-2 border-t-0 bg-background px-2 pb-3 md:px-4 md:pb-4">
+        <div className="sticky bottom-0 z-1 mx-auto flex w-full max-w-4xl gap-2 border-t-0 bg-background px-2 pb-6 pt-4 md:px-4 md:pb-8">
           {!isReadonly && (
             <MultimodalInput
               attachments={attachments}

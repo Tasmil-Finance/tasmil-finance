@@ -50,10 +50,5 @@ export function DefiAgentSidebarProvider({
 
 export function useDefiAgentSidebar() {
   const context = useContext(DefiAgentSidebarContext);
-  if (!context) {
-    throw new Error(
-      "useDefiAgentSidebar must be used within a DefiAgentSidebarProvider"
-    );
-  }
   return context;
 }

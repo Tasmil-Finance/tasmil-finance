@@ -42,10 +42,15 @@ const PureChatItem = ({
     initialVisibilityType: chat.visibility,
   });
 
+  // Determine the correct route based on agentId
+  const chatRoute = chat.agentId 
+    ? `/agents/${chat.agentId}/chat/${chat.id}` 
+    : `/chat/${chat.id}`;
+
   return (
     <SidebarMenuItem>
       <SidebarMenuButton asChild isActive={isActive}>
-        <Link href={`/chat/${chat.id}`} onClick={() => setOpenMobile(false)}>
+        <Link href={chatRoute} onClick={() => setOpenMobile(false)}>
           <span>{chat.title}</span>
         </Link>
       </SidebarMenuButton>

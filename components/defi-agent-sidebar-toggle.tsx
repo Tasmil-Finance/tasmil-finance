@@ -22,7 +22,7 @@ export function DefiAgentSidebarToggle({
   const { width: windowWidth } = useWindowSize();
 
   const handleToggle = () => {
-    if (isDefiAgent) {
+    if (isDefiAgent && defiAgentSidebar) {
       defiAgentSidebar.toggle();
     } else {
       regularSidebar.toggleSidebar();
@@ -30,6 +30,11 @@ export function DefiAgentSidebarToggle({
   };
 
   if (isDefiAgent) {
+    // If no provider, don't render
+    if (!defiAgentSidebar) {
+      return null;
+    }
+    
     // Hide Clock icon when sidebar is open (same logic as Plus icon)
     // Show on mobile (< 768px) even when sidebar is open
     if (defiAgentSidebar.isOpen && windowWidth >= 768) {

@@ -14,12 +14,14 @@ interface DefiAgentSidebarProps {
   user: User | undefined;
   isOpen: boolean;
   onToggle: () => void;
+  agentId?: string;
 }
 
 export function DefiAgentSidebar({
   user,
   isOpen,
   onToggle,
+  agentId,
 }: DefiAgentSidebarProps) {
   const router = useRouter();
 
@@ -44,7 +46,7 @@ export function DefiAgentSidebar({
         <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
           <Link
             className="flex items-center gap-3"
-            href="/defi-agent"
+            href="/agents"
             onClick={onToggle}
           >
             <span className="font-semibold text-lg">Chat History</span>
@@ -54,7 +56,7 @@ export function DefiAgentSidebar({
               className="h-8 w-8 p-0"
               onClick={() => {
                 onToggle();
-                router.push("/defi-agent");
+                router.push("/agents");
                 router.refresh();
               }}
               type="button"
@@ -75,7 +77,7 @@ export function DefiAgentSidebar({
 
         {/* Content - Scrollable */}
         <div className="flex-1 overflow-y-auto p-2 min-h-0">
-          <SidebarHistory user={user} />
+          <SidebarHistory user={user} agentId={agentId} />
         </div>
 
         {/* Footer - Fixed */}

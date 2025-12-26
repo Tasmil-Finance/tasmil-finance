@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
+import { usePathname } from "next/navigation";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { DefiAgentSidebarToggle } from "@/components/defi-agent-sidebar-toggle";
 import { cn } from "@/lib/utils";
 
 interface HeaderProps extends React.HTMLAttributes<HTMLElement> {
@@ -17,6 +19,8 @@ export const Header = ({
   ...props
 }: HeaderProps) => {
   const [offset, setOffset] = React.useState(0);
+  const pathname = usePathname();
+  const isAgentsPage = pathname?.startsWith("/agents");
 
   React.useEffect(() => {
     const onScroll = () => {
@@ -47,6 +51,12 @@ export const Header = ({
       />
       <Separator className="h-6" orientation="vertical" />
       {children}
+      {/* Add DefiAgent sidebar toggle on the right for /agents pages */}
+      {isAgentsPage && (
+        <div className="ml-auto">
+          <DefiAgentSidebarToggle />
+        </div>
+      )}
     </header>
   );
 };
