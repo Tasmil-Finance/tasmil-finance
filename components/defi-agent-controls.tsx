@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useWindowSize } from "usehooks-ts";
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "./icons";
-import { useDefiAgentSidebar } from "@/contexts/defi-agent-sidebar-context";
+import { useDefiAgentSidebar } from "@/context/defi-agent-sidebar-context";
 import { VisibilitySelector, type VisibilityType } from "./visibility-selector";
 
 interface DefiAgentControlsProps {

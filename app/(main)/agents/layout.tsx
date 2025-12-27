@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import Script from "next/script";
 import { DataStreamProvider } from "@/components/data-stream-provider";
 import { DefiAgentLayout } from "@/components/defi-agent-layout";
-import { DefiAgentSidebarProvider } from "@/contexts/defi-agent-sidebar-context";
+import { DefiAgentSidebarProvider } from "@/context/defi-agent-sidebar-context";
 import { auth } from "@/lib/auth";
 
 export const experimental_ppr = true;

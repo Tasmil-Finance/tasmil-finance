@@ -17,7 +17,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { guestRegex } from "@/lib/constants";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/context/auth-context";
 import { LoaderIcon } from "./icons";
 import { toast } from "./toast";
 

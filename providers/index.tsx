@@ -6,8 +6,8 @@ import type { PropsWithChildren } from "react";
 import { Toaster } from "sonner";
 import { WagmiProvider } from "wagmi";
 import { defaultNetwork, wagmiConfig } from "@/config/connectors/wagmi";
-import { NavProvider } from "@/contexts/nav-context";
-import { WalletProvider } from "@/contexts/wallet-context";
+import { NavProvider } from "@/context/nav-context";
+import { WalletProvider } from "@/context/wallet-context";
 import "@rainbow-me/rainbowkit/styles.css";
 
 // Custom DeFi light theme matching globals.css light mode colors

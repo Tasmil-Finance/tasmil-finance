@@ -11,8 +11,8 @@ import { TopNav } from "@/components/layout/top-nav";
 import { Button } from "@/components/ui/button-v2";
 import { Main } from "@/components/ui/main";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { useNavigation } from "@/contexts/nav-context";
-import { SearchProvider } from "@/contexts/search-context";
+import { useNavigation } from "@/context/nav-context";
+import { SearchProvider } from "@/context/search-context";
 import { cn } from "@/lib/utils";
 
 const inter = Inter({ subsets: ["latin"] });

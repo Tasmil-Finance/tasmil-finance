@@ -2,22 +2,17 @@
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import {
-  Calendar as CalendarIcon,
   ChevronRight,
   Copy,
-  CreditCard,
-  Loader2,
   User,
   Wallet,
 } from "lucide-react";
 import Image from "next/image";
 import { QRCodeSVG } from "qrcode.react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { useState } from "react";
 import { formatUnits } from "viem";
 import { useAccount, useBalance } from "wagmi";
 import { Button } from "@/components/ui/button-v2";
-import { Calendar } from "@/components/ui/calendar";
 import CountUp from "@/components/ui/count-up";
 import {
   Dialog,
@@ -33,14 +28,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Typography } from "@/components/ui/typography";
-import {
-  fetchTxCredit,
-  processRecharge,
-  RECHARGE_OPTIONS,
-  type RechargeOption,
-  type TxCreditData,
-} from "@/lib/mock-data/tx-credit";
+import GridDistortion from "@/components/ui/grid-distortion";
 import { cn } from "@/lib/utils";
+import Balatro from "../ui/balatro";
 
 // Social Links Constants
 const SOCIAL_LINKS = {
@@ -338,6 +328,78 @@ export function FooterSidebarSection() {
                     </Typography>
                   </Button> */}
 
+                  {/* Quest Card with GridDistortion */}
+                  <a
+                    href="https://quest.tasmil-finance.xyz"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block"
+                  >
+                    <div className="relative h-32 overflow-hidden rounded-xl border border-border bg-zinc-900 transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/20 cursor-pointer group">
+                      {/* GridDistortion Background */}
+                      <div className="absolute inset-0">
+                        {/* <GridDistortion
+                          imageSrc="https://picsum.photos/1920/1080?grayscale"
+                          grid={60}
+                          mouse={0.2}
+                          strength={0.15}
+                          relaxation={0.9}
+                          className="w-full h-full"
+                        /> */}
+                        <Balatro
+                          isRotate={false}
+                          mouseInteraction={true}
+                          pixelFilter={700}
+                          color3="#4b555902"
+                          color2="#516d72ff"
+                          color1="#56c8eeff"
+                        />
+                      </div>
+
+                      {/* Overlay gradient */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+
+                      {/* Content */}
+                      <div className="relative z-10 flex h-full flex-col justify-end p-4">
+                        <Typography
+                          className="text-white mb-1"
+                          size="lg"
+                          weight="bold"
+                        >
+                          Complete Quests
+                        </Typography>
+                        <Typography
+                          className="text-gray-300 mb-2"
+                          size="xs"
+                        >
+                          Earn rewards by completing tasks
+                        </Typography>
+                        <div className="flex items-center gap-1 text-primary group-hover:gap-2 transition-all">
+                          <Typography
+                            className="text-primary"
+                            size="sm"
+                            weight="semibold"
+                          >
+                            Start Now
+                          </Typography>
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M13 7l5 5m0 0l-5 5m5-5H6"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </a>
+
                   {/* Balance Card */}
                   <Button
                     className="flex h-auto items-center justify-start gap-2 rounded-xl bg-zinc-800/50 p-3 backdrop-blur-sm transition-all hover:bg-zinc-800/70"
@@ -426,30 +488,30 @@ export function FooterSidebarSection() {
                         className="text-white"
                         size="sm"
                         weight="medium"
-                  >
-                    {accountData?.displayName}
-                  </Typography>
-                  <ChevronRight className="h-4 w-4 text-gray-400" />
-                </div>
-              </Button>
+                      >
+                        {accountData?.displayName}
+                      </Typography>
+                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                    </div>
+                  </Button>
 
-              {/* Social Links */ }
-              <div className="flex items-center justify-center gap-4 py-1">
-                <a
-                  className="text-gray-400 transition-colors hover:text-white"
-                  href={SOCIAL_LINKS.X}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                >
-                  <svg
-                    className="h-5 w-5"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                  </svg>
-                </a>
-                {/* <a
+                  {/* Social Links */}
+                  <div className="flex items-center justify-center gap-4 py-1">
+                    <a
+                      className="text-gray-400 transition-colors hover:text-white"
+                      href={SOCIAL_LINKS.X}
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      <svg
+                        className="h-5 w-5"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                      </svg>
+                    </a>
+                    {/* <a
                       className="text-gray-400 transition-colors hover:text-white"
                       href={SOCIAL_LINKS.DISCORD}
                       rel="noopener noreferrer"
@@ -463,27 +525,27 @@ export function FooterSidebarSection() {
                         <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
                       </svg>
                     </a> */}
-                <a
-                  className="text-gray-400 transition-colors hover:text-white"
-                  href={SOCIAL_LINKS.DOCS}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                >
-                  <Typography
-                    className="text-gray-400 hover:text-white"
-                    size="xs"
-                    weight="bold"
-                  >
-                    DOCS
-                  </Typography>
-                </a>
-              </div>
+                    <a
+                      className="text-gray-400 transition-colors hover:text-white"
+                      href={SOCIAL_LINKS.DOCS}
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      <Typography
+                        className="text-gray-400 hover:text-white"
+                        size="xs"
+                        weight="bold"
+                      >
+                        DOCS
+                      </Typography>
+                    </a>
+                  </div>
                 </div>
-        ) : (
-      <TooltipProvider>
-        <div className="flex w-full flex-col items-center gap-2">
-          {/* TEMPORARILY DISABLED: Daily Check In Icon */}
-          {/* <Tooltip>
+              ) : (
+                <TooltipProvider>
+                  <div className="flex w-full flex-col items-center gap-2">
+                    {/* TEMPORARILY DISABLED: Daily Check In Icon */}
+                    {/* <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
                           className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-800/50 p-0 backdrop-blur-sm transition-all hover:bg-zinc-800/70"
@@ -498,36 +560,64 @@ export function FooterSidebarSection() {
                       </TooltipContent>
                     </Tooltip> */}
 
-          {/* Balance Icon */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-800/50 p-0 backdrop-blur-sm transition-all hover:bg-zinc-800/70"
-                onClick={() => setDepositOpen(true)}
-                variant="ghost"
-              >
-                <Image
-                  alt="U2U"
-                  className="rounded-full"
-                  height={24}
-                  src="/token/u2u.png"
-                  width={24}
-                />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              <CountUp
-                abbreviate={false}
-                className="text-xs"
-                decimals={4}
-                suffix=" U2U"
-                value={formattedBalance}
-              />
-            </TooltipContent>
-          </Tooltip>
+                    {/* Quest Icon */}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <a
+                          href="https://quest.tasmil.finance"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Button
+                            className="flex h-12 w-12 flex-col items-center justify-center gap-0.5 rounded-xl bg-zinc-800/50 p-1 backdrop-blur-sm transition-all hover:bg-zinc-800/70 hover:border-primary/50"
+                            variant="ghost"
+                          >
+                            <Typography
+                              className="text-white leading-none text-[10px]"
+                              weight="semibold"
+                            >
+                              QUEST
+                            </Typography>
+                          </Button>
+                        </a>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <Typography size="xs">Complete Quests</Typography>
+                      </TooltipContent>
+                    </Tooltip>
 
-          {/* TEMPORARILY DISABLED: TX Credit Icon */}
-          {/* <Tooltip>
+                    {/* Balance Icon */}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-800/50 p-0 backdrop-blur-sm transition-all hover:bg-zinc-800/70"
+                          onClick={() => setDepositOpen(true)}
+                          variant="ghost"
+                        >
+                          <Image
+                            alt="U2U"
+                            className="rounded-full"
+                            height={24}
+                            src="/token/u2u.png"
+                            width={24}
+                          />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <CountUp
+                          abbreviate={false}
+                          className="text-xs"
+                          decimals={4}
+                          suffix=" U2U"
+                          value={formattedBalance}
+                        />
+                      </TooltipContent>
+                    </Tooltip>
+
+
+
+                    {/* TEMPORARILY DISABLED: TX Credit Icon */}
+                    {/* <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
                           className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-800/50 p-0 backdrop-blur-sm transition-all hover:bg-zinc-800/70"
@@ -564,61 +654,61 @@ export function FooterSidebarSection() {
                     </Tooltip>
 
                     {/* User Avatar */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-800/50 p-0 backdrop-blur-sm transition-all hover:bg-zinc-800/70"
-                onClick={openAccountModal}
-                variant="ghost"
-              >
-                <AddressAvatar
-                  address={accountData?.address || ""}
-                  size="size-8"
-                />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              <Typography size="xs">
-                {accountData?.displayName}
-              </Typography>
-            </TooltipContent>
-          </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-800/50 p-0 backdrop-blur-sm transition-all hover:bg-zinc-800/70"
+                          onClick={openAccountModal}
+                          variant="ghost"
+                        >
+                          <AddressAvatar
+                            address={accountData?.address || ""}
+                            size="size-8"
+                          />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <Typography size="xs">
+                          {accountData?.displayName}
+                        </Typography>
+                      </TooltipContent>
+                    </Tooltip>
 
-          {/* More Options - Social Icons */}
-          <Tooltip onOpenChange={setShowSocial} open={showSocial}>
-            <TooltipTrigger asChild>
-              <Button
-                className="mt-2 flex h-8 w-8 items-center justify-center p-0 text-gray-400 transition-colors hover:text-white"
-                variant="ghost"
-              >
-                <svg
-                  className="h-5 w-5"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <circle cx="12" cy="5" r="2" />
-                  <circle cx="12" cy="12" r="2" />
-                  <circle cx="12" cy="19" r="2" />
-                </svg>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="p-2" side="right">
-              <div className="flex items-center gap-3">
-                <a
-                  className="text-gray-400 transition-colors hover:text-white"
-                  href={SOCIAL_LINKS.X}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                >
-                  <svg
-                    className="h-5 w-5"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                  </svg>
-                </a>
-                {/* <a
+                    {/* More Options - Social Icons */}
+                    <Tooltip onOpenChange={setShowSocial} open={showSocial}>
+                      <TooltipTrigger asChild>
+                        <Button
+                          className="mt-2 flex h-8 w-8 items-center justify-center p-0 text-gray-400 transition-colors hover:text-white"
+                          variant="ghost"
+                        >
+                          <svg
+                            className="h-5 w-5"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle cx="12" cy="5" r="2" />
+                            <circle cx="12" cy="12" r="2" />
+                            <circle cx="12" cy="19" r="2" />
+                          </svg>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="p-2" side="right">
+                        <div className="flex items-center gap-3">
+                          <a
+                            className="text-gray-400 transition-colors hover:text-white"
+                            href={SOCIAL_LINKS.X}
+                            rel="noopener noreferrer"
+                            target="_blank"
+                          >
+                            <svg
+                              className="h-5 w-5"
+                              fill="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                            </svg>
+                          </a>
+                          {/* <a
                             className="text-gray-400 transition-colors hover:text-white"
                             href={SOCIAL_LINKS.DISCORD}
                             rel="noopener noreferrer"
@@ -632,30 +722,30 @@ export function FooterSidebarSection() {
                               <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
                             </svg>
                           </a> */}
-                <a
-                  className="text-gray-400 transition-colors hover:text-white"
-                  href={SOCIAL_LINKS.DOCS}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                >
-                  <Typography
-                    className="text-gray-400 hover:text-white"
-                    size="xs"
-                    weight="bold"
-                  >
-                    DOCS
-                  </Typography>
-                </a>
-              </div>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      </TooltipProvider>
-      );
+                          <a
+                            className="text-gray-400 transition-colors hover:text-white"
+                            href={SOCIAL_LINKS.DOCS}
+                            rel="noopener noreferrer"
+                            target="_blank"
+                          >
+                            <Typography
+                              className="text-gray-400 hover:text-white"
+                              size="xs"
+                              weight="bold"
+                            >
+                              DOCS
+                            </Typography>
+                          </a>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </TooltipProvider>
+              );
             })()}
 
-      {/* TEMPORARILY DISABLED: Daily Check-in Dialog */}
-      {/* <Dialog onOpenChange={setDailyCheckInOpen} open={dailyCheckInOpen}>
+            {/* TEMPORARILY DISABLED: Daily Check-in Dialog */}
+            {/* <Dialog onOpenChange={setDailyCheckInOpen} open={dailyCheckInOpen}>
               <DialogContent className="max-w-md border-zinc-800 bg-zinc-900">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2 text-2xl">
@@ -769,107 +859,107 @@ export function FooterSidebarSection() {
               </DialogContent>
             </Dialog> */}
 
-      {/* Deposit Dialog */}
-      <Dialog onOpenChange={setDepositOpen} open={depositOpen}>
-        <DialogContent className="max-w-lg border-zinc-800 bg-zinc-900">
-          <DialogHeader>
-            <DialogTitle className="text-2xl">Deposit</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {/* Token Selection */}
-            <div className="flex items-center justify-between rounded-xl bg-zinc-800/50 p-4">
-              <div className="flex items-center gap-2">
-                <Image
-                  alt="U2U"
-                  className="rounded-full"
-                  height={32}
-                  src="/token/u2u.png"
-                  width={32}
-                />
-                <Typography
-                  className="text-white"
-                  size="lg"
-                  weight="semibold"
-                >
-                  U2U
-                </Typography>
-              </div>
-              <div className="text-right">
-                <Typography className="text-gray-400" size="xs">
-                  Balance:
-                </Typography>
-                <CountUp
-                  abbreviate={false}
-                  className="font-medium text-sm text-white"
-                  decimals={4}
-                  suffix=" U2U"
-                  value={formattedBalance}
-                />
-              </div>
-            </div>
+            {/* Deposit Dialog */}
+            <Dialog onOpenChange={setDepositOpen} open={depositOpen}>
+              <DialogContent className="max-w-lg border-zinc-800 bg-zinc-900">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl">Deposit</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  {/* Token Selection */}
+                  <div className="flex items-center justify-between rounded-xl bg-zinc-800/50 p-4">
+                    <div className="flex items-center gap-2">
+                      <Image
+                        alt="U2U"
+                        className="rounded-full"
+                        height={32}
+                        src="/token/u2u.png"
+                        width={32}
+                      />
+                      <Typography
+                        className="text-white"
+                        size="lg"
+                        weight="semibold"
+                      >
+                        U2U
+                      </Typography>
+                    </div>
+                    <div className="text-right">
+                      <Typography className="text-gray-400" size="xs">
+                        Balance:
+                      </Typography>
+                      <CountUp
+                        abbreviate={false}
+                        className="font-medium text-sm text-white"
+                        decimals={4}
+                        suffix=" U2U"
+                        value={formattedBalance}
+                      />
+                    </div>
+                  </div>
 
-            {/* QR Code and Address */}
-            <div className="flex gap-4 rounded-xl bg-zinc-800/50 p-4">
-              <div className="flex h-40 w-40 items-center justify-center rounded-lg bg-white p-2">
-                {accountData?.address ? (
-                  <QRCodeSVG
-                    level="H"
-                    size={144}
-                    value={accountData.address}
-                  />
-                ) : (
-                  <Typography className="text-black" size="sm">
-                    No Address
+                  {/* QR Code and Address */}
+                  <div className="flex gap-4 rounded-xl bg-zinc-800/50 p-4">
+                    <div className="flex h-40 w-40 items-center justify-center rounded-lg bg-white p-2">
+                      {accountData?.address ? (
+                        <QRCodeSVG
+                          level="H"
+                          size={144}
+                          value={accountData.address}
+                        />
+                      ) : (
+                        <Typography className="text-black" size="sm">
+                          No Address
+                        </Typography>
+                      )}
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <Typography className="text-gray-400" size="sm">
+                        Your Wallet Address
+                      </Typography>
+                      <Typography
+                        className="break-all font-mono text-white"
+                        size="xs"
+                      >
+                        {accountData?.address || "Not connected"}
+                      </Typography>
+                      <Button
+                        className="mt-2 flex items-center gap-2 rounded-md text-gray-400 hover:text-white"
+                        onClick={() => {
+                          if (accountData?.address) {
+                            navigator.clipboard.writeText(accountData.address);
+                          }
+                        }}
+                        variant="secondary"
+                      >
+                        <Copy className="h-4 w-4" />
+                        <Typography size="xs">Copy Address</Typography>
+                      </Button>
+                    </div>
+                  </div>
+
+                  <Typography className="text-gray-400" size="xs">
+                    Only deposit assets on {chain?.name || "this network"} for
+                    this address.
                   </Typography>
-                )}
-              </div>
-              <div className="flex-1 space-y-2">
-                <Typography className="text-gray-400" size="sm">
-                  Your Wallet Address
-                </Typography>
-                <Typography
-                  className="break-all font-mono text-white"
-                  size="xs"
-                >
-                  {accountData?.address || "Not connected"}
-                </Typography>
-                <Button
-                  className="mt-2 flex items-center gap-2 rounded-md text-gray-400 hover:text-white"
-                  onClick={() => {
-                    if (accountData?.address) {
-                      navigator.clipboard.writeText(accountData.address);
-                    }
-                  }}
-                  variant="secondary"
-                >
-                  <Copy className="h-4 w-4" />
-                  <Typography size="xs">Copy Address</Typography>
-                </Button>
-              </div>
-            </div>
 
-            <Typography className="text-gray-400" size="xs">
-              Only deposit assets on {chain?.name || "this network"} for
-              this address.
-            </Typography>
+                  <Button
+                    className="w-full rounded-full"
+                    onClick={() => {
+                      if (accountData?.address) {
+                        navigator.clipboard.writeText(accountData.address);
+                      }
+                    }}
+                    variant="gradient"
+                  >
+                    Copy Address
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
 
-            <Button
-              className="w-full rounded-full"
-              onClick={() => {
-                if (accountData?.address) {
-                  navigator.clipboard.writeText(accountData.address);
-                }
-              }}
-              variant="gradient"
-            >
-              Copy Address
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* TEMPORARILY DISABLED: Recharge Dialog */}
-      {/* <Dialog onOpenChange={setRechargeOpen} open={rechargeOpen}>
+            {/* TEMPORARILY DISABLED: Recharge Dialog */}
+            {/* <Dialog onOpenChange={setRechargeOpen} open={rechargeOpen}>
               <DialogContent className="max-w-2xl border-zinc-800 bg-zinc-900">
                 <DialogHeader>
                   <DialogTitle className="text-2xl">Recharge</DialogTitle>
@@ -973,9 +1063,9 @@ export function FooterSidebarSection() {
                 </div>
               </DialogContent>
             </Dialog> */}
-    </div>
-  );
-}}
+          </div>
+        );
+      }}
     </ConnectButton.Custom >
   );
 }

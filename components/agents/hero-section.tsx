@@ -29,8 +29,8 @@ export function HeroSection({ agentCount }: HeroSectionProps) {
         {/* Background LightPillar - Full width and height */}
         <div className="absolute inset-0 w-full h-full pointer-events-none">
           <LightPillar
-            topColor="#00e1ff"
-            bottomColor="#e2f0f4"
+            topColor="#74d0f5"
+            bottomColor="#B5EAFF"
             intensity={1.1}
             rotationSpeed={0.7}
             glowAmount={0.005}
@@ -71,7 +71,7 @@ export function HeroSection({ agentCount }: HeroSectionProps) {
             Explore AI Agent Swarm
           </h1>
           
-          <p className="text-lg md:text-xl text-foreground/90 mb-8 leading-relaxed max-w-2xl">
+          <p className="text-lg md:text-xl text-foreground/90 mb-8 leading-relaxed max-w-[70%]">
             Discover AI Agent Swarm — specialized, collaborative AI Agents
             that power Intelligence and Strategies
           </p>

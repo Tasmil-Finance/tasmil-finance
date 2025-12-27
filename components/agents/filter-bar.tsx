@@ -48,14 +48,14 @@ export function FilterBar({
             {activeFilter === filter.label && (
               <div className="absolute top-0 left-1/2 -translate-x-1/2 h-4 w-[50%] rounded-full bg-white/80 blur-xl" />
             )}
-            {filter.icon && <filter.icon size={14} />}
+            {/* {filter.icon && <filter.icon size={14} />} */}
             {filter.label}
           </Button>
         ))}
       </div>
 
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-        <div className="flex items-center gap-3">
+        {/* <div className="flex items-center gap-3">
           <Label htmlFor="prompt-defi" className="text-sm text-muted-foreground flex items-center gap-2">
             <Sparkles size={14} />
             Prompt-to-DeFi supported
@@ -65,7 +65,7 @@ export function FilterBar({
             checked={promptToDeFi}
             onCheckedChange={onPromptToDeFiChange}
           />
-        </div>
+        </div> */}
 
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
@@ -78,7 +78,7 @@ export function FilterBar({
           />
         </div>
 
-        <Button 
+        {/* <Button 
           variant="ghost" 
           size="sm" 
           onClick={() => {
@@ -89,7 +89,7 @@ export function FilterBar({
           type="button"
         >
           Clear Filters
-        </Button>
+        </Button> */}
       </div>
     </div>
   );

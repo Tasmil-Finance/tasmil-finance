@@ -7,8 +7,8 @@ import { DefiAgentHeader } from "@/components/defi-agent-header";
 import { DefiAgentSidebar } from "@/components/defi-agent-sidebar";
 import { DefiAgentSidebarToggle } from "@/components/defi-agent-sidebar-toggle";
 import { Typography } from "@/components/ui/typography";
-import { useDefiAgentSidebar } from "@/contexts/defi-agent-sidebar-context";
-import { useWallet } from "@/contexts/wallet-context";
+import { useDefiAgentSidebar } from "@/context/defi-agent-sidebar-context";
+import { useWallet } from "@/context/wallet-context";
 import { cn } from "@/lib/utils";
 
 type DefiAgentLayoutProps = {

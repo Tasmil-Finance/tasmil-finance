@@ -4,7 +4,7 @@ import type { ComponentProps } from "react";
 import { usePathname } from "next/navigation";
 import { useWindowSize } from "usehooks-ts";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import { useDefiAgentSidebar } from "@/contexts/defi-agent-sidebar-context";
+import { useDefiAgentSidebar } from "@/context/defi-agent-sidebar-context";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Clock } from "lucide-react";

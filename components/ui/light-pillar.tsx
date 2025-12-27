@@ -280,7 +280,9 @@ const LightPillar: React.FC<LightPillarProps> = ({
 
       if (deltaTime >= frameTime) {
         timeRef.current += 0.016 * rotationSpeed;
-        materialRef.current.uniforms.uTime.value = timeRef.current;
+        if (materialRef.current?.uniforms?.uTime) {
+          materialRef.current.uniforms.uTime.value = timeRef.current;
+        }
         rendererRef.current.render(sceneRef.current, cameraRef.current);
         lastTime = currentTime - (deltaTime % frameTime);
       }
@@ -289,29 +291,56 @@ const LightPillar: React.FC<LightPillarProps> = ({
     };
     rafRef.current = requestAnimationFrame(animate);
 
-    // Handle resize with debouncing
-    let resizeTimeout: number | null = null;
+    // Handle resize with requestAnimationFrame for smooth, immediate updates
+    let resizeScheduled = false;
     const handleResize = () => {
-      if (resizeTimeout) {
-        clearTimeout(resizeTimeout);
-      }
-
-      resizeTimeout = window.setTimeout(() => {
-        if (!rendererRef.current || !materialRef.current || !containerRef.current) return;
+      if (resizeScheduled) return;
+      resizeScheduled = true;
+      
+      requestAnimationFrame(() => {
+        if (!rendererRef.current || !materialRef.current || !containerRef.current) {
+          resizeScheduled = false;
+          return;
+        }
+        
         const newWidth = containerRef.current.clientWidth;
         const newHeight = containerRef.current.clientHeight;
+        
+        if (newWidth === 0 || newHeight === 0) {
+          resizeScheduled = false;
+          return;
+        }
+        
         rendererRef.current.setSize(newWidth, newHeight);
-        materialRef.current.uniforms.uResolution.value.set(newWidth, newHeight);
-      }, 150);
+        rendererRef.current.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        if (materialRef.current?.uniforms?.uResolution) {
+          materialRef.current.uniforms.uResolution.value.set(newWidth, newHeight);
+        }
+        resizeScheduled = false;
+      });
     };
 
+    // Use ResizeObserver to detect container size changes (e.g., sidebar collapse)
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.target === container) {
+          handleResize();
+        }
+      }
+    });
+    
+    resizeObserver.observe(container);
     window.addEventListener('resize', handleResize, { passive: true });
 
     // Cleanup
     return () => {
+      resizeObserver.disconnect();
       window.removeEventListener('resize', handleResize);
       if (interactive) {
         container.removeEventListener('mousemove', handleMouseMove);
+      }
+      if (mouseMoveTimeout) {
+        clearTimeout(mouseMoveTimeout);
       }
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);

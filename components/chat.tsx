@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useSWRConfig } from "swr";
 import { unstable_serialize } from "swr/infinite";
-import { useWallet } from "@/contexts/wallet-context";
+import { useWallet } from "@/context/wallet-context";
 import {
   AlertDialog,
   AlertDialogAction,

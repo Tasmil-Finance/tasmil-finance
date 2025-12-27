@@ -20,7 +20,7 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useSearch } from "@/contexts/search-context";
+import { useSearch } from "@/context/search-context";
 
 export function CommandMenu() {
   const router = useRouter();
