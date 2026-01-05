@@ -1,0 +1,1 @@
+{"properties":{"checkpoint":{"type":"object","title":"Checkpoint"}},"type":"object","title":"ThreadStateUpdateResponse","description":"Response for adding state to a thread.","x-readme-ref-name":"ThreadStateUpdateResponse"}

@@ -1,0 +1,1 @@
+{"type":"object","properties":{"id":{"type":["string","null"]},"value":{"type":"object"}},"title":"Interrupt","required":["value"],"x-readme-ref-name":"Interrupt"}

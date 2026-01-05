@@ -1,0 +1,1 @@
+{"type":"object","title":"Send","description":"A message to send to a node.","properties":{"node":{"type":"string","title":"Node","description":"The node to send the message to."},"input":{"type":["object","array","number","string","boolean","null"],"title":"Message","description":"The message to send."}},"required":["node","input"],"x-readme-ref-name":"Send"}
