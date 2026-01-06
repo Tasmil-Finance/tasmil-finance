@@ -128,25 +128,19 @@ export default function BridgeResult({ result, toolType }: BridgeResultProps) {
   
   if (result.error || result.success === false) {
     return (
-      <div className="p-4">
         <ErrorResult error={result.error || "Operation failed"} />
-      </div>
     );
   }
   
   switch (toolType) {
     case "tool-getBridgePairs":
       return (
-        <div className="p-4">
           <BridgePairsResult data={result} />
-        </div>
       );
     
     case "tool-getBridgeQuote":
       return (
-        <div className="p-4">
           <BridgeQuoteResult data={result} />
-        </div>
       );
     
     default:

@@ -150,25 +150,19 @@ export default function YieldResult({ result, toolType }: YieldResultProps) {
   
   if (result.error || result.success === false) {
     return (
-      <div className="p-4">
         <ErrorResult error={result.error || "Operation failed"} />
-      </div>
     );
   }
   
   switch (toolType) {
     case "tool-getYieldPools":
       return (
-        <div className="p-4">
           <YieldPoolsResult data={result} />
-        </div>
       );
     
     case "tool-getStablecoinYields":
       return (
-        <div className="p-4">
           <StablecoinYieldsResult data={result} />
-        </div>
       );
     
     default:

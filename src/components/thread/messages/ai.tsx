@@ -16,30 +16,17 @@ import { GenericInterruptView } from "./generic-interrupt";
 import { useArtifact } from "../artifact";
 import ComponentMap from "@/custom-components";
 import Image from "next/image";
-import { Bot } from "lucide-react";
 
 function AgentAvatar() {
-  const { assistantInfo } = useChatState();
-  const icon = (assistantInfo?.metadata as any)?.icon;
-  const name = assistantInfo?.name || (assistantInfo?.metadata as any)?.name || "AI";
-  
-  if (icon) {
-    return (
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted overflow-hidden">
-        <Image 
-          src={icon} 
-          alt={name} 
-          width={32} 
-          height={32}
-          className="h-full w-full object-cover"
-        />
-      </div>
-    );
-  }
-  
   return (
-    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-      <Bot className="h-4 w-4 text-primary" />
+    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full overflow-hidden">
+      <Image 
+        src="/images/logo.png" 
+        alt="AI Assistant" 
+        width={32} 
+        height={32}
+        className="h-full w-full object-cover"
+      />
     </div>
   );
 }

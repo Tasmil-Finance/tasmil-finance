@@ -107,18 +107,14 @@ export default function StakingOperationResult({
   // Handle error
   if (!result.success) {
     return (
-      <div className="p-4">
         <ErrorResult error={result.error} />
-      </div>
     );
   }
 
   // Handle transaction completed
   if (result.transactionCompleted && result.hash) {
     return (
-      <div className="p-4">
         <TransactionCompletedResult result={result} />
-      </div>
     );
   }
 
@@ -156,13 +152,11 @@ export default function StakingOperationResult({
   // Check if this is a staking operation that requires wallet interaction
   if (stakingOperations.includes(toolType) || result.requiresWallet) {
     return (
-      <div className="p-4">
         <StakingOperation
           toolCallId={toolCallId}
           onSuccess={handleTransactionSuccess}
           operation={result}
         />
-      </div>
     );
   }
 

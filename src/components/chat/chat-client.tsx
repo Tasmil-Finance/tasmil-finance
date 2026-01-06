@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, FormEvent } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { ArrowLeft, Send, Clock, ArrowDown, Paperclip, LoaderCircle, Wrench } from "lucide-react";
+import { ArrowLeft, Send, Clock, ArrowDown, Paperclip, Square, Wrench } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button-v2";
 import { cn } from "@/lib/utils";
@@ -350,14 +350,20 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
 
               {/* Bottom toolbar */}
               <div className="flex items-center justify-between px-3 pb-3">
-                <div className="flex items-center gap-2">
-                  {/* Upload button */}
-                  <label
-                    htmlFor="file-input"
-                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-                  >
-                    <Paperclip className="h-4 w-4" />
-                  </label>
+                <div className="flex items-center gap-1">
+                  {/* Upload button with label */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <label
+                        htmlFor="file-input"
+                        className="flex h-8 cursor-pointer items-center gap-1.5 px-2 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                      >
+                        <Paperclip className="h-4 w-4" />
+                        <span className="text-xs">Attach</span>
+                      </label>
+                    </TooltipTrigger>
+                    <TooltipContent>Attach files (images, PDF)</TooltipContent>
+                  </Tooltip>
                   <input
                     id="file-input"
                     type="file"
@@ -367,20 +373,21 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
                     className="hidden"
                   />
                   
-                  {/* Toggle hide tools button */}
+                  {/* Toggle hide tools button with label */}
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button
                         type="button"
                         onClick={() => setHideToolCalls(!hideToolCalls)}
                         className={cn(
-                          "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
+                          "flex h-8 items-center gap-1.5 px-2 rounded-lg transition-colors",
                           hideToolCalls 
                             ? "bg-primary/10 text-primary" 
                             : "text-muted-foreground hover:bg-accent hover:text-foreground"
                         )}
                       >
                         <Wrench className="h-4 w-4" />
+                        <span className="text-xs">Tools</span>
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -389,16 +396,21 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
                   </Tooltip>
                 </div>
 
-                {/* Send/Cancel button */}
+                {/* Send/Stop button */}
                 {stream.isLoading ? (
-                  <Button
-                    type="button"
-                    onClick={() => stream.stop()}
-                    variant="ghost"
-                    className="h-8 w-8 rounded-full p-0"
-                  >
-                    <LoaderCircle className="h-4 w-4 animate-spin" />
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        onClick={() => stream.stop()}
+                        variant="destructive"
+                        className="h-8 w-8 rounded-full p-0"
+                      >
+                        <Square className="h-3.5 w-3.5 fill-current" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Stop generating</TooltipContent>
+                  </Tooltip>
                 ) : (
                   <Button
                     type="submit"

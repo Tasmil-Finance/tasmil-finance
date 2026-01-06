@@ -124,9 +124,7 @@ export default function StakingResult({ result, toolType }: StakingResultProps) 
   
   if (!result.success) {
     return (
-      <div className="p-4">
         <ErrorResult error={result.error || "Operation failed"} />
-      </div>
     );
   }
   
@@ -134,48 +132,36 @@ export default function StakingResult({ result, toolType }: StakingResultProps) 
     case "tool-getAccountBalance":
     case "tool-u2u_staking_get_user_stake":
       return (
-        <div className="p-4">
           <AccountBalanceResult data={result} />
-        </div>
       );
     
     case "tool-getCurrentEpoch":
       return (
-        <div className="p-4">
           <CurrentEpochResult data={result} />
-        </div>
       );
     
     case "tool-getTotalStake":
     case "tool-getTotalActiveStake":
       return (
-        <div className="p-4">
           <TotalStakeResult data={result} />
-        </div>
       );
     
     case "tool-getValidatorInfo":
       return (
-        <div className="p-4">
           <ValidatorInfoResult data={result} />
-        </div>
       );
     
     case "tool-getPendingRewards":
     case "tool-u2u_staking_get_pending_rewards":
     case "tool-u2u_staking_get_rewards_stash":
       return (
-        <div className="p-4">
           <PendingRewardsResult data={result} />
-        </div>
       );
     
     case "tool-u2u_staking_get_unlocked_stake":
     case "tool-u2u_staking_get_lockup_info":
       return (
-        <div className="p-4">
           <AccountBalanceResult data={result} />
-        </div>
       );
     
     default:

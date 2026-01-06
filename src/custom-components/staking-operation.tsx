@@ -135,23 +135,31 @@ export function StakingOperation({
       return;
     }
 
-    // Submit the result to the thread to persist state
+    // Create a user-friendly message for the AI to respond to
+    const userMessage = result.success 
+      ? `Transaction completed successfully! Hash: ${result.hash}. Please provide a clear summary of what was accomplished.`
+      : `Transaction failed with error: ${result.message}. Please explain what went wrong and suggest next steps.`;
+
+    // Submit the result to the thread to persist state and trigger AI response
     thread.submit(
-      {},
       {
-        command: {
-          update: {
-            messages: [
-              {
-                type: "tool",
-                tool_call_id: effectiveToolCallId,
-                id: `${DO_NOT_RENDER_ID_PREFIX}${uuidv4()}`,
-                name: "staking-transaction-result",
-                content: JSON.stringify(result),
-              },
-            ],
+        messages: [
+          {
+            type: "tool",
+            tool_call_id: effectiveToolCallId,
+            id: `${DO_NOT_RENDER_ID_PREFIX}${uuidv4()}`,
+            name: "staking-transaction-result",
+            content: JSON.stringify({
+              ...result,
+              userFriendlyMessage: userMessage,
+            }),
           },
-        },
+        ],
+      },
+      {
+        streamMode: ["values"],
+        streamSubgraphs: true,
+        streamResumable: true,
       }
     );
   };
@@ -249,7 +257,8 @@ export function StakingOperation({
       };
 
       setExecutionResult(failedResult);
-      // Don't save failed transactions to thread state
+      // Save failed transaction and trigger AI response for user guidance
+      saveTransactionResult(failedResult);
       onError?.(errorMessage);
     } finally {
       setIsExecuting(false);

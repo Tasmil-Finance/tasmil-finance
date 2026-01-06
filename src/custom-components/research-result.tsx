@@ -176,34 +176,26 @@ export default function ResearchResult({ result, toolType }: ResearchResultProps
   
   if (result.error || result.success === false) {
     return (
-      <div className="p-4">
         <ErrorResult error={result.error || "Operation failed"} />
-      </div>
     );
   }
   
   switch (toolType) {
     case "tool-getCryptoPrice":
       return (
-        <div className="p-4">
           <CryptoPriceResult data={result} />
-        </div>
       );
     
     case "tool-getTopCoins":
     case "tool-getMultiplePrices":
     case "tool-getTrendingCoins":
       return (
-        <div className="p-4">
           <TopCoinsResult data={result} />
-        </div>
       );
     
     case "tool-calculateInvestmentScore":
       return (
-        <div className="p-4">
           <InvestmentScoreResult data={result} />
-        </div>
       );
     
     default:
