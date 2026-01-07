@@ -35,6 +35,7 @@
     "@rainbow-me/rainbowkit": "^2.2.8",
     "@tailwindcss/postcss": "^4.1.18",
     "@tanstack/react-query": "^5.85.5",
+    "@tanstack/react-query-devtools": "^5.85.5",
     "@types/qrcode.react": "^3.0.0",
     "@wagmi/core": "^2.21.2",
     "@web3icons/react": "^4.1.9",
@@ -71,6 +72,7 @@
     "tailwindcss": "^4.1.18",
     "tailwindcss-animate": "^1.0.7",
     "three": "^0.182.0",
+    "typescript": "^5",
     "use-stick-to-bottom": "^1.1.1",
     "uuid": "^13.0.0",
     "viem": "^2.38.0",
@@ -84,7 +86,6 @@
     "@kubb/plugin-oas": "^4.9.3",
     "@kubb/plugin-react-query": "^4.9.3",
     "@kubb/plugin-ts": "^4.9.3",
-    "@tanstack/react-query-devtools": "^5.85.5",
     "@types/lodash": "^4.17.21",
     "@types/node": "latest",
     "@types/react": "^19",
@@ -93,7 +94,6 @@
     "@types/three": "^0.182.0",
     "@types/uuid": "^11.0.0",
     "eslint": "^9",
-    "eslint-config-next": "16.1.1",
-    "typescript": "^5"
+    "eslint-config-next": "16.1.1"
   }
 }
