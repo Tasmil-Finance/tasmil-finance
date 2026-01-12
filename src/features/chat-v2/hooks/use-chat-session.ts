@@ -172,13 +172,6 @@ export function useChatSession(options: UseChatSessionOptions): ChatSessionState
 
   // Send pending message after redirect to new thread
   useEffect(() => {
-    console.log('[ChatSession] Pending message check:', {
-      chatId,
-      pendingMessage,
-      isInitialized,
-      pendingMessageSentRef: pendingMessageSentRef.current
-    });
-    
     if (
       chatId !== 'new' && 
       pendingMessage && 

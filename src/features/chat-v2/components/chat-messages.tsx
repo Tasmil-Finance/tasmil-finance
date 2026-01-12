@@ -13,6 +13,29 @@ interface ChatMessagesProps {
   onEditMessage: (index: number, newContent: string) => void;
 }
 
+/**
+ * Check if message content is a raw JSON tool result that should be hidden
+ */
+function isToolResultMessage(message: UniversalMessage): boolean {
+  if (message.role !== 'ai') return false;
+  
+  const content = typeof message.content === 'string' ? message.content.trim() : '';
+  if (!content) return false;
+  
+  // Check if content starts with { and looks like JSON tool result
+  if (content.startsWith('{') && content.includes('"success"')) {
+    try {
+      const parsed = JSON.parse(content);
+      // If it has success field, it's likely a tool result
+      if ('success' in parsed) return true;
+    } catch {
+      // Not valid JSON, keep the message
+    }
+  }
+  
+  return false;
+}
+
 function ChatMessagesComponent({
   messages,
   isLoading,
@@ -23,9 +46,12 @@ function ChatMessagesComponent({
   const lastAiMessage = messages.filter(m => m.role === 'ai').pop();
   const isAiStreaming = isLoading && lastAiMessage && !lastAiMessage.content;
 
+  // Filter out raw JSON tool result messages
+  const filteredMessages = messages.filter(msg => !isToolResultMessage(msg));
+
   return (
     <div className="flex flex-col gap-4">
-      {messages.map((message, index) => {
+      {filteredMessages.map((message, index) => {
         return message.role === 'human' ? (
           <HumanMessage
             key={message.id || `${message.role}-${index}`}

@@ -1,19 +1,14 @@
 "use client";
 
 // 🔌 Pending message provider - persists message across CopilotKit remounts
-// Uses sessionStorage to survive layout remounts during navigation
 
 import {
   createContext,
   useContext,
   useState,
-  useEffect,
   useMemo,
-  useCallback,
   type ReactNode,
 } from 'react';
-
-const STORAGE_KEY = 'chat_pending_message';
 
 interface PendingMessageContextValue {
   pendingMessage: string | null;
@@ -27,35 +22,12 @@ interface PendingMessageProviderProps {
 }
 
 export function PendingMessageProvider({ children }: PendingMessageProviderProps) {
-  const [pendingMessage, setPendingMessageState] = useState<string | null>(() => {
-    // Initialize from sessionStorage
-    if (typeof window !== 'undefined') {
-      return sessionStorage.getItem(STORAGE_KEY);
-    }
-    return null;
-  });
-
-  // Sync to sessionStorage when pendingMessage changes
-  useEffect(() => {
-    if (pendingMessage) {
-      sessionStorage.setItem(STORAGE_KEY, pendingMessage);
-    } else {
-      sessionStorage.removeItem(STORAGE_KEY);
-    }
-  }, [pendingMessage]);
-
-  const setPendingMessage = useCallback((msg: string | null) => {
-    console.log('[PendingMessageProvider] Setting pending message:', msg?.slice(0, 50));
-    setPendingMessageState(msg);
-  }, []);
-
-  // Debug log
-  console.log('[PendingMessageProvider] Current pending message:', pendingMessage);
+  const [pendingMessage, setPendingMessage] = useState<string | null>(null);
 
   const value = useMemo<PendingMessageContextValue>(() => ({
     pendingMessage,
     setPendingMessage,
-  }), [pendingMessage, setPendingMessage]);
+  }), [pendingMessage]);
 
   return (
     <PendingMessageContext.Provider value={value}>
