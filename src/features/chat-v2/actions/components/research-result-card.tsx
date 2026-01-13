@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useRef, useEffect, useCallback } from "react";
 import { TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -35,8 +36,33 @@ const PriceChange = ({ value }: { value: number | undefined | null }) => {
   );
 };
 
+// Global scroll position store - persists across re-renders
+const scrollPositions = new Map<string, number>();
+
+// Custom hook for scroll preservation with global store
+function useScrollPreservation(id: string) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  
+  // Restore scroll position on mount
+  useEffect(() => {
+    const el = scrollRef.current;
+    const savedPos = scrollPositions.get(id);
+    if (el && savedPos !== undefined && savedPos > 0) {
+      requestAnimationFrame(() => {
+        el.scrollTop = savedPos;
+      });
+    }
+  }, [id]);
+  
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    scrollPositions.set(id, e.currentTarget.scrollTop);
+  }, [id]);
+  
+  return { scrollRef, handleScroll };
+}
+
 // Crypto Price Result
-const CryptoPriceResult = ({ data }: { data: any }) => {
+const CryptoPriceResult = memo(({ data }: { data: any }) => {
   const coin = data.coin || data;
   
   return (
@@ -76,30 +102,37 @@ const CryptoPriceResult = ({ data }: { data: any }) => {
       </div>
     </div>
   );
-};
+});
+CryptoPriceResult.displayName = 'CryptoPriceResult';
 
 // Format price with proper handling
 const formatPrice = (price: number | string | undefined | null): string => {
   if (price === undefined || price === null) return "N/A";
   const numPrice = typeof price === "string" ? parseFloat(price) : price;
   if (isNaN(numPrice)) return "N/A";
-  if (numPrice < 0.01) return `$${numPrice.toFixed(6)}`;
-  if (numPrice < 1) return `$${numPrice.toFixed(4)}`;
-  return `$${numPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  if (numPrice < 0.01) return `${numPrice.toFixed(6)}`;
+  if (numPrice < 1) return `${numPrice.toFixed(4)}`;
+  return `${numPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
 // Top Coins Result
-const TopCoinsResult = ({ data }: { data: any }) => {
-  const coins = data.topCoins || data.trendingCoins || data.coins || [];
+const TopCoinsResult = memo(({ data, scrollId }: { data: any; scrollId: string }) => {
+  const coins = data.topCoins || data.trendingCoins || data.coins || data.results || [];
+  const { scrollRef, handleScroll } = useScrollPreservation(scrollId);
   
   return (
     <div className="space-y-2">
       <div className="text-sm text-muted-foreground mb-2">
         Showing top {coins.length} coins by market cap
       </div>
-      <div className="max-h-[300px] overflow-y-auto space-y-1">
+      <div 
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="max-h-[300px] overflow-y-auto space-y-1" 
+        data-scrollable="true"
+      >
         {coins.slice(0, 15).map((coin: any, index: number) => (
-          <div key={coin.id || index} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0">
+          <div key={`coin-${coin.id || index}-${coin.symbol}`} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0">
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground w-6 text-xs">#{coin.rank || coin.marketCapRank || index + 1}</span>
               <span className="font-medium">{coin.symbol?.toUpperCase()}</span>
@@ -114,10 +147,11 @@ const TopCoinsResult = ({ data }: { data: any }) => {
       </div>
     </div>
   );
-};
+});
+TopCoinsResult.displayName = 'TopCoinsResult';
 
 // Global Market Data Result
-const GlobalMarketResult = ({ data }: { data: any }) => {
+const GlobalMarketResult = memo(({ data }: { data: any }) => {
   const market = data.globalMarket || data;
   
   return (
@@ -148,7 +182,8 @@ const GlobalMarketResult = ({ data }: { data: any }) => {
       </div>
     </div>
   );
-};
+});
+GlobalMarketResult.displayName = 'GlobalMarketResult';
 
 // Loading state
 const LoadingState = ({ toolName }: { toolName: string }) => (
@@ -187,7 +222,7 @@ const GenericResult = ({ data }: { data: any }) => {
   );
 };
 
-export function ResearchResultCard({ toolName, result, status }: ResearchResultCardProps) {
+function ResearchResultCardComponent({ toolName, result, status }: ResearchResultCardProps) {
   if (status === "executing" || status === "pending") {
     return (
       <div className="rounded-lg border border-border bg-card p-4">
@@ -215,14 +250,22 @@ export function ResearchResultCard({ toolName, result, status }: ResearchResultC
   }
 
   const renderContent = () => {
+    const dataHash = JSON.stringify(data).slice(0, 50);
+    const scrollId = `${toolName}-${dataHash}`;
+    
     switch (toolName) {
-      case "get_crypto_price":
+      case "research_get_crypto_price":
         return <CryptoPriceResult data={data} />;
-      case "get_top_coins":
-      case "get_trending_coins":
-        return <TopCoinsResult data={data} />;
-      case "get_global_market_data":
+      case "research_get_top_coins":
+      case "research_get_trending_coins":
+        return <TopCoinsResult data={data} scrollId={scrollId} />;
+      case "research_get_global_market_data":
         return <GlobalMarketResult data={data} />;
+      case "research_search_coins":
+        return <TopCoinsResult data={data} scrollId={scrollId} />;
+      case "research_get_defi_tvl":
+      case "research_get_crypto_news":
+        return <GenericResult data={data} />;
       default:
         return <GenericResult data={data} />;
     }
@@ -234,3 +277,5 @@ export function ResearchResultCard({ toolName, result, status }: ResearchResultC
     </div>
   );
 }
+
+export const ResearchResultCard = memo(ResearchResultCardComponent);

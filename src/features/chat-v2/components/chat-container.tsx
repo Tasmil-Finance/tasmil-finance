@@ -45,6 +45,7 @@ export function ChatContainer({
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [userScrolledUp, setUserScrolledUp] = useState(false);
+  const [isInteractingWithContent, setIsInteractingWithContent] = useState(false);
   const lastMessageCountRef = useRef(0);
 
   // Get connected wallet address
@@ -94,12 +95,13 @@ export function ChatContainer({
   const showAiLoading = isLoading && !isLoadingHistory;
 
   // Auto-scroll to bottom only when new messages arrive and user hasn't scrolled up
+  // and user is not interacting with scrollable content inside messages
   useEffect(() => {
-    if (messages.length > lastMessageCountRef.current && !userScrolledUp) {
+    if (messages.length > lastMessageCountRef.current && !userScrolledUp && !isInteractingWithContent) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
     lastMessageCountRef.current = messages.length;
-  }, [messages.length, userScrolledUp]);
+  }, [messages.length, userScrolledUp, isInteractingWithContent]);
 
   // Track scroll position for scroll-to-bottom button
   useEffect(() => {
@@ -118,6 +120,39 @@ export function ChatContainer({
 
     container.addEventListener('scroll', handleScroll);
     return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Detect when user is interacting with scrollable content inside messages
+  // This prevents auto-scroll from interrupting user's scroll inside tool UI cards
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const handleMouseEnter = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // Check if hovering over a scrollable element inside messages
+      const scrollableParent = target.closest('[data-scrollable="true"], .overflow-y-auto, .overflow-auto');
+      if (scrollableParent && scrollableParent !== container) {
+        setIsInteractingWithContent(true);
+      }
+    };
+
+    const handleMouseLeave = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const scrollableParent = target.closest('[data-scrollable="true"], .overflow-y-auto, .overflow-auto');
+      if (scrollableParent && scrollableParent !== container) {
+        setIsInteractingWithContent(false);
+      }
+    };
+
+    // Use event delegation for better performance
+    container.addEventListener('mouseenter', handleMouseEnter, true);
+    container.addEventListener('mouseleave', handleMouseLeave, true);
+
+    return () => {
+      container.removeEventListener('mouseenter', handleMouseEnter, true);
+      container.removeEventListener('mouseleave', handleMouseLeave, true);
+    };
   }, []);
 
   const scrollToBottom = useCallback(() => {

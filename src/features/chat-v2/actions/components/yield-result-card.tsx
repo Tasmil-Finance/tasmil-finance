@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useRef, useEffect, useCallback } from "react";
 import { TrendingUp, AlertCircle, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -55,18 +56,50 @@ const RiskIndicator = ({ risk }: { risk: string | undefined }) => {
   );
 };
 
+// Global scroll position store - persists across re-renders
+const scrollPositions = new Map<string, number>();
+
+// Custom hook for scroll preservation with global store
+function useScrollPreservation(id: string) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  
+  // Restore scroll position on mount
+  useEffect(() => {
+    const el = scrollRef.current;
+    const savedPos = scrollPositions.get(id);
+    if (el && savedPos !== undefined && savedPos > 0) {
+      // Use requestAnimationFrame to ensure DOM is ready
+      requestAnimationFrame(() => {
+        el.scrollTop = savedPos;
+      });
+    }
+  }, [id]);
+  
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    scrollPositions.set(id, e.currentTarget.scrollTop);
+  }, [id]);
+  
+  return { scrollRef, handleScroll };
+}
+
 // Yield Pools Result
-const YieldPoolsResult = ({ data }: { data: any }) => {
+const YieldPoolsResult = memo(({ data, scrollId }: { data: any; scrollId: string }) => {
   const pools = data.pools || [];
+  const { scrollRef, handleScroll } = useScrollPreservation(scrollId);
   
   return (
     <div className="space-y-2">
       <div className="text-sm text-muted-foreground mb-2">
         Found {data.totalPools || pools.length} yield opportunities
       </div>
-      <div className="max-h-[400px] overflow-y-auto space-y-2">
+      <div 
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="max-h-[400px] overflow-y-auto space-y-2" 
+        data-scrollable="true"
+      >
         {pools.slice(0, 15).map((pool: any, index: number) => (
-          <div key={index} className="border border-border/50 rounded-lg p-3 space-y-2">
+          <div key={`pool-${index}-${pool.symbol}`} className="border border-border/50 rounded-lg p-3 space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="font-medium">{pool.symbol}</span>
@@ -112,20 +145,27 @@ const YieldPoolsResult = ({ data }: { data: any }) => {
       </div>
     </div>
   );
-};
+});
+YieldPoolsResult.displayName = 'YieldPoolsResult';
 
 // Top Yields by Chain Result
-const TopYieldsByChainResult = ({ data }: { data: any }) => {
+const TopYieldsByChainResult = memo(({ data, scrollId }: { data: any; scrollId: string }) => {
   const pools = data.pools || [];
+  const { scrollRef, handleScroll } = useScrollPreservation(scrollId);
   
   return (
     <div className="space-y-2">
       <div className="text-sm text-muted-foreground mb-2">
         Top yields on {data.chain} ({data.totalPools || pools.length} pools found)
       </div>
-      <div className="max-h-[350px] overflow-y-auto space-y-1">
+      <div 
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="max-h-[350px] overflow-y-auto space-y-1" 
+        data-scrollable="true"
+      >
         {pools.map((pool: any, index: number) => (
-          <div key={index} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+          <div key={`chain-pool-${index}-${pool.symbol}`} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground w-6 text-xs">#{pool.rank || index + 1}</span>
               <div>
@@ -147,10 +187,11 @@ const TopYieldsByChainResult = ({ data }: { data: any }) => {
       </div>
     </div>
   );
-};
+});
+TopYieldsByChainResult.displayName = 'TopYieldsByChainResult';
 
 // Yield Statistics Result
-const YieldStatsResult = ({ data }: { data: any }) => {
+const YieldStatsResult = memo(({ data }: { data: any }) => {
   const overview = data.overview || {};
   const topChains = data.topChains || [];
   
@@ -180,7 +221,7 @@ const YieldStatsResult = ({ data }: { data: any }) => {
           <div className="text-sm text-muted-foreground mb-2">Top Chains by TVL</div>
           <div className="space-y-1">
             {topChains.slice(0, 8).map((chain: any, index: number) => (
-              <div key={index} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0">
+              <div key={`stats-chain-${index}-${chain.chain}`} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0">
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground w-6 text-xs">#{index + 1}</span>
                   <span className="font-medium">{chain.chain}</span>
@@ -201,11 +242,13 @@ const YieldStatsResult = ({ data }: { data: any }) => {
       )}
     </div>
   );
-};
+});
+YieldStatsResult.displayName = 'YieldStatsResult';
 
 // Stablecoin Yields Result
-const StablecoinYieldsResult = ({ data }: { data: any }) => {
+const StablecoinYieldsResult = memo(({ data, scrollId }: { data: any; scrollId: string }) => {
   const pools = data.pools || [];
+  const { scrollRef, handleScroll } = useScrollPreservation(scrollId);
   
   return (
     <div className="space-y-2">
@@ -213,9 +256,14 @@ const StablecoinYieldsResult = ({ data }: { data: any }) => {
         <Shield className="h-4 w-4 text-green-500" />
         Safe stablecoin yields ({data.totalPools || pools.length} found)
       </div>
-      <div className="max-h-[350px] overflow-y-auto space-y-1">
+      <div 
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="max-h-[350px] overflow-y-auto space-y-1" 
+        data-scrollable="true"
+      >
         {pools.map((pool: any, index: number) => (
-          <div key={index} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+          <div key={`stable-${index}-${pool.symbol}`} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground w-6 text-xs">#{pool.rank || index + 1}</span>
               <div>
@@ -234,7 +282,8 @@ const StablecoinYieldsResult = ({ data }: { data: any }) => {
       </div>
     </div>
   );
-};
+});
+StablecoinYieldsResult.displayName = 'StablecoinYieldsResult';
 
 // Loading state
 const LoadingState = ({ toolName }: { toolName: string }) => (
@@ -273,7 +322,7 @@ const GenericResult = ({ data }: { data: any }) => {
   );
 };
 
-export function YieldResultCard({ toolName, result, status }: YieldResultCardProps) {
+function YieldResultCardComponent({ toolName, result, status }: YieldResultCardProps) {
   if (status === "executing" || status === "pending") {
     return (
       <div className="rounded-lg border border-border bg-card p-4">
@@ -301,17 +350,21 @@ export function YieldResultCard({ toolName, result, status }: YieldResultCardPro
   }
 
   const renderContent = () => {
+    // Generate stable scroll ID based on tool name and data hash
+    const dataHash = JSON.stringify(data).slice(0, 50);
+    const scrollId = `${toolName}-${dataHash}`;
+    
     switch (toolName) {
-      case "get_yield_pools":
-        return <YieldPoolsResult data={data} />;
-      case "get_top_yields_by_chain":
-        return <TopYieldsByChainResult data={data} />;
-      case "get_yield_stats":
+      case "yield_get_yield_pools":
+        return <YieldPoolsResult data={data} scrollId={scrollId} />;
+      case "yield_get_top_yields_by_chain":
+        return <TopYieldsByChainResult data={data} scrollId={scrollId} />;
+      case "yield_get_yield_stats":
         return <YieldStatsResult data={data} />;
-      case "search_pools_by_token":
-        return <YieldPoolsResult data={data} />;
-      case "get_stablecoin_yields":
-        return <StablecoinYieldsResult data={data} />;
+      case "yield_search_pools_by_token":
+        return <YieldPoolsResult data={data} scrollId={scrollId} />;
+      case "yield_get_stablecoin_yields":
+        return <StablecoinYieldsResult data={data} scrollId={scrollId} />;
       default:
         return <GenericResult data={data} />;
     }
@@ -323,3 +376,5 @@ export function YieldResultCard({ toolName, result, status }: YieldResultCardPro
     </div>
   );
 }
+
+export const YieldResultCard = memo(YieldResultCardComponent);

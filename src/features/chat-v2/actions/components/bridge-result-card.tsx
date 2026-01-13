@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useRef, useEffect, useCallback } from "react";
 import { ArrowRight, AlertCircle, Clock, Link2, Zap } from "lucide-react";
 
 interface BridgeResultCardProps {
@@ -14,9 +15,35 @@ const getChainDisplayName = (chain: string): string => {
   return chain?.replace("Mainnet", "").replace("Solaris", "") || "Unknown";
 };
 
+// Global scroll position store - persists across re-renders
+const scrollPositions = new Map<string, number>();
+
+// Custom hook for scroll preservation with global store
+function useScrollPreservation(id: string) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  
+  // Restore scroll position on mount
+  useEffect(() => {
+    const el = scrollRef.current;
+    const savedPos = scrollPositions.get(id);
+    if (el && savedPos !== undefined && savedPos > 0) {
+      requestAnimationFrame(() => {
+        el.scrollTop = savedPos;
+      });
+    }
+  }, [id]);
+  
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    scrollPositions.set(id, e.currentTarget.scrollTop);
+  }, [id]);
+  
+  return { scrollRef, handleScroll };
+}
+
 // Bridge Pairs Result
-const BridgePairsResult = ({ data }: { data: any }) => {
+const BridgePairsResult = memo(({ data, scrollId }: { data: any; scrollId: string }) => {
   const pairs = data.pairs || [];
+  const { scrollRef, handleScroll } = useScrollPreservation(scrollId);
   
   return (
     <div className="space-y-3">
@@ -24,9 +51,14 @@ const BridgePairsResult = ({ data }: { data: any }) => {
         <Link2 className="h-4 w-4 text-primary" />
         Available bridge routes ({data.totalPairs || pairs.length} found)
       </div>
-      <div className="max-h-[400px] overflow-y-auto space-y-2">
+      <div 
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="max-h-[400px] overflow-y-auto space-y-2" 
+        data-scrollable="true"
+      >
         {pairs.slice(0, 15).map((pair: any, index: number) => (
-          <div key={index} className="border border-border/50 rounded-lg p-3 space-y-2">
+          <div key={`pair-${index}-${pair.tokenName}-${pair.fromChainName}`} className="border border-border/50 rounded-lg p-3 space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="font-medium text-primary">{pair.tokenName}</span>
@@ -58,10 +90,11 @@ const BridgePairsResult = ({ data }: { data: any }) => {
       </div>
     </div>
   );
-};
+});
+BridgePairsResult.displayName = 'BridgePairsResult';
 
 // Bridge Quote Result
-const BridgeQuoteResult = ({ data }: { data: any }) => {
+const BridgeQuoteResult = memo(({ data }: { data: any }) => {
   const quote = data.quote || data;
   
   return (
@@ -119,10 +152,11 @@ const BridgeQuoteResult = ({ data }: { data: any }) => {
       </div>
     </div>
   );
-};
+});
+BridgeQuoteResult.displayName = 'BridgeQuoteResult';
 
 // Supported Chains Result
-const SupportedChainsResult = ({ data }: { data: any }) => {
+const SupportedChainsResult = memo(({ data }: { data: any }) => {
   const chains = data.chains || [];
   
   return (
@@ -132,14 +166,15 @@ const SupportedChainsResult = ({ data }: { data: any }) => {
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         {chains.map((chain: any, index: number) => (
-          <div key={index} className="bg-muted/30 rounded-lg p-3 text-center">
+          <div key={`chain-${index}-${chain.name || chain}`} className="bg-muted/30 rounded-lg p-3 text-center">
             <div className="font-medium text-sm">{chain.displayName || chain.name || chain}</div>
           </div>
         ))}
       </div>
     </div>
   );
-};
+});
+SupportedChainsResult.displayName = 'SupportedChainsResult';
 
 // Loading state
 const LoadingState = ({ toolName }: { toolName: string }) => (
@@ -179,7 +214,7 @@ const GenericResult = ({ data }: { data: any }) => {
   );
 };
 
-export function BridgeResultCard({ toolName, result, status }: BridgeResultCardProps) {
+function BridgeResultCardComponent({ toolName, result, status }: BridgeResultCardProps) {
   if (status === "executing" || status === "pending") {
     return (
       <div className="rounded-lg border border-border bg-card p-4">
@@ -207,12 +242,15 @@ export function BridgeResultCard({ toolName, result, status }: BridgeResultCardP
   }
 
   const renderContent = () => {
+    const dataHash = JSON.stringify(data).slice(0, 50);
+    const scrollId = `${toolName}-${dataHash}`;
+    
     switch (toolName) {
-      case "get_bridge_pairs":
-        return <BridgePairsResult data={data} />;
-      case "get_bridge_quote":
+      case "bridge_get_bridge_pairs":
+        return <BridgePairsResult data={data} scrollId={scrollId} />;
+      case "bridge_get_bridge_quote":
         return <BridgeQuoteResult data={data} />;
-      case "get_supported_chains":
+      case "bridge_get_supported_chains":
         return <SupportedChainsResult data={data} />;
       default:
         return <GenericResult data={data} />;
@@ -225,3 +263,5 @@ export function BridgeResultCard({ toolName, result, status }: BridgeResultCardP
     </div>
   );
 }
+
+export const BridgeResultCard = memo(BridgeResultCardComponent);
