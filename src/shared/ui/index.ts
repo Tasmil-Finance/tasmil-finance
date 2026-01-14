@@ -26,6 +26,7 @@ export * from './sidebar';
 export * from './skeleton';
 export * from './sonner';
 export * from './switch';
+export * from './tabs';
 export * from './textarea';
 export * from './tooltip';
 export * from './typography';

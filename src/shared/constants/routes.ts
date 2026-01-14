@@ -9,6 +9,7 @@ export const PATHS = {
   PROFILE: "/profile",
   COMMUNITY: "/community",
   AGENTS: "/agents",
+  STRATEGIES: "/strategies",
   DEMO: "/demo",
   DEFI_AGENT: "/defi-agent",
   DOCS: "https://tasmil.gitbook.io/tasmil-docs",
