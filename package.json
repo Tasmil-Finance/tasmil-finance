@@ -27,6 +27,8 @@
     "prepare": ""
   },
   "dependencies": {
+    "@botanary/ecdsa-validator": "^1.0.0",
+    "@botanary/sdk": "^1.0.0",
     "@copilotkit/react-core": "1.50.1",
     "@copilotkit/react-ui": "1.50.1",
     "@copilotkit/runtime": "1.50.1",
