@@ -22,7 +22,7 @@ interface MultiSidebarLayoutProps {
   showHeader?: boolean;
 }
 
-function Header({ showRightSidebar }: { showRightSidebar: boolean }) {
+function Header({title, showRightSidebar }: { title: string; showRightSidebar: boolean }) {
   const { toggleSidebar } = useSidebar();
 
   return (
@@ -32,7 +32,7 @@ function Header({ showRightSidebar }: { showRightSidebar: boolean }) {
           <PanelLeft className="h-4 w-4" />
         </Button>
         <div className="mx-2 h-4 w-[1px] bg-foreground/30" />
-        <h1 className="font-semibold text-2xl">Explore Agents</h1>
+        <h1 className="font-semibold text-2xl">{title}</h1>
       </div>
       {showRightSidebar && (
         <MultiSidebarTrigger side="right">
@@ -43,7 +43,7 @@ function Header({ showRightSidebar }: { showRightSidebar: boolean }) {
   );
 }
 
-function MobileHeader({ showRightSidebar }: { showRightSidebar: boolean }) {
+function MobileHeader({ title, showRightSidebar }: { title: string; showRightSidebar: boolean }) {
   const { toggleLeftSidebar } = useMultiSidebar();
 
   return (
@@ -55,7 +55,7 @@ function MobileHeader({ showRightSidebar }: { showRightSidebar: boolean }) {
         >
           <PanelLeft className="h-5 w-5" />
         </button>
-        <h1 className="font-semibold text-lg">Tasmil Finance</h1>
+        <h1 className="font-semibold text-lg">{title}</h1>
       </div>
       {showRightSidebar && (
         <MultiSidebarTrigger side="right">
@@ -70,17 +70,19 @@ function MobileLayout({
   children,
   showRightSidebar,
   showHeader,
+  title
 }: {
   children: React.ReactNode;
   showRightSidebar: boolean;
   showHeader: boolean;
+  title: string;
 }) {
   const { leftSidebarOpen, rightSidebarOpen, setLeftSidebarOpen, setRightSidebarOpen } =
     useMultiSidebar();
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden">
-      {showHeader && <MobileHeader showRightSidebar={showRightSidebar} />}
+      {showHeader && <MobileHeader title={title} showRightSidebar={showRightSidebar} />}
       <main className="flex-1 overflow-y-auto overscroll-contain">{children}</main>
 
       {/* Left sidebar sheet - no border, custom close button */}
@@ -119,10 +121,12 @@ function DesktopLayout({
   children,
   showRightSidebar,
   showHeader,
+  title
 }: {
   children: React.ReactNode;
   showRightSidebar: boolean;
   showHeader: boolean;
+  title: string;
 }) {
   const { rightSidebarOpen } = useMultiSidebar();
 
@@ -132,7 +136,7 @@ function DesktopLayout({
 
       {/* Main Content Area - Header + Content */}
       <SidebarInset className="flex h-screen flex-col">
-        {showHeader && <Header showRightSidebar={showRightSidebar} />}
+        {showHeader && <Header title={title} showRightSidebar={showRightSidebar} />}
         <main className="flex-1 overflow-y-auto">{children}</main>
       </SidebarInset>
 
@@ -157,18 +161,20 @@ function LayoutContent({
   children,
   showRightSidebar,
   showHeader,
+  title,
 }: {
   children: React.ReactNode;
   showRightSidebar: boolean;
   showHeader: boolean;
+  title: string;
 }) {
   const isMobile = useIsMobile();
   return isMobile ? (
-    <MobileLayout showRightSidebar={showRightSidebar} showHeader={showHeader}>
+    <MobileLayout showRightSidebar={showRightSidebar} showHeader={showHeader} title={title}>
       {children}
     </MobileLayout>
   ) : (
-    <DesktopLayout showRightSidebar={showRightSidebar} showHeader={showHeader}>
+    <DesktopLayout showRightSidebar={showRightSidebar} showHeader={showHeader} title={title}>
       {children}
     </DesktopLayout>
   );
@@ -179,10 +185,11 @@ export function MultiSidebarLayout({
   className,
   showRightSidebar = true,
   showHeader = true,
-}: MultiSidebarLayoutProps) {
+  title ,
+}: MultiSidebarLayoutProps & { title?: string }) {
   return (
     <MultiSidebarProvider className={className || ""}>
-      <LayoutContent showRightSidebar={showRightSidebar} showHeader={showHeader}>
+      <LayoutContent showRightSidebar={showRightSidebar} showHeader={showHeader} title={title}>
         {children}
       </LayoutContent>
     </MultiSidebarProvider>
