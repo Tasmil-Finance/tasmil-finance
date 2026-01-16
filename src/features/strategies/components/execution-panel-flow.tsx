@@ -24,21 +24,33 @@ interface ExecutionPanelFlowProps {
 }
 
 // Custom node component for execution steps
-function ExecutionStepNode({ data }: { data: ExecutionStep }) {
+function ExecutionStepNode({ data }: { data: Record<string, unknown> }) {
+  const step = data as unknown as ExecutionStep;
+
   return (
-    <Card className="min-w-[200px] border-primary/20 bg-card p-4 shadow-sm">
-      <div className="space-y-2">
+    <Card className="min-w-[220px] border-zinc-700 bg-zinc-800/90 p-4 shadow-lg backdrop-blur-sm">
+      <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <Badge variant="outline" className="text-xs">
-            Step {data.step}
+          <Badge variant="outline" className="border-zinc-600 bg-zinc-700/50 text-xs text-zinc-300">
+            Step {step.step}
           </Badge>
-          <Badge variant="secondary" className="text-xs">
-            {data.chain}
+          <Badge variant="secondary" className="border-zinc-600 bg-zinc-700 text-xs text-zinc-200">
+            {step.chain}
           </Badge>
         </div>
         <div className="space-y-1">
-          <p className="font-semibold text-sm">{data.protocol}</p>
-          <p className="text-muted-foreground text-xs">{data.action}</p>
+          <p className="font-semibold text-sm text-white">{step.protocol}</p>
+          <p className="text-xs text-zinc-400">{step.action}</p>
+        </div>
+        {/* Token indicators */}
+        <div className="flex items-center gap-2 pt-2">
+          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-500/20">
+            <span className="text-[10px] text-blue-400">$</span>
+          </div>
+          <span className="text-xs text-zinc-500">→</span>
+          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/20">
+            <span className="text-[10px] text-emerald-400">$</span>
+          </div>
         </div>
       </div>
     </Card>
@@ -58,24 +70,31 @@ export function ExecutionPanelFlow({ executionSteps, className }: ExecutionPanel
         x: 250,
         y: index * 180,
       },
-      data: step,
+      data: step as unknown as Record<string, unknown>,
     }));
 
-    const flowEdges: Edge[] = executionSteps.slice(0, -1).map((step, index) => ({
-      id: `edge-${step.step}-${executionSteps[index + 1].step}`,
-      source: `step-${step.step}`,
-      target: `step-${executionSteps[index + 1].step}`,
-      type: "smoothstep",
-      animated: true,
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        color: "hsl(var(--primary))",
-      },
-      style: {
-        stroke: "hsl(var(--primary))",
-        strokeWidth: 2,
-      },
-    }));
+    const flowEdges: Edge[] = [];
+    for (let i = 0; i < executionSteps.length - 1; i++) {
+      const step = executionSteps[i];
+      const nextStep = executionSteps[i + 1];
+      if (step && nextStep) {
+        flowEdges.push({
+          id: `edge-${step.step}-${nextStep.step}`,
+          source: `step-${step.step}`,
+          target: `step-${nextStep.step}`,
+          type: "smoothstep",
+          animated: true,
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color: "#6366f1",
+          },
+          style: {
+            stroke: "#6366f1",
+            strokeWidth: 2,
+          },
+        });
+      }
+    }
 
     return { nodes: flowNodes, edges: flowEdges };
   }, [executionSteps]);
@@ -89,19 +108,22 @@ export function ExecutionPanelFlow({ executionSteps, className }: ExecutionPanel
           nodeTypes={nodeTypes}
           connectionMode={ConnectionMode.Loose}
           fitView
-          className="bg-muted/30"
-          defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+          className="rounded-lg bg-zinc-950"
+          defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
+          minZoom={0.5}
+          maxZoom={1.5}
         >
-          <Background />
-          <Controls />
+          <Background color="#27272a" gap={16} size={1} className="bg-zinc-950" />
+          <Controls className="border-zinc-700 bg-zinc-800" />
           <MiniMap
             nodeColor={(node) => {
               if (node.type === "executionStep") {
-                return "hsl(var(--primary))";
+                return "#3f3f46";
               }
-              return "hsl(var(--muted-foreground))";
+              return "#52525b";
             }}
-            className="bg-background"
+            className="border-zinc-700 bg-zinc-900"
+            maskColor="rgba(0, 0, 0, 0.6)"
           />
         </ReactFlow>
       </ReactFlowProvider>

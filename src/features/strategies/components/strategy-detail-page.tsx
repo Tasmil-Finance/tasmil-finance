@@ -67,10 +67,14 @@ export function StrategyDetailPage({ strategyId, className }: StrategyDetailPage
   };
 
   return (
-    <div className={cn("space-y-6 p-6", className)}>
+    <div className={cn("min-h-screen space-y-6 bg-zinc-950 p-6", className)}>
       {/* Header */}
       <div className="space-y-4">
-        <Button variant="ghost" onClick={() => router.back()} className="gap-2">
+        <Button
+          variant="ghost"
+          onClick={() => router.back()}
+          className="gap-2 text-zinc-400 hover:text-white"
+        >
           <ArrowLeft className="h-4 w-4" />
           Go back
         </Button>
@@ -78,7 +82,7 @@ export function StrategyDetailPage({ strategyId, className }: StrategyDetailPage
         <div className="flex items-start justify-between">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <h1 className="font-bold text-3xl">{strategy.strategy_metadata.title}</h1>
+              <h1 className="font-bold text-3xl text-white">{strategy.strategy_metadata.title}</h1>
               <Badge
                 variant={
                   strategy.strategy_metadata.status === "Active"
@@ -90,18 +94,23 @@ export function StrategyDetailPage({ strategyId, className }: StrategyDetailPage
                 className={
                   strategy.strategy_metadata.status === "Active"
                     ? "border-green-500/30 bg-green-500/20 text-green-500"
-                    : ""
+                    : "border-zinc-700 bg-zinc-800 text-zinc-400"
                 }
               >
                 {strategy.strategy_metadata.status}
               </Badge>
             </div>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-sm text-zinc-500">
               {strategy.strategy_metadata.creator.name} {strategy.strategy_metadata.creator.handle}{" "}
               • Created on {strategy.strategy_metadata.creator.created_at}
             </p>
           </div>
-          <Button variant="ghost" size="icon" onClick={handleShare}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleShare}
+            className="text-zinc-400 hover:text-white"
+          >
             <Share2 className="h-5 w-5" />
           </Button>
         </div>
@@ -120,11 +129,31 @@ export function StrategyDetailPage({ strategyId, className }: StrategyDetailPage
         {/* Right Panel - Tabs */}
         <div className="lg:col-span-2">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="strategy-prompt">Strategy Prompt</TabsTrigger>
-              <TabsTrigger value="my-activities">My Activities</TabsTrigger>
-              <TabsTrigger value="all-activities">All Activities</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-4 border-zinc-800 bg-zinc-900">
+              <TabsTrigger
+                value="overview"
+                className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white"
+              >
+                Overview
+              </TabsTrigger>
+              <TabsTrigger
+                value="strategy-prompt"
+                className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white"
+              >
+                Strategy Prompt
+              </TabsTrigger>
+              <TabsTrigger
+                value="my-activities"
+                className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white"
+              >
+                My Activities
+              </TabsTrigger>
+              <TabsTrigger
+                value="all-activities"
+                className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white"
+              >
+                All Activities
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="mt-6">

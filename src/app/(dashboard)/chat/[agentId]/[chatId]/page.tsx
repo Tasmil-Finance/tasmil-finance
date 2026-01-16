@@ -1,12 +1,10 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { ChatPage } from "@/features/chat-v2";
+import { ChatPageWrapper } from "@/features/chat/components/chat-page-wrapper";
 
-export default function ChatPageRoute() {
-  const params = useParams();
-  const agentId = params["agentId"] as string;
-  const chatId = params["chatId"] as string;
+export default function ChatPage() {
+  const { agentId, chatId } = useParams();
 
-  return <ChatPage agentId={agentId} chatId={chatId} />;
+  return <ChatPageWrapper agentId={agentId as string} chatId={chatId as string} />;
 }

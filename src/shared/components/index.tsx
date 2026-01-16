@@ -1,32 +1,64 @@
 /**
  * Custom UI Components Registry
  *
- * Register your custom UI components here.
+ * Register your custom UI components here for LangGraph's LoadExternalComponent.
  * These components will be rendered when the backend emits UI messages
  * with matching names.
  *
- * Usage in backend:
- * ```typescript
- * ui.push({
- *   name: "bridge-result",  // Must match key in ComponentMap
- *   props: {
- *     result: {...},
- *     toolType: "tool-getBridgePairs"
- *   }
- * }, { message });
+ * Backend Usage (Python):
+ * ```python
+ * from langgraph.graph.ui import UIMessage
+ * 
+ * ui_message = UIMessage(
+ *   name="bridge-result",  # Must match key in ComponentMap
+ *   props={
+ *     "toolName": "bridge_get_bridge_pairs",
+ *     "args": {...},
+ *     "result": {...}
+ *   },
+ *   metadata={"message_id": message.id}
+ * )
+ * state["ui"].append(ui_message)
+ * ```
+ *
+ * Frontend Usage:
+ * ```tsx
+ * import ComponentMap from "@/shared/components";
+ * 
+ * <LoadExternalComponent
+ *   stream={thread}
+ *   message={uiMessage}
+ *   components={ComponentMap}
+ * />
  * ```
  */
 
-// DeFi components - now imported from feature directories
-import { BridgeResult } from "@/features/bridge";
-import { ResearchResult } from "@/features/research";
-import { YieldResult } from "@/features/yield";
+// Import components from chat features
+import {
+  BridgeResultCard,
+  ResearchResultCard,
+  YieldResultCard,
+  StakingInfoCard,
+  StakingOperationCard,
+  VaultResultCard,
+} from "@/features/chat/actions/components";
 
 const ComponentMap = {
-  // DeFi Agent UI Components
-  "bridge-result": BridgeResult,
-  "yield-result": YieldResult,
-  "research-result": ResearchResult,
+  // Bridge Agent UI Components
+  "bridge-result": BridgeResultCard,
+  
+  // Research Agent UI Components
+  "research-result": ResearchResultCard,
+  
+  // Yield Agent UI Components
+  "yield-result": YieldResultCard,
+  
+  // Staking Agent UI Components
+  "staking-info": StakingInfoCard,
+  "staking-operation": StakingOperationCard,
+  
+  // Vault Agent UI Components
+  "vault-result": VaultResultCard,
 } as const;
 
 export default ComponentMap;

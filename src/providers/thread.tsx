@@ -16,7 +16,7 @@ import { getApiKey } from "@/lib/api-key";
 import { createClient } from "@/providers/client";
 
 interface ThreadContextType {
-  getThreads: (assistantId: string) => Promise<Thread[]>;
+  getThreads: (assistantId?: string) => Promise<Thread[]>;
   threads: Thread[];
   setThreads: Dispatch<SetStateAction<Thread[]>>;
   threadsLoading: boolean;
@@ -35,27 +35,37 @@ function getThreadSearchMetadata(
   }
 }
 
-export function ThreadProvider({ children }: { children: ReactNode }) {
+export function ThreadProvider({ 
+  children,
+  agentId,
+  chatId,
+}: { 
+  children: ReactNode;
+  agentId?: string;
+  chatId?: string;
+}) {
   const apiUrl = process.env["NEXT_PUBLIC_API_URL"] || "";
 
   const [threads, setThreads] = useState<Thread[]>([]);
   const [threadsLoading, setThreadsLoading] = useState(false);
 
   const getThreads = useCallback(
-    async (assistantId: string): Promise<Thread[]> => {
-      if (!apiUrl || !assistantId) return [];
+    async (assistantId?: string): Promise<Thread[]> => {
+      // Use agentId from props if assistantId not provided
+      const finalAssistantId = assistantId || agentId;
+      if (!apiUrl || !finalAssistantId) return [];
       const client = createClient(apiUrl, getApiKey() ?? undefined);
 
       const threads = await client.threads.search({
         metadata: {
-          ...getThreadSearchMetadata(assistantId),
+          ...getThreadSearchMetadata(finalAssistantId),
         },
         limit: 100,
       });
 
       return threads;
     },
-    [apiUrl]
+    [apiUrl, agentId]
   );
 
   const value = useMemo(

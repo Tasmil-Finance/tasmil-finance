@@ -1,4 +1,4 @@
-import { Bot, Home, TrendingUp } from "lucide-react";
+import { Bot, Home, Layers, TrendingUp } from "lucide-react";
 
 export interface NavItem {
   title: string;
@@ -53,6 +53,15 @@ export const sidebarData: SidebarData = {
           title: "Agents",
           url: "/agents",
           icon: Bot,
+        },
+      ],
+    },
+    {
+      items: [
+        {
+          title: "Strategies",
+          url: "/strategies",
+          icon: Layers,
         },
       ],
     },

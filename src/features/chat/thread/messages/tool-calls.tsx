@@ -1,23 +1,10 @@
-"use client";
-
+import type { AIMessage, ToolMessage } from "@langchain/langgraph-sdk";
 import { ToolCall as ToolCallUI, type ToolState } from "@/features/chat/components/tool-call";
+import { useStreamContext } from "@/providers/stream";
 
-// CopilotKit tool call type
-interface CopilotToolCall {
-  id: string;
-  name: string;
-  args: Record<string, unknown>;
-  result?: unknown;
-  status?: "pending" | "running" | "complete" | "error";
-}
+export function ToolCalls({ toolCalls }: { toolCalls: AIMessage["tool_calls"] }) {
+  const { messages } = useStreamContext();
 
-export function ToolCalls({
-  toolCalls,
-  toolResults,
-}: {
-  toolCalls: CopilotToolCall[];
-  toolResults?: Map<string, unknown>;
-}) {
   if (!toolCalls || toolCalls.length === 0) return null;
 
   return (
@@ -26,17 +13,22 @@ export function ToolCalls({
         const args = tc.args as Record<string, unknown>;
         const hasArgs = Object.keys(args).length > 0;
 
-        // Find corresponding tool result
-        const toolResult = toolResults?.get(tc.id) ?? tc.result;
+        // Find corresponding tool result message
+        const toolResult = messages.find(
+          (m) => m.type === "tool" && (m as ToolMessage).tool_call_id === tc.id
+        ) as ToolMessage | undefined;
 
-        // Determine state
+        // Determine state: Running → Completed (but only show input params)
         let state: ToolState;
 
-        if (toolResult !== undefined) {
+        if (toolResult) {
           // Check if error
           let hasError = false;
           try {
-            const content = typeof toolResult === "string" ? JSON.parse(toolResult) : toolResult;
+            const content =
+              typeof toolResult.content === "string"
+                ? JSON.parse(toolResult.content)
+                : toolResult.content;
             hasError =
               typeof content === "object" && content !== null
                 ? "error" in content || content.success === false
@@ -45,10 +37,6 @@ export function ToolCalls({
             // ignore
           }
           state = hasError ? "output-error" : "output-available";
-        } else if (tc.status === "running") {
-          state = "input-available";
-        } else if (tc.status === "error") {
-          state = "output-error";
         } else {
           state = hasArgs ? "input-available" : "input-streaming";
         }
@@ -64,32 +52,27 @@ export function ToolCalls({
           toolCallProps.input = args;
         }
 
-        if (toolResult !== undefined) {
-          toolCallProps.output =
-            typeof toolResult === "string" ? toolResult : (toolResult as Record<string, unknown>);
-        }
-
         return <ToolCallUI {...toolCallProps} />;
       })}
     </div>
   );
 }
 
-export function ToolResult({ result, name }: { result: unknown; name?: string }) {
+export function ToolResult({ message }: { message: ToolMessage }) {
   let parsedContent: Record<string, unknown> | string | unknown[];
   let hasError = false;
 
   try {
-    if (typeof result === "string") {
-      parsedContent = JSON.parse(result);
-    } else if (Array.isArray(result)) {
-      parsedContent = result;
+    if (typeof message.content === "string") {
+      parsedContent = JSON.parse(message.content);
+    } else if (Array.isArray(message.content)) {
+      parsedContent = message.content;
     } else {
-      parsedContent = String(result);
+      parsedContent = String(message.content);
     }
   } catch {
     // Content is not JSON, use as string
-    parsedContent = String(result);
+    parsedContent = String(message.content);
   }
 
   // Check if content indicates an error
@@ -110,7 +93,7 @@ export function ToolResult({ result, name }: { result: unknown; name?: string })
     typeof parsedContent === "string" ? parsedContent : (parsedContent as Record<string, unknown>);
 
   const toolResultProps: any = {
-    type: name || "tool-result",
+    type: message.name || "tool-result",
     state: state,
     output: output,
     defaultOpen: false,
