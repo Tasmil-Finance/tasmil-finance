@@ -9,13 +9,14 @@ import {
   Search,
   SlidersHorizontal,
   X,
+  Zap,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
-import { Card } from "@/shared/ui/card";
+import { GlassCard, GlassCardContent, GlassCardFooter } from "@/shared/ui/glass-card";
 import {
   Dialog,
   DialogContent,
@@ -35,125 +36,121 @@ import { Skeleton } from "@/shared/ui/skeleton";
 import { useFeaturedStrategies, useStrategies } from "../hooks";
 import type { FeaturedStrategy, StrategyListItem } from "../types";
 
+// Helper for gradients based on index
+const getGradient = (index: number) => {
+  const gradients = [
+    "from-cyan-500/10 to-blue-600/10",
+    "from-purple-500/10 to-pink-600/10",
+    "from-emerald-500/10 to-teal-600/10",
+    "from-amber-500/10 to-orange-600/10",
+  ];
+  return gradients[index % gradients.length];
+};
+
+
+
 // Featured Strategy Card
-function FeaturedStrategyCard({ strategy }: { strategy: FeaturedStrategy }) {
+function FeaturedStrategyCard({ strategy, index }: { strategy: FeaturedStrategy, index: number }) {
   return (
-    <Card className="group relative h-[200px] cursor-pointer overflow-hidden border-0 bg-linear-to-br from-zinc-900 to-zinc-800">
-      <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
-      <div className="relative flex h-full flex-col justify-end p-4">
-        <h3 className="font-semibold text-lg text-white">{strategy.name}</h3>
-        <p className="text-sm text-zinc-400">{strategy.description}</p>
+    <GlassCard className="group relative h-[240px] cursor-pointer overflow-hidden border-white/5 bg-zinc-900/40 transition-all duration-300 hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/10">
+      <div className={`absolute inset-0 bg-gradient-to-br ${getGradient(index)} opacity-30 group-hover:opacity-50 transition-opacity`} />
+      <div className="absolute inset-0 bg-[url('/images/grid-pattern.svg')] opacity-20" />
+
+      <div className="relative z-10 flex h-full flex-col justify-between p-6">
+        <div className="flex justify-between items-start">
+          <Badge className="bg-white/10 text-white hover:bg-white/20 border-white/10 backdrop-blur-md">Featured</Badge>
+          {/* Chain Logo Placeholder */}
+          <div className="h-10 w-10 rounded-full bg-zinc-800/80 ring-1 ring-white/10 backdrop-blur-sm flex items-center justify-center">
+            <span className="text-xs font-bold text-zinc-400">ETH</span>
+          </div>
+        </div>
+
+        <div>
+          <h3 className="font-bold text-2xl text-white mb-2 group-hover:text-cyan-400 transition-colors">{strategy.name}</h3>
+          <p className="text-sm text-zinc-400 line-clamp-2">{strategy.description}</p>
+        </div>
       </div>
-      {/* Placeholder for chain logo */}
-      <div className="absolute top-4 right-4 flex items-center gap-2">
-        <div className="h-12 w-12 rounded-full bg-zinc-700" />
-      </div>
-    </Card>
+
+      {/* Hover Glow Effect */}
+      <div className="absolute -bottom-20 -right-20 h-40 w-40 rounded-full bg-cyan-500/20 blur-3xl group-hover:bg-cyan-500/30 transition-all duration-500" />
+    </GlassCard>
   );
 }
 
 // Strategy Card for Grid View
-function StrategyCard({ strategy, onClick }: { strategy: StrategyListItem; onClick: () => void }) {
+function StrategyCard({ strategy, onClick, index }: { strategy: StrategyListItem; onClick: () => void; index: number }) {
   const apyValue = Number.parseFloat(strategy.current_apy.replace("%", ""));
   const isNegative = apyValue < 0;
   const isPositive = apyValue > 0;
 
   return (
-    <Card
-      className="cursor-pointer border-zinc-800 bg-zinc-900/50 p-4 transition-all hover:border-zinc-700 hover:bg-zinc-900"
+    <GlassCard
+      className="group cursor-pointer border-white/5 bg-zinc-900/40 p-0 transition-all duration-300 hover:-translate-y-1 hover:border-white/10 hover:bg-zinc-800/60 hover:shadow-xl"
       onClick={onClick}
     >
-      {/* Header with tags and creator */}
-      <div className="mb-3 flex items-start justify-between">
-        <div className="flex flex-wrap gap-1">
-          {strategy.tags.map((tag) => (
+      <div className={`h-24 relative overflow-hidden bg-gradient-to-br ${getGradient(index)}`}>
+        <div className="absolute inset-0 bg-black/20" />
+        <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+          <div className="flex -space-x-2">
+            {strategy.assets?.slice(0, 3).map((asset, i) => (
+              <div key={i} className="h-8 w-8 rounded-full border-2 border-zinc-900 bg-zinc-800 flex items-center justify-center text-[10px] text-zinc-400 font-bold z-10">
+                {asset.alt.charAt(0)}
+              </div>
+            ))}
+          </div>
+          {strategy.hasPoints && (
+            <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/20 backdrop-blur-md">
+              <Zap className="w-3 h-3 mr-1 fill-current" /> Points
+            </Badge>
+          )}
+        </div>
+      </div>
+
+      <GlassCardContent className="pt-4 pb-2 px-5">
+        <div className="mb-1 flex items-center gap-2 text-xs text-zinc-500">
+          <span className="font-mono text-cyan-500/80">Strategy</span>
+          <span>•</span>
+          <span>{strategy.chain?.alt || "Ethereum"}</span>
+        </div>
+        <h3 className="font-bold text-lg text-white mb-1 group-hover:text-cyan-400 transition-colors">{strategy.title}</h3>
+
+        <div className="flex flex-wrap gap-1.5 mt-3 mb-4">
+          {strategy.tags.slice(0, 3).map((tag) => (
             <Badge
               key={tag}
               variant="outline"
-              className={cn(
-                "border-zinc-700 bg-zinc-800 text-xs text-zinc-400",
-                tag === "Looping" && "border-purple-500/30 bg-purple-500/10 text-purple-400",
-                tag === "Stablecoins" && "border-blue-500/30 bg-blue-500/10 text-blue-400",
-                tag === "Stables" && "border-blue-500/30 bg-blue-500/10 text-blue-400",
-                tag === "Delta Neutral" && "border-yellow-500/30 bg-yellow-500/10 text-yellow-400",
-                tag === "Airdrop" && "border-green-500/30 bg-green-500/10 text-green-400"
-              )}
+              className="border-white/5 bg-white/5 text-[10px] text-zinc-400 font-normal py-0.5 px-2"
             >
               {tag}
             </Badge>
           ))}
         </div>
-        <div className="flex items-center gap-1 text-xs text-zinc-500">
-          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-800">
-            <span className="text-[10px]">∞</span>
-          </div>
-          <span>INFINIT</span>
-          <span className="text-zinc-600">{strategy.creator.handle}</span>
-        </div>
-      </div>
+      </GlassCardContent>
 
-      {/* Title */}
-      <h3 className="mb-2 font-medium text-sm text-white">{strategy.title}</h3>
-
-      {/* APY */}
-      <div className="mb-4 flex items-center gap-2">
-        <span className="text-xs text-zinc-500">APY</span>
-        <span
-          className={cn(
-            "font-semibold text-lg",
-            isNegative && "text-red-500",
+      <GlassCardFooter className="px-5 py-4 border-t border-white/5 bg-black/20 flex justify-between rounded-b-xl">
+        <div>
+          <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">Net APY</p>
+          <p className={cn(
+            "font-bold text-lg",
+            isNegative && "text-rose-400",
             isPositive && "text-emerald-400",
             !isNegative && !isPositive && "text-zinc-400"
-          )}
-        >
-          {strategy.current_apy}
-        </span>
-        {strategy.hasPoints && (
-          <Badge className="border-0 bg-emerald-500/20 text-emerald-400 text-xs">Points</Badge>
-        )}
-      </div>
-
-      {/* Asset / Agent / Chain */}
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col gap-1">
-          <span className="text-[10px] text-zinc-600">Asset</span>
-          <div className="-space-x-1 flex">
-            {strategy.assets?.slice(0, 3).map((asset) => (
-              <div
-                key={asset.alt}
-                className="flex h-6 w-6 items-center justify-center rounded-full border border-zinc-700 bg-zinc-800"
-              >
-                <span className="text-[8px] text-zinc-400">{asset.alt.charAt(0)}</span>
-              </div>
-            ))}
-            {strategy.assets && strategy.assets.length > 3 && (
-              <div className="flex h-6 w-6 items-center justify-center rounded-full border border-zinc-700 bg-zinc-800">
-                <span className="text-[8px] text-zinc-400">+{strategy.assets.length - 3}</span>
-              </div>
-            )}
+          )}>
+            {strategy.current_apy}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold flex items-center gap-1 justify-end">
+            Risk Level
+          </p>
+          <div className="flex items-center gap-1 justify-end mt-1">
+            <div className="h-1.5 w-8 rounded-full bg-emerald-500/80" />
+            <div className="h-1.5 w-8 rounded-full bg-emerald-500/30" />
+            <div className="h-1.5 w-8 rounded-full bg-emerald-500/30" />
           </div>
         </div>
-        <div className="flex flex-col gap-1">
-          <span className="text-[10px] text-zinc-600">Agent</span>
-          <div className="-space-x-1 flex">
-            {strategy.agents?.slice(0, 3).map((agent) => (
-              <div
-                key={agent.alt}
-                className="flex h-6 w-6 items-center justify-center rounded-full border border-zinc-700 bg-zinc-800"
-              >
-                <span className="text-[8px] text-zinc-400">{agent.alt.charAt(0)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="flex flex-col gap-1">
-          <span className="text-[10px] text-zinc-600">Chain</span>
-          <div className="flex h-6 w-6 items-center justify-center rounded-full border border-zinc-700 bg-zinc-800">
-            <span className="text-[8px] text-zinc-400">{strategy.chain?.alt.charAt(0) || "E"}</span>
-          </div>
-        </div>
-      </div>
-    </Card>
+      </GlassCardFooter>
+    </GlassCard>
   );
 }
 
@@ -164,86 +161,50 @@ function StrategyRow({ strategy, onClick }: { strategy: StrategyListItem; onClic
   const isPositive = apyValue > 0;
 
   return (
-    <Card
-      className="cursor-pointer border-zinc-800 bg-zinc-900/50 p-4 transition-all hover:border-zinc-700 hover:bg-zinc-900"
+    <GlassCard
+      className="group cursor-pointer border-white/5 bg-zinc-900/40 p-4 transition-all hover:border-white/10 hover:bg-zinc-800/60 hover:translate-x-1"
       onClick={onClick}
     >
       <div className="flex items-center justify-between gap-4">
         {/* Left: Title and Tags */}
         <div className="flex-1 space-y-2">
-          <div className="flex items-center gap-2">
-            <h3 className="font-medium text-sm text-white">{strategy.title}</h3>
-            {strategy.hasPoints && (
-              <Badge className="border-0 bg-emerald-500/20 text-emerald-400 text-xs">Points</Badge>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-1">
-            {strategy.tags.map((tag) => (
-              <Badge
-                key={tag}
-                variant="outline"
-                className={cn(
-                  "border-zinc-700 bg-zinc-800 text-xs text-zinc-400",
-                  tag === "Looping" && "border-purple-500/30 bg-purple-500/10 text-purple-400",
-                  tag === "Stablecoins" && "border-blue-500/30 bg-blue-500/10 text-blue-400",
-                  tag === "Stables" && "border-blue-500/30 bg-blue-500/10 text-blue-400",
-                  tag === "Delta Neutral" &&
-                    "border-yellow-500/30 bg-yellow-500/10 text-yellow-400",
-                  tag === "Airdrop" && "border-green-500/30 bg-green-500/10 text-green-400"
+          <div className="flex items-center gap-3">
+            <div className="flex -space-x-2">
+              {strategy.assets?.slice(0, 2).map((asset, i) => (
+                <div key={i} className="h-8 w-8 rounded-full border-2 border-zinc-900 bg-zinc-800 flex items-center justify-center text-[10px] text-zinc-400 font-bold z-10">
+                  {asset.alt.charAt(0)}
+                </div>
+              ))}
+            </div>
+            <div>
+              <h3 className="font-bold text-sm text-white group-hover:text-cyan-400 transition-colors">{strategy.title}</h3>
+              <div className="flex items-center gap-2 text-xs text-zinc-500">
+                <span>{strategy.chain?.alt || "Ethereum"}</span>
+                {strategy.hasPoints && (
+                  <span className="text-amber-400 flex items-center gap-0.5"><Zap className="w-3 h-3 fill-current" /> Points</span>
                 )}
-              >
-                {tag}
-              </Badge>
-            ))}
-          </div>
-        </div>
-
-        {/* Middle: Assets, Agents, Chain */}
-        <div className="flex items-center gap-6">
-          <div className="flex flex-col items-center gap-1">
-            <span className="text-[10px] text-zinc-600">Asset</span>
-            <div className="-space-x-1 flex">
-              {strategy.assets?.slice(0, 3).map((asset) => (
-                <div
-                  key={asset.alt}
-                  className="flex h-6 w-6 items-center justify-center rounded-full border border-zinc-700 bg-zinc-800"
-                >
-                  <span className="text-[8px] text-zinc-400">{asset.alt.charAt(0)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="flex flex-col items-center gap-1">
-            <span className="text-[10px] text-zinc-600">Agent</span>
-            <div className="-space-x-1 flex">
-              {strategy.agents?.slice(0, 3).map((agent) => (
-                <div
-                  key={agent.alt}
-                  className="flex h-6 w-6 items-center justify-center rounded-full border border-zinc-700 bg-zinc-800"
-                >
-                  <span className="text-[8px] text-zinc-400">{agent.alt.charAt(0)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="flex flex-col items-center gap-1">
-            <span className="text-[10px] text-zinc-600">Chain</span>
-            <div className="flex h-6 w-6 items-center justify-center rounded-full border border-zinc-700 bg-zinc-800">
-              <span className="text-[8px] text-zinc-400">
-                {strategy.chain?.alt.charAt(0) || "E"}
-              </span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Right: APY and Creator */}
-        <div className="flex items-center gap-6">
-          <div className="flex flex-col items-end gap-1">
-            <span className="text-xs text-zinc-500">APY</span>
+        {/* Middle: Stats */}
+        <div className="flex items-center gap-12">
+          <div>
+            <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mb-0.5">Pool Type</p>
+            <div className="flex gap-1">
+              {strategy.tags.slice(0, 2).map(tag => (
+                <Badge key={tag} variant="outline" className="border-white/5 bg-white/5 text-[10px] text-zinc-400">{tag}</Badge>
+              ))}
+            </div>
+          </div>
+
+          <div className="text-right min-w-[80px]">
+            <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mb-0.5">APY</p>
             <span
               className={cn(
-                "font-semibold text-lg",
-                isNegative && "text-red-500",
+                "font-bold text-base",
+                isNegative && "text-rose-400",
                 isPositive && "text-emerald-400",
                 !isNegative && !isPositive && "text-zinc-400"
               )}
@@ -251,15 +212,13 @@ function StrategyRow({ strategy, onClick }: { strategy: StrategyListItem; onClic
               {strategy.current_apy}
             </span>
           </div>
-          <div className="flex items-center gap-1 text-xs text-zinc-500">
-            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-800">
-              <span className="text-[10px]">∞</span>
-            </div>
-            <span>INFINIT</span>
-          </div>
+        </div>
+
+        <div className="pl-4 border-l border-white/5">
+          <ChevronRight className="h-5 w-5 text-zinc-600 group-hover:text-white transition-colors" />
         </div>
       </div>
-    </Card>
+    </GlassCard>
   );
 }
 
@@ -287,18 +246,18 @@ function FilterDialog({
         <Button
           variant="outline"
           size="sm"
-          className="h-9 border-zinc-800 bg-zinc-900 text-zinc-400"
+          className="h-9 border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white"
         >
           <SlidersHorizontal className="mr-2 h-4 w-4" />
           Filters
           {selectedCategories.length > 0 && (
-            <Badge className="ml-2 h-5 border-0 bg-emerald-500/20 px-1.5 text-emerald-400 text-xs">
+            <Badge className="ml-2 h-5 border-0 bg-cyan-500/20 px-1.5 text-cyan-400 text-xs">
               {selectedCategories.length}
             </Badge>
           )}
         </Button>
       </DialogTrigger>
-      <DialogContent className="border-zinc-800 bg-zinc-900 sm:max-w-[425px]">
+      <DialogContent className="border-white/10 bg-zinc-900/95 backdrop-blur-xl sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="text-white">Filter Strategies</DialogTitle>
           <DialogDescription className="text-zinc-400">
@@ -326,9 +285,9 @@ function FilterDialog({
                   key={category}
                   variant="outline"
                   className={cn(
-                    "cursor-pointer border-zinc-700 bg-zinc-800 text-xs text-zinc-400 transition-colors hover:border-zinc-600",
+                    "cursor-pointer border-white/10 bg-white/5 text-xs text-zinc-400 transition-all hover:border-white/20 select-none py-1.5 px-3",
                     selectedCategories.includes(category) &&
-                      "border-emerald-500/50 bg-emerald-500/20 text-emerald-400"
+                    "border-cyan-500/50 bg-cyan-500/20 text-cyan-400"
                   )}
                   onClick={() => toggleCategory(category)}
                 >
@@ -403,22 +362,17 @@ export function StrategyListPage({ className }: StrategyListPageProps) {
 
   if (isLoading) {
     return (
-      <div className={cn("space-y-8 p-6", className)}>
-        <Skeleton className="h-32 w-full" />
-        <div className="space-y-4">
-          <Skeleton className="h-8 w-48" />
-          <div className="grid grid-cols-3 gap-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={`featured-${i.toString()}`} className="h-[200px]" />
-            ))}
-          </div>
+      <div className={cn("space-y-8 p-6 lg:p-10 max-w-[1600px] mx-auto", className)}>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {[1, 2, 3].map(i => <Skeleton key={i} className="h-[240px] rounded-xl bg-zinc-900/50" />)}
         </div>
         <div className="space-y-4">
-          <Skeleton className="h-8 w-48" />
-          <div className="grid grid-cols-3 gap-4">
-            {Array.from({ length: 9 }).map((_, i) => (
-              <Skeleton key={`strategy-${i.toString()}`} className="h-[200px]" />
-            ))}
+          <div className="flex gap-4">
+            <Skeleton className="h-10 w-64 bg-zinc-900/50" />
+            <Skeleton className="h-10 w-32 bg-zinc-900/50" />
+          </div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} className="h-[200px] rounded-xl bg-zinc-900/50" />)}
           </div>
         </div>
       </div>
@@ -428,69 +382,59 @@ export function StrategyListPage({ className }: StrategyListPageProps) {
   return (
     <div className={cn("min-h-screen bg-zinc-950", className)}>
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-linear-to-br from-zinc-900 via-zinc-950 to-zinc-900 px-6 py-12">
+      <div className="relative overflow-hidden bg-linear-to-b from-zinc-900 to-zinc-950 px-6 py-12 lg:px-10">
         <div className="absolute inset-0 bg-[url('/images/grid-pattern.svg')] opacity-10" />
-        <div className="relative flex items-start justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm text-zinc-500">
-              <span className="flex items-center gap-1">
-                <span className="text-lg">∞</span> INFINIT
-              </span>
-              <span>/</span>
-              <span className="flex items-center gap-1">
-                <LayoutGrid className="h-4 w-4" /> Strategies
-              </span>
+        {/* Background Gradients */}
+        <div className="absolute top-0 right-0 h-[500px] w-[500px] bg-cyan-500/10 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute bottom-0 left-0 h-[500px] w-[500px] bg-purple-500/10 blur-[120px] rounded-full pointer-events-none" />
+
+        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-8 max-w-[1600px] mx-auto">
+          <div className="space-y-4 max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/5 bg-white/5 pl-2 pr-4 py-1 backdrop-blur-md">
+              <Badge className="bg-cyan-500/20 text-cyan-300 border-0 hover:bg-cyan-500/30">New</Badge>
+              <span className="text-xs font-medium text-zinc-300">Prompt-to-DeFi is now live</span>
             </div>
-            <h1 className="max-w-md font-bold text-3xl text-white">
-              Explore DeFi Strategies Powered by INFINIT AI Agent Swarm
+            <h1 className="font-bold text-4xl md:text-6xl text-white tracking-tight leading-[1.1]">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-500">Intelligent</span> DeFi Strategies
             </h1>
+            <p className="text-lg text-zinc-400 max-w-lg leading-relaxed">
+              Deploy capital into automated yield strategies powered by the <span className="text-white font-medium">INFINIT AI Agent Swarm</span>.
+            </p>
           </div>
 
-          {/* Prompt-to-DeFi Banner */}
-          <Card className="w-[320px] border-zinc-800 bg-zinc-900/80 p-4">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500">
-                <span className="font-bold text-white">∞</span>
-              </div>
-              <div className="flex-1">
-                <div className="mb-1 flex items-center gap-2">
-                  <Badge className="border-0 bg-emerald-500/20 text-emerald-400 text-xs">New</Badge>
-                </div>
-                <h3 className="font-semibold text-white">
-                  <span className="text-emerald-400">Prompt-to-DeFi</span> is now live!
-                </h3>
-                <p className="mt-1 text-xs text-zinc-400">
-                  Be an early adopter to create, test, and execute DeFi strategies with natural
-                  language prompts.
-                </p>
-                <Button className="mt-3 h-8 bg-emerald-500 text-xs hover:bg-emerald-600">
-                  Join Now →
-                </Button>
-              </div>
-            </div>
-          </Card>
+          {/* Stats / CTA */}
+          <div className="flex gap-4">
+            <GlassCard className="p-6 text-center bg-zinc-900/40 border-white/5 min-w-[160px]">
+              <p className="text-sm text-zinc-500 uppercase tracking-widest font-bold">Total TVL</p>
+              <p className="text-3xl font-bold text-white mt-1">$42.8M</p>
+            </GlassCard>
+            <GlassCard className="p-6 text-center bg-zinc-900/40 border-white/5 min-w-[160px]">
+              <p className="text-sm text-zinc-500 uppercase tracking-widest font-bold">Active Agents</p>
+              <p className="text-3xl font-bold text-white mt-1">128</p>
+            </GlassCard>
+          </div>
         </div>
       </div>
 
-      <div className="space-y-8 p-6">
+      <div className="space-y-12 p-6 lg:p-10 max-w-[1600px] mx-auto">
         {/* Featured Strategies */}
         <section>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-semibold text-white text-xl">Featured Strategies</h2>
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="font-bold text-2xl text-white">Featured Opportunities</h2>
             <div className="flex items-center gap-2">
               <Button
-                variant="ghost"
+                variant="outline"
                 size="icon"
-                className="h-8 w-8 text-zinc-400 hover:text-white"
+                className="h-8 w-8 rounded-full border-white/10 bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10"
                 onClick={() => setFeaturedIndex(Math.max(0, featuredIndex - 1))}
                 disabled={featuredIndex === 0}
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="icon"
-                className="h-8 w-8 text-zinc-400 hover:text-white"
+                className="h-8 w-8 rounded-full border-white/10 bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10"
                 onClick={() =>
                   setFeaturedIndex(
                     Math.min((featuredStrategies?.length || 1) - 3, featuredIndex + 1)
@@ -502,26 +446,26 @@ export function StrategyListPage({ className }: StrategyListPageProps) {
               </Button>
             </div>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {featuredStrategies?.slice(featuredIndex, featuredIndex + 3).map((strategy) => (
-              <FeaturedStrategyCard key={strategy.id} strategy={strategy} />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {featuredStrategies?.slice(featuredIndex, featuredIndex + 3).map((strategy, idx) => (
+              <FeaturedStrategyCard key={strategy.id} strategy={strategy} index={idx} />
             ))}
           </div>
         </section>
 
         {/* All Strategies */}
         <section>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-semibold text-white text-xl">All Strategies</h2>
-            <div className="flex items-center gap-3">
+          <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <h2 className="font-bold text-2xl text-white">Explore Strategies</h2>
+            <div className="flex flex-wrap items-center gap-3">
               {/* Search */}
-              <div className="relative">
-                <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-zinc-500" />
+              <div className="relative group">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500 group-focus-within:text-cyan-500 transition-colors" />
                 <Input
-                  placeholder="Search title, asset, agent or chain"
+                  placeholder="Search assets, agents..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-9 w-[280px] border-zinc-800 bg-zinc-900 pl-9 text-sm text-white placeholder:text-zinc-500"
+                  className="h-10 w-[240px] md:w-[320px] rounded-full border-white/10 bg-white/5 pl-10 text-sm text-white placeholder:text-zinc-600 focus-visible:ring-cyan-500/50"
                 />
               </div>
 
@@ -538,13 +482,13 @@ export function StrategyListPage({ className }: StrategyListPageProps) {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-9 w-[100px] border-zinc-800 bg-zinc-900 text-white"
+                    className="h-9 min-w-[100px] border-white/10 bg-white/5 text-zinc-300 hover:text-white hover:bg-white/10"
                   >
                     {statusLabels[statusFilter]}
-                    <ChevronDown className="ml-2 h-4 w-4" />
+                    <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="border-zinc-800 bg-zinc-900">
+                <DropdownMenuContent className="border-white/10 bg-zinc-900/95 backdrop-blur-xl">
                   <DropdownMenuItem onClick={() => setStatusFilter("all")}>All</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setStatusFilter("active")}>
                     Active
@@ -558,14 +502,16 @@ export function StrategyListPage({ className }: StrategyListPageProps) {
                 </DropdownMenuContent>
               </DropdownMenu>
 
+              <div className="h-6 w-[1px] bg-white/10 mx-1 hidden md:block" />
+
               {/* View Mode Toggle */}
-              <div className="flex items-center rounded-md border border-zinc-800 bg-zinc-900">
+              <div className="flex items-center rounded-lg border border-white/10 bg-white/5 p-1">
                 <Button
                   variant="ghost"
                   size="icon"
                   className={cn(
-                    "h-9 w-9 rounded-none rounded-l-md",
-                    viewMode === "grid" ? "bg-zinc-800 text-white" : "text-zinc-500"
+                    "h-7 w-7 rounded-md transition-all",
+                    viewMode === "grid" ? "bg-zinc-700 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-300"
                   )}
                   onClick={() => setViewMode("grid")}
                 >
@@ -575,8 +521,8 @@ export function StrategyListPage({ className }: StrategyListPageProps) {
                   variant="ghost"
                   size="icon"
                   className={cn(
-                    "h-9 w-9 rounded-none rounded-r-md",
-                    viewMode === "list" ? "bg-zinc-800 text-white" : "text-zinc-500"
+                    "h-7 w-7 rounded-md transition-all",
+                    viewMode === "list" ? "bg-zinc-700 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-300"
                   )}
                   onClick={() => setViewMode("list")}
                 >
@@ -589,17 +535,18 @@ export function StrategyListPage({ className }: StrategyListPageProps) {
           {/* Strategies Grid or List */}
           {filteredStrategies && filteredStrategies.length > 0 ? (
             viewMode === "grid" ? (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {filteredStrategies.map((strategy) => (
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {filteredStrategies.map((strategy, idx) => (
                   <StrategyCard
                     key={strategy.id}
                     strategy={strategy}
+                    index={idx}
                     onClick={() => handleStrategyClick(strategy.id)}
                   />
                 ))}
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {filteredStrategies.map((strategy) => (
                   <StrategyRow
                     key={strategy.id}
@@ -610,19 +557,23 @@ export function StrategyListPage({ className }: StrategyListPageProps) {
               </div>
             )
           ) : (
-            <div className="flex flex-col items-center justify-center py-12">
-              <p className="text-lg text-zinc-500">No strategies found</p>
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="h-16 w-16 rounded-full bg-zinc-900 flex items-center justify-center mb-4 border border-zinc-800">
+                <Search className="h-8 w-8 text-zinc-700" />
+              </div>
+              <p className="text-lg font-medium text-white">No strategies found</p>
+              <p className="text-zinc-500 mt-1 mb-4">Try adjusting your filters or search terms</p>
               {(searchQuery || selectedCategories.length > 0) && (
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   onClick={() => {
                     setSearchQuery("");
                     setSelectedCategories([]);
                   }}
-                  className="mt-2 text-zinc-400 hover:text-white"
+                  className="text-zinc-400 hover:text-white border-white/10 bg-white/5"
                 >
-                  Clear filters
+                  Clear all filters
                 </Button>
               )}
             </div>

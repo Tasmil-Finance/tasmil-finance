@@ -30,18 +30,22 @@ const VALID_AGENT_IDS = ["staking_agent", "bridge_agent", "research_agent", "yie
 
 // Map icon paths from /sidebar/ to /agents/ and ensure correct format
 const normalizeIconPath = (icon: string | undefined, graphId: string): string => {
-  // Default icons based on graph_id
+  // Force use of local high-quality 3D icons for known agents
   const defaultIcons: Record<string, string> = {
-    staking_agent: "/agents/staking-agent.svg",
-    bridge_agent: "/agents/bridge-agent.svg",
-    research_agent: "/agents/research-agent.svg",
-    yield_agent: "/agents/yield-agent.svg",
-    vault_agent: "/agents/vault-agent.svg",
+    staking_agent: "/agents/staking-agent-v2.png",
+    bridge_agent: "/agents/bridge-agent-v2.png",
+    research_agent: "/agents/research-agent-v2.png",
+    yield_agent: "/agents/yield-agent-v2.png",
+    vault_agent: "/agents/vault-agent-v2.png",
   };
 
-  if (!icon) return defaultIcons[graphId] || "/agents/staking-agent.svg";
+  if (defaultIcons[graphId]) {
+    return defaultIcons[graphId];
+  }
 
-  // Convert /sidebar/ paths to /agents/
+  if (!icon) return "/agents/staking-agent-v2.png";
+
+  // Convert /sidebar/ paths to /agents/ if needed for others
   if (icon.includes("/sidebar/")) {
     return icon.replace("/sidebar/", "/agents/").replace(".png", ".svg");
   }

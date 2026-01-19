@@ -1,12 +1,10 @@
-"use client";
-
 import { TokenIcon } from "@web3icons/react/dynamic";
-import { Bot, type LucideIcon, Settings, Sparkles } from "lucide-react";
+import { Bot, ChevronRight, Settings, Sparkles } from "lucide-react";
 import Image from "next/image";
 import type { Assistant } from "@/gen/types/assistant";
-import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
 import { Badge } from "@/shared/ui/badge";
-import { Card, CardContent, CardHeader } from "@/shared/ui/card";
+import { Button } from "@/shared/ui/button";
+import { GlassCard } from "@/shared/ui/glass-card";
 
 // Define metadata interface based on the response structure
 interface AssistantMetadata {
@@ -28,11 +26,6 @@ interface AgentCardProps {
   assistant: Assistant;
   onClick: () => void;
 }
-
-// Map agent type to icon
-const getTypeIcon = (type: string): LucideIcon => {
-  return type === "Strategy" ? Settings : Sparkles;
-};
 
 // Map chain name to token symbol for web3icons
 const getChainTokenSymbol = (chainName: string): string => {
@@ -75,7 +68,7 @@ const isU2UChain = (chainName: string): boolean => {
 };
 
 // Chain icon component
-function ChainIcon({ chain, size = 22 }: { chain: string; size?: number }) {
+function ChainIcon({ chain, size = 20 }: { chain: string; size?: number }) {
   if (isU2UChain(chain)) {
     return (
       <Image
@@ -100,81 +93,77 @@ export function AgentCard({ assistant, onClick }: AgentCardProps) {
   const agentDescription = metadata?.description || ["No description available"];
   const supportedChains = metadata?.supportedChains || [];
 
-  const TypeIcon = getTypeIcon(agentType);
-
-  // Extract first 5 chains for display
-  const displayChains = supportedChains.slice(0, 5);
-  const extraChains = supportedChains.length - 5;
-
   return (
-    <Card
-      className="group relative cursor-pointer transition-all duration-300 hover:border-muted-foreground/30 hover:shadow-lg"
+    <GlassCard
+      className="group relative flex h-full flex-col overflow-hidden border-white/5 bg-zinc-900/40 p-0 transition-all duration-300 hover:-translate-y-1 hover:border-cyan-500/20 hover:shadow-xl hover:shadow-cyan-500/5"
       onClick={onClick}
     >
-      <CardHeader className="pb-4">
-        {/* Icon and Title in horizontal layout */}
-        <div className="flex items-center gap-4">
-          {/* Agent Icon */}
-          <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-lg">
+      <div className="relative p-6 flex-1">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-6">
+          {/* Agent Icon - Floating, Transparent, No Background */}
+          <div className="relative h-16 w-16 flex items-center justify-center shrink-0">
             {agentIcon ? (
               <Image
                 src={agentIcon}
                 alt={agentName}
-                width={80}
-                height={80}
-                className="rounded-lg object-cover"
+                width={64}
+                height={64}
+                className="object-contain drop-shadow-2xl z-10 group-hover:scale-110 transition-transform duration-500"
               />
             ) : (
-              <Bot size={40} className="text-primary" />
+              <Bot className="h-10 w-10 text-zinc-500 z-10" />
             )}
           </div>
 
-          {/* Title and Type Badge */}
-          <div className="min-w-0 flex-1">
-            <h3 className="mb-2 font-semibold text-foreground text-lg">{agentName}</h3>
-            <Badge variant="outline" className="gap-1">
-              <TypeIcon size={12} />
-              {agentType}
-            </Badge>
-          </div>
+          <Badge
+            variant="outline"
+            className={`border-white/10 bg-white/5 backdrop-blur-md px-3 py-1 ${agentType === 'Strategy' ? 'text-emerald-400' : 'text-blue-400'
+              }`}
+          >
+            {agentType === 'Strategy' ? <Settings className="mr-1 h-3 w-3" /> : <Sparkles className="mr-1 h-3 w-3" />}
+            {agentType}
+          </Badge>
         </div>
-      </CardHeader>
 
-      <CardContent className="flex flex-col space-y-6">
-        <ul className="min-h-[96px] flex-1 space-y-2">
-          {agentDescription.map((feature, index) => (
-            <li key={index} className="flex items-start gap-2 text-muted-foreground text-sm">
-              <span className="mt-0.5 text-muted-foreground">•</span>
-              {feature}
-            </li>
-          ))}
-        </ul>
+        {/* Content */}
+        <div>
+          <h3 className="mb-3 font-bold text-xl text-white group-hover:text-cyan-400 transition-colors">{agentName}</h3>
+          <ul className="space-y-2 mb-6">
+            {agentDescription.slice(0, 3).map((feature, index) => (
+              <li key={index} className="flex items-start gap-2 text-zinc-400 text-sm">
+                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-zinc-600 group-hover:bg-cyan-500/50 transition-colors" />
+                <span className="line-clamp-2 leading-relaxed">{feature}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
 
-        {supportedChains.length > 0 && (
-          <div className="border-border border-t pt-4">
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground text-sm">Supported Chains</span>
-              <div className="-space-x-2 flex items-center">
-                {displayChains.map((chain, index) => (
-                  <Avatar
-                    key={index}
-                    className="h-8 w-8 ring-0 flex items-center justify-center bg-secondary"
-                  >
-                    <ChainIcon chain={chain} size={22} />
-                  </Avatar>
-                ))}
-                {extraChains > 0 && (
-                  <Avatar className="z-10 h-8 w-8">
-                    <AvatarFallback className="bg-secondary font-medium text-muted-foreground text-xs">
-                      +{extraChains}
-                    </AvatarFallback>
-                  </Avatar>
-                )}
-              </div>
+      {/* Footer */}
+      <div className="mt-auto border-t border-white/5 bg-white/[0.02] p-4 group-hover:bg-white/[0.04] transition-colors">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-zinc-500 font-medium">Supported Chains</span>
+            <div className="flex -space-x-2">
+              {supportedChains.slice(0, 4).map((chain, i) => (
+                <div key={i} className="h-6 w-6 rounded-full bg-zinc-900 ring-2 ring-zinc-900 flex items-center justify-center overflow-hidden">
+                  <ChainIcon chain={chain} size={16} />
+                </div>
+              ))}
+              {supportedChains.length > 4 && (
+                <div className="h-6 w-6 rounded-full bg-zinc-800 ring-2 ring-zinc-900 flex items-center justify-center text-[9px] text-zinc-400 font-medium">
+                  +{supportedChains.length - 4}
+                </div>
+              )}
             </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+
+          <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full text-zinc-400 hover:text-white hover:bg-white/10">
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </GlassCard>
   );
 }
