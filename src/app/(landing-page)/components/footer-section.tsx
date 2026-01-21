@@ -61,7 +61,7 @@ export function FooterSection() {
         className="absolute inset-0 z-[1]"
         style={{
           background:
-            "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%, rgba(0,0,0,0) 100%)",
+            "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.8) 100%)",
           pointerEvents: "none",
         }}
       />

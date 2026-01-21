@@ -1,9 +1,21 @@
 "use client";
 
 import { ArrowDown } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useEffect, useRef } from "react";
+
+const AbstractCube = dynamic(() => import("@/features/landing/components/3d/AbstractCube"), {
+  ssr: false,
+  loading: () => <div className="w-full h-full min-h-[500px] animate-pulse bg-white/5 rounded-xl" />,
+});
+
+// ... inside render ...
+
+{/* Right Column - Procedural 3D Scene */ }
+<div className="flex items-center justify-center w-full h-[500px]">
+  <AbstractCube />
+</div>
 import { PATHS, SECTION_IDS } from "@/shared/constants/routes";
 import { useIsMobile } from "@/shared/hooks/use-mobile";
 import { Button } from "@/shared/ui/button-v2";
@@ -59,27 +71,7 @@ export const HeroSection = () => {
   return (
     <div className="relative flex h-[calc(100vh)] w-full items-center justify-center pt-8">
       {/* Background img */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
-        <Image
-          alt="Hero Background"
-          blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
-          className="object-cover"
-          fill
-          placeholder="blur"
-          priority
-          quality={80}
-          sizes="100vh"
-          src={HERO_IMAGES.background}
-        />
-
-        <div
-          className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"
-          style={{
-            background:
-              "linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.3) 80%, transparent 100%)",
-          }}
-        />
-      </div>
+      {/* Background img removed to show 3D scene */}
 
       {/* Content container */}
       <div className="relative z-10 mt-12 flex w-full flex-col items-center justify-center px-4">
@@ -216,22 +208,9 @@ export const HeroSection = () => {
                 </Link>
               </div>
 
-              {/* Right Column - Abstract Image */}
-              <div className="flex items-center justify-center">
-                <div className="relative w-[400px]">
-                  <Image
-                    alt="Abstract Chest"
-                    className="h-auto w-full object-contain"
-                    height={400}
-                    priority
-                    quality={90}
-                    src={HERO_IMAGES.chestAbstract}
-                    style={{
-                      animation: "float 3s ease-in-out infinite",
-                    }}
-                    width={400}
-                  />
-                </div>
+              {/* Right Column - Procedural 3D Scene */}
+              <div className="flex items-center justify-center w-full h-[500px]">
+                <AbstractCube />
               </div>
             </div>
           )}

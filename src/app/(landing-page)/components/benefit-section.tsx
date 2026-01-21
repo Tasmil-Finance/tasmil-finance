@@ -102,9 +102,8 @@ export const BenefitSection = () => {
         <Image
           alt="Benefit background"
           blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
-          className={`object-cover transition-opacity duration-1000 ${
-            isLoaded ? "opacity-100" : "opacity-0"
-          }`}
+          className={`object-cover transition-opacity duration-1000 ${isLoaded ? "opacity-100" : "opacity-0"
+            }`}
           fill
           placeholder="blur"
           priority
@@ -116,24 +115,21 @@ export const BenefitSection = () => {
       <div className="container relative z-10 mx-auto px-4 md:px-8">
         {/* Section header */}
         <div
-          className={`mb-10 flex flex-col items-center text-center transition-all duration-1000 md:mb-16 ${
-            isLoaded ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-          }`}
+          className={`mb-10 flex flex-col items-center text-center transition-all duration-1000 md:mb-16 ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
+            }`}
         >
           <Typography
             as="span"
-            className={`mb-3 text-sm uppercase opacity-80 transition-all duration-700 md:text-base ${
-              isLoaded ? "translate-x-0 opacity-100" : "-translate-x-10 opacity-0"
-            }`}
+            className={`mb-3 text-sm uppercase opacity-80 transition-all duration-700 md:text-base ${isLoaded ? "translate-x-0 opacity-100" : "-translate-x-10 opacity-0"
+              }`}
             gradient={true}
           >
             / BENEFITS
           </Typography>
           <Typography
             as="h2"
-            className={`font-semibold text-3xl uppercase transition-all delay-200 duration-700 md:text-5xl ${
-              isLoaded ? "translate-x-0 opacity-100" : "translate-x-10 opacity-0"
-            }`}
+            className={`font-semibold text-3xl uppercase transition-all delay-200 duration-700 md:text-5xl ${isLoaded ? "translate-x-0 opacity-100" : "translate-x-10 opacity-0"
+              }`}
             gradient={true}
             weight="semibold"
           >
@@ -143,17 +139,15 @@ export const BenefitSection = () => {
 
         {/* Feature cards container */}
         <div
-          className={`mx-auto max-w-[1100px] transition-all duration-1000 ${
-            isLoaded ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"
-          }`}
+          className={`mx-auto max-w-[1100px] transition-all duration-1000 ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"
+            }`}
         >
           {/* Desktop and mobile layout */}
           <div className="flex flex-col overflow-hidden rounded-2xl border border-[#ffffff1a] md:flex-row">
             {features.map((feature, index) => (
               <div
-                className={`group relative flex-1 transition-all duration-700 ${
-                  index > 0 ? "border-[#ffffff1a] border-t md:border-t-0 md:border-l" : ""
-                } ${cardsLoaded[index] ? "translate-y-0 opacity-100" : "translate-y-16 opacity-0"}`}
+                className={`group relative flex-1 transition-all duration-700 ${index > 0 ? "border-[#ffffff1a] border-t md:border-t-0 md:border-l" : ""
+                  } ${cardsLoaded[index] ? "translate-y-0 opacity-100" : "translate-y-16 opacity-0"}`}
                 key={feature.label}
                 style={{
                   transitionDelay: `${index * 200}ms`,
@@ -163,9 +157,8 @@ export const BenefitSection = () => {
                   {/* Icon and label */}
                   <div className="relative z-20 mb-6 flex items-center gap-3">
                     <div
-                      className={`relative overflow-hidden rounded-md transition-all duration-500 ${
-                        cardsLoaded[index] ? "scale-100 opacity-100" : "scale-50 opacity-0"
-                      } group-hover:scale-110`}
+                      className={`relative overflow-hidden rounded-md transition-all duration-500 ${cardsLoaded[index] ? "scale-100 opacity-100" : "scale-50 opacity-0"
+                        } group-hover:scale-110`}
                       style={{ transitionDelay: `${600 + index * 100}ms` }}
                     >
                       <div className="flex h-10 w-10 items-center justify-center rounded-md border border-white/20 bg-white/10 backdrop-blur-sm">
@@ -174,11 +167,10 @@ export const BenefitSection = () => {
                     </div>
                     <div style={{ transitionDelay: `${700 + index * 100}ms` }}>
                       <Typography
-                        className={`text-sm text-white transition-all duration-500 ${
-                          cardsLoaded[index]
+                        className={`text-sm text-white transition-all duration-500 ${cardsLoaded[index]
                             ? "translate-x-0 opacity-100"
                             : "-translate-x-4 opacity-0"
-                        }`}
+                          }`}
                       >
                         {feature.label}
                       </Typography>
@@ -187,26 +179,23 @@ export const BenefitSection = () => {
 
                   {/* Background image - 275px height, positioned based on index */}
                   <div
-                    className={`absolute inset-0 h-full w-full overflow-hidden transition-all duration-1000 ${
-                      cardsLoaded[index] ? "opacity-80" : "opacity-0"
-                    } group-hover:opacity-100`}
+                    className={`absolute inset-0 h-full w-full overflow-hidden transition-all duration-1000 ${cardsLoaded[index] ? "opacity-80" : "opacity-0"
+                      } group-hover:opacity-100`}
                     style={{ transitionDelay: `${500 + index * 100}ms` }}
                   >
                     <div
-                      className={`relative flex h-full w-full ${
-                        index === 1
+                      className={`relative flex h-full w-full ${index === 1
                           ? "items-end justify-center" // Middle card: bottom position, more padding
                           : "items-start justify-center pt-14" // First and last cards: top position
-                      }`}
+                        }`}
                     >
                       <div className="relative h-[200px] w-full">
                         <Image
                           alt="Card background"
-                          className={`object-contain object-center transition-all duration-500 ${
-                            index === 1
+                          className={`object-contain object-center transition-all duration-500 ${index === 1
                               ? "group-hover:translate-y-[-15px]" // Middle card: move up on hover
                               : "group-hover:translate-y-[-10px]" // First and last: move down on hover
-                          } group-hover:scale-105`}
+                            } group-hover:scale-105`}
                           fill
                           src={feature.background}
                         />

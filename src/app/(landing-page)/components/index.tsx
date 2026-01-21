@@ -138,7 +138,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-black text-foreground">
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-transparent text-foreground">
       {/* Content */}
       <div className="relative flex min-h-screen flex-col">
         <Navbar />

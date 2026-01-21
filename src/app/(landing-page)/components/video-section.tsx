@@ -9,8 +9,8 @@ export const VideoSection = () => {
       className="relative flex min-h-screen w-full items-center justify-center px-4 py-20 md:px-8"
       data-section-id="video"
     >
-      {/* Background overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/60" />
+      {/* Background overlay - Made transparent for 3D visibility */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-transparent" />
 
       {/* Content container */}
       <div className="relative z-10 flex w-full max-w-6xl flex-col items-center gap-16">

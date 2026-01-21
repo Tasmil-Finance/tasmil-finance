@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import LandingPage from "@/app/(landing-page)/components";
+import { LandingBackground } from "@/features/landing/components/LandingBackground";
 
 export const metadata: Metadata = {
   title: "Tasmil Finance | AI-Powered DeFi Gateway for U2U Blockchain",
@@ -19,8 +20,18 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen bg-gradient-to-b from-gray-900/70 to-black">
-      <LandingPage />
+    <div className="relative min-h-screen bg-black" id="landing-scroll-container">
+      {/* 3D Background - Fixed */}
+      <div className="fixed inset-0 z-0">
+        <LandingBackground />
+      </div>
+
+      {/* Content Scroll Layer */}
+      <div className="relative z-10 pointer-events-none">
+        <div className="pointer-events-auto">
+          <LandingPage />
+        </div>
+      </div>
     </div>
   );
 }

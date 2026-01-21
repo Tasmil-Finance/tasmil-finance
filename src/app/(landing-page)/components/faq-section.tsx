@@ -123,7 +123,7 @@ export const FAQSection = () => {
   };
 
   return (
-    <section className="w-full bg-black">
+    <section className="w-full bg-transparent">
       <div className="mx-auto w-full px-4 py-12 md:px-10 md:py-16">
         <div className="mb-12 text-center">
           <Typography as="p" className="mb-2 text-center text-xl" gradient={true} weight="semibold">
@@ -148,9 +148,8 @@ export const FAQSection = () => {
 
             return (
               <div
-                className={`${!isLast || isOpen ? "border-[#E5E5E5] border-b" : ""} ${
-                  isFirst && isOpen ? "rounded-t-2xl" : ""
-                } ${isLast && isOpen ? "rounded-b-2xl" : ""}`}
+                className={`${!isLast || isOpen ? "border-[#E5E5E5] border-b" : ""} ${isFirst && isOpen ? "rounded-t-2xl" : ""
+                  } ${isLast && isOpen ? "rounded-b-2xl" : ""}`}
                 key={faq.id}
               >
                 <div

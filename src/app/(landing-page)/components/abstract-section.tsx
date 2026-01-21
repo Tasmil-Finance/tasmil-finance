@@ -16,7 +16,7 @@ export const AbstractSection = () => {
   }, []);
 
   return (
-    <section className="relative h-[50vh] w-full overflow-hidden bg-black py-20 md:h-screen">
+    <section className="relative h-[50vh] w-full overflow-hidden bg-transparent py-20 md:h-screen">
       <div className="absolute bottom-0 left-0 flex h-1/3 w-full items-center justify-center">
         <VelocityScroll
           className="font-bold text-6xl text-white/15 md:text-10xl"
@@ -49,9 +49,8 @@ export const AbstractSection = () => {
       </div>
 
       <div
-        className={`-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 z-30 h-[75vw] w-[75vw] transition-all duration-1000 md:h-[45vw] md:w-[45vw] ${
-          isLoaded ? "scale-100 opacity-100" : "scale-95 opacity-0"
-        }`}
+        className={`-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 z-30 h-[75vw] w-[75vw] transition-all duration-1000 md:h-[45vw] md:w-[45vw] ${isLoaded ? "scale-100 opacity-100" : "scale-95 opacity-0"
+          }`}
       />
     </section>
   );
