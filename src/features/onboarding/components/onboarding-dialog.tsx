@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, X, Wallet, DollarSign } from "lucide-react";
+import { ArrowLeft, ArrowRight, X, DollarSign } from "lucide-react";
 import { Dialog, DialogContent } from "@/shared/ui/dialog";
 import { Button } from "@/shared/ui/button";
-import { Card } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { SimpleSmartWallet } from "@/components/simple-smart-wallet";

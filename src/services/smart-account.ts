@@ -23,12 +23,12 @@ const entryPoint = getEntryPoint("0.7");
 // Clients
 const publicClient = createPublicClient({
   chain: sepolia,
-  transport: http(process.env.NEXT_PUBLIC_RPC_URL),
+  transport: http(process.env["NEXT_PUBLIC_RPC_URL"]),
 });
 
 // Admin client - only create if private key is available
 const createAdminClient = () => {
-  const adminPrivateKey = process.env.NEXT_PUBLIC_ADMIN_PRIVATE_KEY as Hex;
+  const adminPrivateKey = process.env["NEXT_PUBLIC_ADMIN_PRIVATE_KEY"] as Hex;
   
   if (!adminPrivateKey) {
     console.warn("⚠️ Admin private key not found. Some features may not work.");
@@ -40,7 +40,7 @@ const createAdminClient = () => {
     const adminWalletClient = createWalletClient({
       account: adminAccount,
       chain: sepolia,
-      transport: http(process.env.NEXT_PUBLIC_RPC_URL),
+      transport: http(process.env["NEXT_PUBLIC_RPC_URL"]),
     });
     
     return adminWalletClient;
@@ -153,7 +153,7 @@ export class SmartAccountService {
     return createKernelAccountClient({
       account,
       chain: sepolia,
-      bundlerTransport: http(process.env.NEXT_PUBLIC_ZERODEV_BUNDLER_URL),
+      bundlerTransport: http(process.env["NEXT_PUBLIC_ZERODEV_BUNDLER_URL"]),
       paymaster: {
         getPaymasterData: async () => ({
           paymaster: SPONSOR_PAYMASTER_ADDRESS as Address,

@@ -3,7 +3,7 @@
 import { Canvas, useThree } from "@react-three/fiber";
 import { Environment, PerspectiveCamera, Cloud, Clouds } from "@react-three/drei";
 import { EffectComposer, Bloom, Noise, Vignette } from "@react-three/postprocessing";
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect } from "react";
 import * as THREE from "three";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";

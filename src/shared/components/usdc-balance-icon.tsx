@@ -14,12 +14,12 @@ const USDC_ADDRESS = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831";
 export function USDCBalanceIcon() {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
-  const isLocalChain = process.env.NEXT_PUBLIC_USE_LOCAL_CHAIN === "true";
+  const isLocalChain = process.env["NEXT_PUBLIC_USE_LOCAL_CHAIN"] === "true";
   
   // Only show on local chain and when connected to correct network
   const shouldShow = isLocalChain && isConnected && address && isCorrectChain(chainId);
 
-  const { data: balance, isLoading } = useBalance({
+  const { data: balance } = useBalance({
     address: address,
     token: USDC_ADDRESS as `0x${string}`,
     query: {

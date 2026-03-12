@@ -325,7 +325,7 @@ export function useVaultWithdraw() {
         args: [amount, address, address],
       });
 
-      return { hash };
+      return { hash, isConfirmed: false };
     } finally {
       setIsPending(false);
     }
@@ -356,7 +356,7 @@ export function useVaultRedeem() {
         args: [shares, address, address],
       });
 
-      return { hash };
+      return { hash, isConfirmed: false };
     } finally {
       setIsPending(false);
     }
@@ -382,7 +382,7 @@ export function useVaultApprove() {
         args: [spender as `0x${string}`, amount],
       });
 
-      return { hash };
+      return { hash, isConfirmed: false };
     } finally {
       setIsPending(false);
     }

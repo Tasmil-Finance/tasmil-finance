@@ -25,7 +25,7 @@ export function FloatingShapes({ count = 50, color = "#00D4FF" }) {
     // Dummy object for calculating matrices
     const dummy = useMemo(() => new THREE.Object3D(), []);
 
-    useFrame((state) => {
+    useFrame(() => {
         if (!meshRef.current) return;
 
         particles.forEach((particle, i) => {

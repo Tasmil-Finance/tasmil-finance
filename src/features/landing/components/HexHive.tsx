@@ -4,7 +4,7 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 
-export function HexHive({ count = 200, color = "#1A1B20", accentColor = "#00D4FF" }) {
+export function HexHive({ color = "#1A1B20" }) {
     const meshRef = useRef<THREE.InstancedMesh>(null);
     const dummy = useMemo(() => new THREE.Object3D(), []);
 
@@ -45,7 +45,7 @@ export function HexHive({ count = 200, color = "#1A1B20", accentColor = "#00D4FF
         const time = state.clock.getElapsedTime();
 
         particles.forEach((particle, i) => {
-            let { x, y, z, phase } = particle;
+            let { x, y, z } = particle;
 
             // "Breathing" effect: z-position pulsates
             // Creates a wave-like motion across the wall

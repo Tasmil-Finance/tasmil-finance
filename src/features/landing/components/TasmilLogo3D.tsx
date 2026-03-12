@@ -1,7 +1,7 @@
 import { useFrame, useLoader } from "@react-three/fiber";
 import { useRef, useMemo } from "react";
 import * as THREE from "three";
-import { Float, Outlines } from "@react-three/drei";
+import { Float } from "@react-three/drei";
 
 export function TasmilLogo3D() {
     const meshRef = useRef<THREE.Group>(null);

@@ -6,7 +6,7 @@ import { signerToEcdsaValidator } from "@botanary/ecdsa-validator";
 import type { WalletClient } from "viem";
 
 // Import the correct signer type
-import type { SmartAccount } from "permissionless/accounts";
+// import type { SmartAccount } from "permissionless/accounts";
 
 export interface SmartWalletConfig {
   walletClient: WalletClient & { account: any };
@@ -32,12 +32,11 @@ export class SmartWalletService {
   private config: SmartWalletConfig;
   private publicClient: any;
   private kernelClient: any;
-  private account: SmartAccount<any> | null = null;
+  private account: any | null = null;
   private paymasterConfig?: PaymasterConfig;
 
   // Paymaster addresses for Sepolia testnet
   private static readonly SPONSOR_PAYMASTER_ADDRESS = "0xD8b5D09f00eF3Bd681e7C5F838C63054E73261E9";
-  private static readonly ERC20_PAYMASTER_ADDRESS = "0xe613D0233fC69E57a28b2B69E011E121325eE58a";
   private static readonly TOKEN_ADDRESS = "0xB0EAD1E6B9563b6a9B678fEaC85bc34994a8636F";
 
   constructor(config: SmartWalletConfig) {
@@ -70,9 +69,8 @@ export class SmartWalletService {
       console.log("Creating smart wallet with signer:", this.config.walletClient.account.address);
 
       // Create ECDSA validator plugin using user's wallet client
-      // @ts-ignore - Type compatibility issue with WalletClient and Signer
       const ecdsaValidator = await signerToEcdsaValidator(this.publicClient, {
-        signer: this.config.walletClient,
+        signer: this.config.walletClient as any,
         entryPoint,
         kernelVersion,
       });
@@ -182,7 +180,7 @@ export class SmartWalletService {
         data: encodeFunctionData({
           abi: parseAbi(["function approve(address spender, uint256 amount) external returns (bool)"]),
           functionName: "approve",
-          args: [this.paymasterConfig.address, amount],
+          args: [this.paymasterConfig.address as Address, amount],
         }),
         value: 0n,
       });

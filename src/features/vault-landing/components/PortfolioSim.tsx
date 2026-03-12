@@ -21,7 +21,7 @@ export function PortfolioSim() {
         // Animate bars growing
         groupRef.current.children.forEach((child, i) => {
             if (child instanceof THREE.Mesh) {
-                const targetHeight = Math.sin(time + bars[i].delay) * 1 + 2;
+                const targetHeight = Math.sin(time + (bars[i]?.delay ?? 0)) * 1 + 2;
                 child.scale.y = THREE.MathUtils.lerp(child.scale.y, targetHeight, 0.1);
                 child.position.y = child.scale.y / 2;
             }

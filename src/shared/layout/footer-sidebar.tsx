@@ -182,7 +182,7 @@ export function FooterSidebarSection() {
                   </a>
 
                   {/* Balance Cards - Conditional based on chain */}
-                  {process.env.NEXT_PUBLIC_USE_LOCAL_CHAIN === "true" ? (
+                  {process.env["NEXT_PUBLIC_USE_LOCAL_CHAIN"] === "true" ? (
                     // Local chain: Show USDC only
                     <USDCBalance />
                   ) : (
@@ -281,7 +281,7 @@ export function FooterSidebarSection() {
                     </Tooltip>
 
                     {/* Balance Icons - Conditional based on chain */}
-                    {process.env.NEXT_PUBLIC_USE_LOCAL_CHAIN === "true" ? (
+                    {process.env["NEXT_PUBLIC_USE_LOCAL_CHAIN"] === "true" ? (
                       // Local chain: Show USDC only
                       <USDCBalanceIcon />
                     ) : (
