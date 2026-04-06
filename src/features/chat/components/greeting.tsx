@@ -3,12 +3,7 @@
 import { motion } from "framer-motion";
 import { Typography } from "@/shared/ui/typography";
 
-// Agent-specific content
 const agentContent = {
-  "staking-agent": {
-    title: "Your Staking Assistant",
-    subtitle: "Ready to help you stake, delegate, and manage your U2U rewards?",
-  },
   "research-agent": {
     title: "Your Crypto Research Analyst",
     subtitle: "What cryptocurrency would you like to analyze today?",
@@ -19,7 +14,11 @@ const agentContent = {
   },
   "bridge-agent": {
     title: "Your Cross-Chain Bridge Assistant",
-    subtitle: "Ready to help you bridge tokens between U2U and other chains?",
+    subtitle: "Ready to help you bridge tokens between Stellar and other chains?",
+  },
+  "vault-agent": {
+    title: "Your Vault Manager",
+    subtitle: "Ready to help you manage and optimize your yield vaults?",
   },
   default: {
     title: "Your Intelligent DeFi Assistant",
@@ -32,22 +31,20 @@ interface GreetingProps {
 }
 
 export const Greeting = ({ agentId }: GreetingProps) => {
-  // Get content based on current agent
   const getContentForAgent = (agentId: string) => {
     if (!agentId) return agentContent.default;
 
-    // Handle both formats: "staking-agent" and "staking"
     const normalizedAgentId = agentId.includes("-") ? agentId : `${agentId}-agent`;
 
     switch (normalizedAgentId) {
-      case "staking-agent":
-        return agentContent["staking-agent"];
       case "research-agent":
         return agentContent["research-agent"];
       case "yield-agent":
         return agentContent["yield-agent"];
       case "bridge-agent":
         return agentContent["bridge-agent"];
+      case "vault-agent":
+        return agentContent["vault-agent"];
       default:
         return agentContent.default;
     }

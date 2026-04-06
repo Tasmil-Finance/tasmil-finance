@@ -15,61 +15,61 @@ const faqs: FAQItem[] = [
     id: "001",
     question: "What is Tasmil Finance?",
     answer:
-      "Tasmil Finance is an AI-powered DeFi platform built exclusively for the U2U blockchain ecosystem. It serves as your intelligent gateway to U2U's leading DeFi protocols, combining conversational AI agents with seamless access to U2U's DeFi infrastructure through natural language interactions.",
+      "Tasmil Finance is an AI-powered DeFi platform built exclusively for the Stellar blockchain ecosystem. It serves as your intelligent gateway to Stellar's leading DeFi protocols, combining conversational AI agents with seamless access to Stellar's DeFi infrastructure through natural language interactions.",
   },
   {
     id: "002",
-    question: "How does the AI agent system work on U2U?",
+    question: "How does the AI agent system work on Stellar?",
     answer:
-      'Our AI agents act as your personal U2U DeFi assistants. Simply describe what you want to do in natural language - like "swap 100 U2U for USDC" or "find the best yield opportunity on U2U" - and the agents handle the complex protocol interactions automatically on U2U blockchain. They combine real-time U2U on-chain data with market sentiment analysis to make intelligent decisions.',
+      'Our AI agents act as your personal Stellar DeFi assistants. Simply describe what you want to do in natural language - like "swap 100 XLM for USDC on Soroswap" or "find the best lending rate on Blend" - and the agents handle the complex protocol interactions automatically via Soroban smart contracts. They combine real-time Stellar on-chain data with market sentiment analysis to make intelligent decisions.',
   },
   {
     id: "003",
-    question: "Is my U2U wallet secure with Tasmil Finance?",
+    question: "Is my Stellar wallet secure with Tasmil Finance?",
     answer:
-      "Absolutely. Tasmil Finance uses a non-custodial, self-custody wallet architecture. Your private keys are stored locally in your browser and never leave your device. We cannot access your U2U funds - you maintain complete control over your assets while enjoying the convenience of AI-powered U2U DeFi interactions.",
+      "Absolutely. Tasmil Finance uses a non-custodial, self-custody wallet architecture. Your private keys are stored locally in your browser and never leave your device. We cannot access your Stellar funds - you maintain complete control over your assets while enjoying the convenience of AI-powered Stellar DeFi interactions.",
   },
   {
     id: "004",
-    question: "What makes Tasmil different from other U2U DeFi platforms?",
+    question: "What makes Tasmil different from other Stellar DeFi platforms?",
     answer:
-      "Tasmil is the first comprehensive AI-powered gateway specifically built for U2U blockchain's DeFi ecosystem. Unlike traditional DeFi interfaces that require technical knowledge, our conversational agents make sophisticated U2U strategies accessible to everyone. Plus, our creator economy lets you build and monetize your own U2U trading agents.",
+      "Tasmil is the first comprehensive AI-powered gateway specifically built for Stellar blockchain's DeFi ecosystem. Unlike traditional DeFi interfaces that require technical knowledge, our conversational agents make sophisticated Stellar strategies accessible to everyone. Plus, our creator economy lets you build and monetize your own Stellar trading agents.",
   },
   {
     id: "005",
     question: "How does the credit system and pricing work?",
     answer:
-      "We offer flexible pricing with a base plan at $20/month plus credits for compute-intensive operations on U2U. You only pay additional fees when following creator agents that generate profits for you. Credits ensure priority processing and unlock advanced features like custom U2U agent building and real-time U2U market analysis.",
+      "We offer flexible pricing with a base plan at $20/month plus credits for compute-intensive operations on Stellar. You only pay additional fees when following creator agents that generate profits for you. Credits ensure priority processing and unlock advanced features like custom Stellar agent building and real-time Stellar market analysis.",
   },
   {
     id: "006",
-    question: "Can I create my own U2U trading agents?",
+    question: "Can I create my own Stellar trading agents?",
     answer:
-      "Yes! Our no-code agent builder lets you create sophisticated U2U DeFi strategies through simple prompts. Set your risk parameters, automation levels, and trading rules for U2U protocols, then test your strategies in our simulation environment before deploying real capital. Successful agents can be published to our marketplace for passive revenue.",
+      "Yes! Our no-code agent builder lets you create sophisticated Stellar DeFi strategies through simple prompts. Set your risk parameters, automation levels, and trading rules for Stellar protocols, then test your strategies in our simulation environment before deploying real capital. Successful agents can be published to our marketplace for passive revenue.",
   },
   {
     id: "007",
-    question: "Which U2U protocols does Tasmil integrate with?",
+    question: "Which Stellar protocols does Tasmil integrate with?",
     answer:
-      "Tasmil directly integrates with major U2U DeFi protocols including U2U-based DEXs, lending platforms, liquidity pools, and yield farming protocols. Our agents can execute complex multi-protocol strategies seamlessly across the U2U ecosystem, from yield farming to arbitrage opportunities.",
+      "Tasmil directly integrates with major Stellar DeFi protocols including Soroswap (AMM DEX), Blend Protocol (lending/borrowing), Aquarius (liquidity rewards), Phoenix DeFi (DEX aggregator), the native SDEX order book, and Allbridge (cross-chain bridge). Our agents can execute complex multi-protocol strategies seamlessly across the Stellar ecosystem.",
   },
   {
     id: "008",
-    question: "How do I get started with Tasmil Finance on U2U?",
+    question: "How do I get started with Tasmil Finance on Stellar?",
     answer:
-      "Simply connect your U2U-compatible wallet (MetaMask, Trust Wallet, etc.) or create a new one through our platform. Start chatting with our AI agents to explore available U2U strategies, or browse our agent marketplace to find U2U strategies created by other users. Your first interactions help our AI learn your U2U DeFi preferences and risk tolerance.",
+      "Simply connect your Stellar-compatible wallet (Freighter, xBull, Lobstr, etc.) or create a new one through our platform. Start chatting with our AI agents to explore available Stellar strategies, or browse our agent marketplace to find Stellar strategies created by other users. Your first interactions help our AI learn your Stellar DeFi preferences and risk tolerance.",
   },
   {
     id: "009",
-    question: "What kind of returns can I expect on U2U?",
+    question: "What kind of returns can I expect on Stellar?",
     answer:
-      "Returns vary based on U2U market conditions and chosen strategies. Our agents analyze real-time U2U blockchain data to identify optimal opportunities across U2U lending, DEX trading, yield farming, and arbitrage. Historical performance data is available for all published U2U agents, and you can simulate strategies before committing capital.",
+      "Returns vary based on Stellar market conditions and chosen strategies. Our agents analyze real-time Stellar blockchain data to identify optimal opportunities across Blend lending pools, Soroswap/SDEX liquidity provision, Aquarius reward farming, and cross-protocol arbitrage. Historical performance data is available for all published agents, and you can simulate strategies before committing capital.",
   },
   {
     id: "010",
-    question: "How does the creator economy work on U2U?",
+    question: "How does the creator economy work on Stellar?",
     answer:
-      "Build profitable U2U trading agents and earn passive income when others use them. Creators earn a percentage of profits generated by their agents on U2U, with performance-based fees ensuring alignment between creators and users. Top-performing U2U agents get featured in our marketplace and can generate significant recurring revenue.",
+      "Build profitable Stellar trading agents and earn passive income when others use them. Creators earn a percentage of profits generated by their agents on Stellar, with performance-based fees ensuring alignment between creators and users. Top-performing Stellar agents get featured in our marketplace and can generate significant recurring revenue.",
   },
 ];
 

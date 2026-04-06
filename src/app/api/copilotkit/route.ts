@@ -16,11 +16,7 @@ const serviceAdapter = new ExperimentalEmptyAdapter();
 // Each agent has its own endpoint path matching backend registration
 const runtime = new CopilotRuntime({
   agents: {
-    // Staking Agent - U2U Network staking operations
-    staking_agent: new LangGraphHttpAgent({
-      url: `${LANGGRAPH_URL}/copilotkit/agents/staking_agent`,
-    }),
-    // Bridge Agent - Cross-chain token bridging
+    // Bridge Agent - Cross-chain token bridging (Allbridge/Stellar)
     bridge_agent: new LangGraphHttpAgent({
       url: `${LANGGRAPH_URL}/copilotkit/agents/bridge_agent`,
     }),
@@ -31,6 +27,10 @@ const runtime = new CopilotRuntime({
     // Yield Agent - DeFi yield farming opportunities
     yield_agent: new LangGraphHttpAgent({
       url: `${LANGGRAPH_URL}/copilotkit/agents/yield_agent`,
+    }),
+    // Vault Agent - Yield vault management
+    vault_agent: new LangGraphHttpAgent({
+      url: `${LANGGRAPH_URL}/copilotkit/agents/vault_agent`,
     }),
   },
 });

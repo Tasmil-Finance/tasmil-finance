@@ -77,16 +77,16 @@ export function FooterSection() {
             variant="h2"
             weight="bold"
           >
-            REVOLUTIONIZE YOUR U2U DEFI EXPERIENCE WITH TASMIL FINANCE
+            REVOLUTIONIZE YOUR STELLAR DEFI EXPERIENCE WITH TASMIL FINANCE
           </Typography>
 
           <Typography
             as="div"
             className="mt-4 mb-6 max-w-2xl text-lg text-white opacity-90 md:mt-6 md:mb-10 md:w-[60%] md:text-xl"
           >
-            Experience the future of decentralized finance on U2U blockchain with our AI-powered
-            platform. Trade, manage liquidity, and optimize your U2U portfolio with intelligent
-            automation and conversational AI agents.
+            Experience the future of decentralized finance on Stellar with our AI-powered platform.
+            Trade on Soroswap, lend on Blend, earn Aquarius rewards, and bridge via Allbridge —
+            all managed by intelligent AI agents.
           </Typography>
 
           <button

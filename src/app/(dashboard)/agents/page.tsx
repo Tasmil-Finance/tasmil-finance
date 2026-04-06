@@ -26,16 +26,15 @@ interface AssistantMetadata {
 }
 
 // Valid agent graph_ids to display (filter out legacy/test agents)
-const VALID_AGENT_IDS = ["staking_agent", "bridge_agent", "research_agent", "yield_agent", "vault_agent"];
+const VALID_AGENT_IDS = ["bridge_agent", "research_agent", "yield_agent", "vault_agent"];
 
 // Map icon paths from /sidebar/ to /agents/ and ensure correct format
 const normalizeIconPath = (icon: string | undefined, graphId: string): string => {
   // Force use of local high-quality 3D icons for known agents
   const defaultIcons: Record<string, string> = {
-    staking_agent: "/agents/yield-agent-v6.png", // Swapped based on user feedback
     bridge_agent: "/agents/bridge-agent-v6.png",
     research_agent: "/agents/research-agent-v6.png",
-    yield_agent: "/agents/staking-agent-v6.png", // Swapped based on user feedback
+    yield_agent: "/agents/yield-agent-v6.png",
     vault_agent: "/agents/vault-agent-v3.png",
   };
 
@@ -43,7 +42,7 @@ const normalizeIconPath = (icon: string | undefined, graphId: string): string =>
     return defaultIcons[graphId];
   }
 
-  if (!icon) return "/agents/staking-agent-v6.png";
+  if (!icon) return "/agents/bridge-agent-v6.png";
 
   // Convert /sidebar/ paths to /agents/ if needed for others
   if (icon.includes("/sidebar/")) {
@@ -93,9 +92,7 @@ export default function AgentsPage() {
             icon: normalizeIconPath(metadata?.icon, assistant.graph_id || ""),
             supportedChains: metadata?.supportedChains?.length
               ? metadata.supportedChains
-              : (assistant.graph_id === "staking_agent")
-                ? ["U2U Network"]
-                : ["U2U Network", "Ethereum", "BNB Chain", "Arbitrum", "Optimism", "Base"],
+              : ["Stellar"],
           },
         };
       });

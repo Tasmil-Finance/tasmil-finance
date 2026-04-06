@@ -13,7 +13,7 @@ from langgraph.graph.ui import push_ui_message
 push_ui_message(
     "staking-result",  # Component name
     {
-        "result": {"success": True, "balance": "1000", "unit": "U2U"},
+        "result": {"success": True, "balance": "1000", "unit": "XLM"},
         "toolType": "tool-getAccountBalance"
     },
     message=ai_message
@@ -357,7 +357,7 @@ async def show_account_balance(state: AgentState):
                 "success": True,
                 "walletAddress": "0x1234...5678",
                 "balance": "1250.5678",
-                "unit": "U2U"
+                "unit": "XLM"
             },
             "toolType": "tool-getAccountBalance"
         },
@@ -384,8 +384,8 @@ async def show_staking_operation(state: AgentState):
                 "action": "delegate",
                 "validatorID": 5,
                 "amount": 1000,
-                "amountFormatted": "1,000 U2U",
-                "message": "Ready to delegate 1,000 U2U to Validator #5",
+                "amountFormatted": "1,000 XLM",
+                "message": "Ready to delegate 1,000 XLM to Validator #5",
                 "requiresWallet": True,
                 "requiresConfirmation": True
             },
@@ -585,7 +585,7 @@ async def staking_handler(state: AgentState):
                 "success": True,
                 "walletAddress": "0x1234...5678",
                 "balance": "1250.5678",
-                "unit": "U2U"
+                "unit": "XLM"
             },
             "toolType": "tool-getAccountBalance"
         },

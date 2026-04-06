@@ -1,4 +1,3 @@
-import { TokenIcon } from "@web3icons/react/dynamic";
 import { Bot, ChevronRight, Settings, Sparkles } from "lucide-react";
 import Image from "next/image";
 import type { Assistant } from "@/gen/types/assistant";
@@ -27,56 +26,32 @@ interface AgentCardProps {
   onClick: () => void;
 }
 
-// Map chain name to token symbol for web3icons
-const getChainTokenSymbol = (chainName: string): string => {
-  const chainMap: Record<string, string> = {
-    ethereum: "eth",
-    eth: "eth",
-    arbitrum: "arb",
-    avalanche: "avax",
-    avax: "avax",
-    bnb: "bnb",
-    bnbchain: "bnb", // Added for "BNB Chain"
-    bsc: "bnb",
-    base: "base",
-    blast: "blast",
-    celo: "celo",
-    fantom: "ftm",
-    gnosis: "gno",
-    linea: "linea",
-    manta: "manta",
-    mantle: "mnt",
-    metis: "metis",
-    mode: "mode",
-    moonbeam: "glmr",
-    optimism: "op",
-    op: "op",
-    polygon: "matic",
-    scroll: "scr",
-    solana: "sol",
-    aurora: "aurora",
-    zksync: "zk",
-    u2u: "u2u", // In case it falls through
-    u2unetwork: "u2u", // Added for "U2U Network"
-  };
-
-  const normalized = chainName.toLowerCase().replace(/\s+/g, "");
-  return chainMap[normalized] || normalized;
+// Map chain name to icon path
+const CHAIN_ICONS: Record<string, string> = {
+  stellar: "/token/stellar.png",
+  ethereum: "/images/tokens/eth.png",
+  arbitrum: "/images/tokens/arb.png",
+  optimism: "/images/tokens/op.png",
+  polygon: "/images/tokens/matic.png",
+  bsc: "/images/tokens/bnb.png",
+  avalanche: "/images/tokens/avax.png",
+  base: "/images/tokens/base.png",
 };
 
-// Check if chain is U2U (use PNG instead of web3icons)
-const isU2UChain = (chainName: string): boolean => {
+function getChainIconPath(chainName: string): string | null {
   const normalized = chainName.toLowerCase().replace(/\s+/g, "");
-  return normalized === "u2u" || normalized === "u2usolaris" || normalized === "u2unetwork";
-};
+  return CHAIN_ICONS[normalized] || null;
+}
 
 // Chain icon component
 function ChainIcon({ chain, size = 20 }: { chain: string; size?: number }) {
-  if (isU2UChain(chain)) {
+  const iconPath = getChainIconPath(chain);
+
+  if (iconPath) {
     return (
       <Image
-        src="/images/tokens/u2u.png"
-        alt="U2U"
+        src={iconPath}
+        alt={chain}
         width={size}
         height={size}
         className="rounded-full object-cover"
@@ -84,7 +59,15 @@ function ChainIcon({ chain, size = 20 }: { chain: string; size?: number }) {
     );
   }
 
-  return <TokenIcon symbol={getChainTokenSymbol(chain)} variant="branded" size={size} />;
+  // Fallback: first letter
+  return (
+    <span
+      className="flex items-center justify-center rounded-full bg-muted text-muted-foreground font-medium"
+      style={{ width: size, height: size, fontSize: size * 0.5 }}
+    >
+      {chain.charAt(0).toUpperCase()}
+    </span>
+  );
 }
 
 export function AgentCard({ assistant, onClick }: AgentCardProps) {
@@ -150,8 +133,8 @@ export function AgentCard({ assistant, onClick }: AgentCardProps) {
             <span className="text-xs text-muted-foreground font-medium">Supported Chains</span>
             <div className="flex -space-x-2">
               {supportedChains.slice(0, 4).map((chain, i) => (
-                <div key={i} className="h-6 w-6 rounded-full bg-background ring-2 ring-card flex items-center justify-center overflow-hidden">
-                  <ChainIcon chain={chain} size={16} />
+                <div key={i} className="h-8 w-8 rounded-full bg-background ring-2 ring-card flex items-center justify-center overflow-hidden">
+                  <ChainIcon chain={chain} size={24} />
                 </div>
               ))}
               {supportedChains.length > 4 && (

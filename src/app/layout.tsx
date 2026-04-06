@@ -37,7 +37,7 @@ const THEME_COLOR_SCRIPT = `\
 
 export const metadata: Metadata = {
   title: "Tasmil Finance",
-  description: "DeFi platform for U2U ecosystem",
+  description: "DeFi platform for Stellar ecosystem",
 };
 
 export default function RootLayout({

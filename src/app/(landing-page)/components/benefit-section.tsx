@@ -70,23 +70,23 @@ export const BenefitSection = () => {
       label: "AI Agent System",
       title: "Conversational DeFi Intelligence",
       description:
-        "Transform complex DeFi operations on U2U into simple conversations. Execute sophisticated strategies across U2U's leading DeFi protocols with natural language commands while maintaining full non-custodial control of your assets.",
+        "Transform complex DeFi operations on Stellar into simple conversations. Execute sophisticated strategies across Blend, Soroswap, Aquarius, and Phoenix with natural language commands while maintaining full non-custodial control of your assets.",
       background: BENEFIT_IMAGES.bg1,
     },
     {
       icon: Wrench,
       label: "Creator Economy",
-      title: "Build, Deploy, Earn on U2U",
+      title: "Build, Deploy, Earn on Stellar",
       description:
-        "Create custom trading agents for U2U DeFi without coding. Design strategies, test in simulation environment, then publish to our marketplace for passive revenue through performance-based fees from the U2U community.",
+        "Create custom trading agents for Stellar DeFi without coding. Design strategies, test in simulation environment, then publish to our marketplace for passive revenue through performance-based fees from the Stellar community.",
       background: BENEFIT_IMAGES.bg2,
     },
     {
       icon: Globe,
-      label: "U2U Ecosystem Integration",
-      title: "Native U2U DeFi Gateway",
+      label: "Stellar Ecosystem Integration",
+      title: "Native Stellar DeFi Gateway",
       description:
-        "Seamless integration with U2U blockchain's entire DeFi ecosystem. Real-time portfolio tracking, cross-protocol yield optimization on U2U, and intelligent routing through our self-custody wallet architecture.",
+        "Seamless integration with Stellar's entire DeFi ecosystem — Soroswap, Blend, Aquarius, Phoenix, SDEX, and Allbridge. Real-time portfolio tracking, cross-protocol yield optimization via Soroban, and intelligent routing through our self-custody wallet architecture.",
       background: BENEFIT_IMAGES.bg3,
     },
   ];

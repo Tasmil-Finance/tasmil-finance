@@ -3,18 +3,21 @@ import LandingPage from "@/app/(landing-page)/components";
 import { LandingBackground } from "@/features/landing/components/LandingBackground";
 
 export const metadata: Metadata = {
-  title: "Tasmil Finance | AI-Powered DeFi Gateway for U2U Blockchain",
+  title: "Tasmil Finance | AI-Powered DeFi Gateway for Stellar Blockchain",
   description:
-    "Experience seamless DeFi on U2U blockchain with AI agents, smart swaps, liquidity optimization, and real-time market insights through conversational interactions.",
+    "Experience seamless DeFi on Stellar — trade on Soroswap, lend on Blend, earn Aquarius rewards, and bridge via Allbridge with AI-powered conversational agents.",
   keywords: [
-    "U2U blockchain",
-    "U2U DeFi",
+    "Stellar blockchain",
+    "Stellar DeFi",
+    "Soroswap",
+    "Blend Protocol",
+    "Aquarius",
+    "Phoenix DeFi",
+    "Allbridge",
+    "Soroban",
+    "XLM",
     "AI trading",
-    "DeFi platform",
-    "U2U ecosystem",
-    "crypto trading",
     "yield farming",
-    "liquidity pools",
   ],
 };
 

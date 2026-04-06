@@ -29,7 +29,7 @@ export const VideoSection = () => {
               className="text-center text-gray-300 text-xl leading-relaxed md:text-2xl"
               variant="p"
             >
-              Watch how our AI-powered DeFi platform transforms your U2U blockchain trading
+              Watch how our AI-powered DeFi platform transforms your Stellar blockchain trading
               experience with intelligent automation and real-time insights.
             </Typography>
           </div>
@@ -67,21 +67,21 @@ export const VideoSection = () => {
 
           <div className="text-center">
             <Typography className="mb-4 font-semibold text-2xl text-white md:text-3xl" variant="h3">
-              U2U Ecosystem Integration
+              Stellar Ecosystem Integration
             </Typography>
             <Typography className="text-base text-gray-400 leading-relaxed md:text-lg" variant="p">
-              Connect with U2U's major DeFi protocols and manage your portfolio from a single,
-              intuitive interface built for U2U blockchain.
+              Connect with Blend, Soroswap, Aquarius, Phoenix, and the native SDEX. Manage your
+              entire Stellar DeFi portfolio from a single, intuitive interface.
             </Typography>
           </div>
 
           <div className="text-center">
             <Typography className="mb-4 font-semibold text-2xl text-white md:text-3xl" variant="h3">
-              Real-Time U2U Analytics
+              Real-Time Stellar Analytics
             </Typography>
             <Typography className="text-base text-gray-400 leading-relaxed md:text-lg" variant="p">
-              Get instant insights into U2U market conditions, portfolio performance, and trading
-              opportunities across the U2U ecosystem.
+              Get instant insights into XLM market conditions, Soroban contract analytics, and yield
+              opportunities across Blend, Aquarius, and Soroswap pools.
             </Typography>
           </div>
         </div>
