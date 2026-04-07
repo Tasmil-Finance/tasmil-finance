@@ -94,3 +94,29 @@ export function useSubmitTx() {
     },
   });
 }
+
+export function useWithdraw() {
+  return useMutation({
+    mutationFn: async (dto: { publicKey: string; amount: number }) => {
+      const res = await fetch(`${API_BASE}/account/withdraw`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dto),
+      });
+      return (await res.json()).data;
+    },
+  });
+}
+
+export function useRevoke() {
+  return useMutation({
+    mutationFn: async (publicKey: string) => {
+      const res = await fetch(`${API_BASE}/account/revoke`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ publicKey }),
+      });
+      return (await res.json()).data;
+    },
+  });
+}
