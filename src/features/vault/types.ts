@@ -1,67 +1,68 @@
-// Vault Types - Tasmil Vault UI/UX Design System
+export type VaultToken = "USDC" | "XLM";
 
 export interface VaultStats {
-  apy: number;
-  tvl: number;
-  tvlChange24h: number;
-  dailyChange: number;
+  totalTvl: string;
+  currentApy: number;
+  totalDepositors: number;
+  strategies: StrategyInfo[];
 }
 
-export interface UserVaultPosition {
-  balance: number;
-  shares: number;
-  unrealizedYield: number;
-  weeklyChange: number;
-  depositedAt?: string;
-}
-
-export interface AllocationStrategy {
+export interface StrategyInfo {
   name: string;
-  protocol: string;
-  allocation: number;
   apy: number;
-  tvl: number;
-  icon?: string;
+  allocation: number;
+}
+
+export interface VaultPosition {
+  shares: string;
+  balanceUsd: string;
+  depositedUsd: string;
+  profitUsd: string;
+  profitPercent: number;
+  currentApy: number;
+  allocations: AllocationInfo[];
+}
+
+export interface AllocationInfo {
+  name: string;
+  weight: number;
+  apy: number;
 }
 
 export interface ActivityItem {
-  id: string;
-  type: "yield" | "deposit" | "withdraw" | "rebalance";
-  amount?: number;
+  type: "deposit" | "withdraw" | "rebalance" | "harvest";
+  amount?: string;
+  token?: string;
+  detail?: string;
   timestamp: string;
-  source: "auto" | "user" | "ai";
-  description?: string;
+  txHash?: string;
 }
 
-export interface WithdrawOptions {
-  standardTime: string;
-  emergencyFee: number;
+export interface DepositResponse {
+  xdr: string;
+  estimatedShares: string;
+  estimatedValueUsd: string;
+  fee: string;
 }
 
-export interface VaultConfig {
-  name: string;
-  token: string;
-  shareToken: string;
-  network: string;
-  contractAddress?: string;
+export interface WithdrawResponse {
+  xdr: string;
+  shares: string;
+  estimatedAmount: string;
+  estimatedValueUsd: string;
 }
 
-export type QuickAmount = 100 | 1000 | 5000 | "MAX";
-
-export interface DepositModalState {
-  amount: number;
-  estimatedShares: number;
-  estimatedApy: number;
-  gasEstimate: number;
-  status: "ready" | "pending" | "confirming" | "success" | "error";
-}
-
-export interface WithdrawModalState {
-  amount: number;
-  receiveAmount: number;
-  remaining: number;
-  isEmergency: boolean;
-  unwindTime: string;
-  fee: number;
-  status: "ready" | "pending" | "confirming" | "success" | "error";
-}
+export type DepositStatus =
+  | "idle"
+  | "building"
+  | "signing"
+  | "confirming"
+  | "success"
+  | "error";
+export type WithdrawStatus =
+  | "idle"
+  | "building"
+  | "signing"
+  | "confirming"
+  | "success"
+  | "error";

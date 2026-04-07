@@ -1,56 +1,19 @@
-// Vault Constants - Tasmil Vault UI/UX Design System
+import type { VaultToken } from "./types";
 
-import type { AllocationStrategy, QuickAmount, VaultConfig, VaultStats } from "./types";
+export const VAULT_NAME = "Tasmil Vault";
+export const VAULT_DESCRIPTION = "Earn yield on Stellar, automated";
 
-export const VAULT_CONFIG: VaultConfig = {
-  name: "Tasmil Vault",
-  token: "USDC",
-  shareToken: "tUSDC",
-  network: "Base",
-};
-
-export const QUICK_AMOUNTS: QuickAmount[] = [100, 1000, 5000, "MAX"];
-
-export const DEFAULT_VAULT_STATS: VaultStats = {
-  apy: 14.7,
-  tvl: 1200000,
-  tvlChange24h: 4820,
-  dailyChange: 0.04,
-};
-
-export const DEFAULT_ALLOCATIONS: AllocationStrategy[] = [
-  {
-    name: "Morpho Blue",
-    protocol: "Morpho",
-    allocation: 60,
-    apy: 15.2,
-    tvl: 720000,
-    icon: "/icons/morpho.svg",
-  },
-  {
-    name: "Pendle PTs",
-    protocol: "Pendle",
-    allocation: 25,
-    apy: 13.8,
-    tvl: 300000,
-    icon: "/icons/pendle.svg",
-  },
-  {
-    name: "GMX GLP",
-    protocol: "GMX",
-    allocation: 15,
-    apy: 22.1,
-    tvl: 180000,
-    icon: "/icons/gmx.svg",
-  },
+export const SUPPORTED_TOKENS: { value: VaultToken; label: string; icon: string }[] = [
+  { value: "USDC", label: "USDC", icon: "/icons/usdc.svg" },
+  { value: "XLM", label: "XLM", icon: "/icons/xlm.svg" },
 ];
 
-export const WITHDRAW_CONFIG = {
-  standardUnwindTime: "~15 minutes",
-  emergencyFee: 0.5,
-};
+export const QUICK_AMOUNTS_USD = [100, 500, 1000] as const;
 
-export const PERFORMANCE_BENCHMARK = {
-  vaultReturn: 18.7,
-  buyAndHold: 12.3,
-};
+export const BACKEND_URL =
+  process.env["NEXT_PUBLIC_BACKEND_URL"] ?? "http://localhost:6756";
+export const API_BASE = `${BACKEND_URL}/api/vault`;
+
+export const POSITION_REFETCH_MS = 30_000;
+export const STATS_REFETCH_MS = 60_000;
+export const ACTIVITY_REFETCH_MS = 60_000;
