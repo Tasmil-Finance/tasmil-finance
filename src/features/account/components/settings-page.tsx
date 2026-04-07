@@ -10,9 +10,8 @@ import {
   Wallet,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useId, useMemo, useState } from "react";
 
-import { cn } from "@/lib/utils";
 import { Button } from "@/shared/ui/button-v2";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Separator } from "@/shared/ui/separator";
@@ -65,6 +64,7 @@ export function SettingsPage() {
 
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [copied, setCopied] = useState(false);
+  const withdrawAmountId = useId();
 
   // Compute available vs locked amounts
   const { availableUsd, lockedUsd, lockedCountdown, keeperAddress } = useMemo(() => {
@@ -193,7 +193,7 @@ export function SettingsPage() {
               <p className="font-mono font-semibold text-foreground text-lg">
                 {formatUsd(availableUsd)}
               </p>
-              <span className="text-muted-foreground text-[10px]">Lending + LP positions</span>
+              <span className="text-[10px] text-muted-foreground">Lending + LP positions</span>
             </div>
             <div className="rounded-lg border border-border bg-muted/20 p-3">
               <div className="flex items-center gap-1.5">
@@ -204,19 +204,19 @@ export function SettingsPage() {
                 {formatUsd(lockedUsd)}
               </p>
               {lockedCountdown && (
-                <span className="text-orange-400 text-[10px]">{lockedCountdown}</span>
+                <span className="text-[10px] text-orange-400">{lockedCountdown}</span>
               )}
             </div>
           </div>
 
           {/* Amount input */}
           <div>
-            <label htmlFor="withdraw-amount" className="mb-1 block text-muted-foreground text-xs">
+            <label htmlFor={withdrawAmountId} className="mb-1 block text-muted-foreground text-xs">
               Withdraw amount (USD)
             </label>
             <div className="flex gap-2">
               <input
-                id="withdraw-amount"
+                id={withdrawAmountId}
                 type="number"
                 min="0"
                 max={availableUsd}

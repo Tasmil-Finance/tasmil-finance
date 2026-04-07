@@ -15,7 +15,7 @@ import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button-v2";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { Card, CardContent } from "@/shared/ui/card";
 import { Separator } from "@/shared/ui/separator";
 import { useWalletStore } from "@/store/use-wallet";
 
@@ -116,7 +116,7 @@ export function DashboardPage() {
             {/* Total value */}
             <div>
               <span className="text-muted-foreground text-xs">Total Value</span>
-              <p className="font-mono font-bold text-2xl text-foreground">
+              <p className="font-bold font-mono text-2xl text-foreground">
                 {formatUsd(position.totalValueUsd)}
               </p>
             </div>

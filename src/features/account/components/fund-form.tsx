@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useId, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/shared/ui/button-v2";
@@ -15,6 +15,7 @@ const QUICK_AMOUNTS = [100, 500, 1000] as const;
 
 export function FundForm({ onFund, isLoading }: FundFormProps) {
   const [amount, setAmount] = useState("");
+  const fundAmountId = useId();
   const token = "USDC" as const;
 
   const parsedAmount = Number.parseFloat(amount);
@@ -35,11 +36,11 @@ export function FundForm({ onFund, isLoading }: FundFormProps) {
 
       {/* Amount input */}
       <div>
-        <label htmlFor="fund-amount" className="mb-1 block text-muted-foreground text-xs">
+        <label htmlFor={fundAmountId} className="mb-1 block text-muted-foreground text-xs">
           Amount (min $10)
         </label>
         <input
-          id="fund-amount"
+          id={fundAmountId}
           type="number"
           min="10"
           step="any"

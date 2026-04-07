@@ -41,7 +41,7 @@ export function PresetCard({ preset, selected, onSelect }: PresetCardProps) {
       {/* Header */}
       <div className="mb-3 flex items-start justify-between">
         <h3 className="font-bold text-foreground text-lg">{preset.name}</h3>
-        <span className="font-mono font-bold text-foreground text-xl">
+        <span className="font-bold font-mono text-foreground text-xl">
           ~{preset.estimatedApy.toFixed(1)}%
         </span>
       </div>
@@ -70,7 +70,7 @@ export function PresetCard({ preset, selected, onSelect }: PresetCardProps) {
 
       {/* Top pools */}
       <div className="space-y-1.5 rounded-lg bg-background/20 p-3">
-        <span className="text-muted-foreground text-xs font-medium">Top pools</span>
+        <span className="font-medium text-muted-foreground text-xs">Top pools</span>
         {preset.topPools.slice(0, 3).map((pool) => (
           <div key={pool.name} className="flex items-center justify-between text-xs">
             <span className="text-foreground">{pool.name}</span>

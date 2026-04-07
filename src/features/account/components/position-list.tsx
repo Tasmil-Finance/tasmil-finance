@@ -85,14 +85,14 @@ function PositionRow({ position }: { position: Position }) {
             style={{ width: `${Math.min(position.allocationPercent, 100)}%` }}
           />
         </div>
-        <span className="text-center text-muted-foreground text-[10px]">
+        <span className="text-center text-[10px] text-muted-foreground">
           {position.allocationPercent.toFixed(1)}%
         </span>
       </div>
 
       {/* Right: Value + APY */}
       <div className="flex flex-col items-end">
-        <span className="font-mono font-medium text-foreground text-sm">
+        <span className="font-medium font-mono text-foreground text-sm">
           {formatUsd(position.valueUsd)}
         </span>
         <span className="font-mono text-emerald-400 text-xs">

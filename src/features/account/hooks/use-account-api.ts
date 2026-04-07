@@ -3,7 +3,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import type { PresetCardData, PositionData, ActivityItem } from "../types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:6756/api";
+const API_BASE = process.env["NEXT_PUBLIC_API_URL"] ?? "http://localhost:6756/api";
 
 export function usePresets() {
   return useQuery<PresetCardData[]>({
