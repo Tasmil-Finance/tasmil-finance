@@ -49,8 +49,9 @@ export const AbstractSection = () => {
       </div>
 
       <div
-        className={`-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 z-30 h-[75vw] w-[75vw] transition-all duration-1000 md:h-[45vw] md:w-[45vw] ${isLoaded ? "scale-100 opacity-100" : "scale-95 opacity-0"
-          }`}
+        className={`-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 z-30 h-[75vw] w-[75vw] transition-all duration-1000 md:h-[45vw] md:w-[45vw] ${
+          isLoaded ? "scale-100 opacity-100" : "scale-95 opacity-0"
+        }`}
       />
     </section>
   );

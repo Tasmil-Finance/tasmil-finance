@@ -2,7 +2,7 @@ import { Interrupt } from "@langchain/langgraph-sdk";
 import { HITLRequest } from "@/features/chat/thread/agent-inbox/types";
 
 export function isAgentInboxInterruptSchema(
-  value: unknown,
+  value: unknown
 ): value is Interrupt<HITLRequest> | Interrupt<HITLRequest>[] {
   const valueAsObject = Array.isArray(value) ? value[0] : value;
   if (!valueAsObject || typeof valueAsObject !== "object") {
@@ -15,8 +15,7 @@ export function isAgentInboxInterruptSchema(
   }
 
   const hitlValue = interrupt.value as Partial<HITLRequest>;
-  const { action_requests: actionRequests, review_configs: reviewConfigs } =
-    hitlValue;
+  const { action_requests: actionRequests, review_configs: reviewConfigs } = hitlValue;
 
   if (!Array.isArray(actionRequests) || actionRequests.length === 0) {
     return false;

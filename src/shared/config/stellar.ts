@@ -21,9 +21,7 @@ export const STELLAR_NETWORKS = {
 // Default to mainnet unless env says otherwise
 const useTestnet = process.env["NEXT_PUBLIC_STELLAR_TESTNET"] === "true";
 
-export const activeNetwork = useTestnet
-  ? STELLAR_NETWORKS.TESTNET
-  : STELLAR_NETWORKS.PUBLIC;
+export const activeNetwork = useTestnet ? STELLAR_NETWORKS.TESTNET : STELLAR_NETWORKS.PUBLIC;
 
 export const getExplorerUrl = (type: "tx" | "account" | "op", id: string) => {
   const base = activeNetwork.explorerUrl;

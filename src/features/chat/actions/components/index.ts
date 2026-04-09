@@ -17,3 +17,5 @@ export {
   StellarExecuteCard,
   TxSubmitCard,
 } from "./stellar";
+
+export { VaultOperationCard } from "./vault-operation-card";

@@ -28,7 +28,10 @@ interface StellarOperationDispatcherProps {
  * Dispatcher component for all `{ui_prefix}-operation` UI messages.
  * Routes to the correct Stellar operation card based on `operation` prop.
  */
-export function StellarOperationDispatcher({ operation, ...props }: StellarOperationDispatcherProps) {
+export function StellarOperationDispatcher({
+  operation,
+  ...props
+}: StellarOperationDispatcherProps) {
   const Component = OperationComponentMap[operation ?? ""] ?? StellarExecuteCard;
   return <Component operation={operation} {...props} />;
 }

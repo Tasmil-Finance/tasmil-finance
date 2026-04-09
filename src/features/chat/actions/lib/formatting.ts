@@ -6,7 +6,7 @@
 export function formatTokenAmount(
   amount: string | number | undefined | null,
   decimals: number,
-  maxFraction = 4,
+  maxFraction = 4
 ): string {
   if (amount === undefined || amount === null || amount === "") return "N/A";
   try {
@@ -57,10 +57,7 @@ export function formatPrice(price: number | string | undefined | null): string {
 }
 
 /** Format percentage value. */
-export function formatPercent(
-  value: number | string | undefined | null,
-  decimals = 2,
-): string {
+export function formatPercent(value: number | string | undefined | null, decimals = 2): string {
   if (value === undefined || value === null) return "N/A";
   const n = typeof value === "string" ? Number.parseFloat(value) : value;
   if (Number.isNaN(n)) return "N/A";

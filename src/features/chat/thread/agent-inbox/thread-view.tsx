@@ -6,7 +6,17 @@ import { StateView } from "./components/state-view";
 import { ThreadActionsView } from "./components/thread-actions-view";
 import { StellarHITLHandler } from "./stellar-hitl-handler";
 import type { HITLRequest } from "./types";
-import { CheckCircle2, XCircle, ArrowRightLeft, Wallet, TrendingUp, Repeat, Landmark, Search, Info } from "lucide-react";
+import {
+  CheckCircle2,
+  XCircle,
+  ArrowRightLeft,
+  Wallet,
+  TrendingUp,
+  Repeat,
+  Landmark,
+  Search,
+  Info,
+} from "lucide-react";
 import { toast } from "sonner";
 
 interface ThreadViewProps {
@@ -49,11 +59,7 @@ const AGENT_ICONS: Record<string, typeof ArrowRightLeft> = {
 /**
  * Supervisor step approval UI — shown when the supervisor pauses for user confirmation.
  */
-function SupervisorApprovalCard({
-  interrupt,
-}: {
-  interrupt: Interrupt<any>;
-}) {
+function SupervisorApprovalCard({ interrupt }: { interrupt: Interrupt<any> }) {
   const stream = useStreamContext();
   const [responded, setResponded] = useState(false);
   const value = interrupt.value ?? {};
@@ -65,10 +71,7 @@ function SupervisorApprovalCard({
   const handleApprove = useCallback(async () => {
     setResponded(true);
     try {
-      await stream.submit(
-        {},
-        { command: { resume: { approved: true } } },
-      );
+      await stream.submit({}, { command: { resume: { approved: true } } });
       toast.success(`Step ${stepIndex + 1} approved`);
     } catch (error) {
       console.error("[SupervisorApproval] Error:", error);
@@ -80,10 +83,7 @@ function SupervisorApprovalCard({
   const handleReject = useCallback(async () => {
     setResponded(true);
     try {
-      await stream.submit(
-        {},
-        { command: { resume: { approved: false } } },
-      );
+      await stream.submit({}, { command: { resume: { approved: false } } });
       toast.info(`Step ${stepIndex + 1} skipped`);
     } catch (error) {
       console.error("[SupervisorApproval] Error:", error);
@@ -99,7 +99,9 @@ function SupervisorApprovalCard({
           <AgentIcon className="h-4 w-4 text-yellow-500" />
         </div>
         <div className="space-y-0.5 min-w-0">
-          <h3 className="text-sm font-semibold">Step {stepIndex + 1}: {agentName.charAt(0).toUpperCase() + agentName.slice(1)}</h3>
+          <h3 className="text-sm font-semibold">
+            Step {stepIndex + 1}: {agentName.charAt(0).toUpperCase() + agentName.slice(1)}
+          </h3>
           <p className="text-muted-foreground text-xs">Requires your approval to proceed</p>
         </div>
       </div>
@@ -158,7 +160,9 @@ export function ThreadView({ interrupt }: ThreadViewProps) {
   const activeInterrupt = interrupts[activeInterruptIndex];
   const activeDescription = activeInterrupt?.value?.action_requests?.[0]?.description ?? "";
 
-  const stellarOperation: string | null = activeInterrupt ? getStellarOperation(activeInterrupt) : null;
+  const stellarOperation: string | null = activeInterrupt
+    ? getStellarOperation(activeInterrupt)
+    : null;
 
   const handleShowSidePanel = (showStateFlag: boolean, showDescriptionFlag: boolean) => {
     if (showStateFlag && showDescriptionFlag) {

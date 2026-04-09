@@ -67,8 +67,9 @@ function EarnDiscoveryCardComponent({ type, result, toolCallId, status }: EarnDi
   const title = isLending ? "Lending Markets" : "Earn Opportunities";
 
   // Normalize: lending markets → opportunities format
-  const items: EarnOpportunity[] = data?.opportunities ??
-    (data?.markets?.map((m) => ({
+  const items: EarnOpportunity[] =
+    data?.opportunities ??
+    data?.markets?.map((m) => ({
       protocol: m.protocol,
       type: "lending",
       name: `${m.asset} on ${m.protocol}`,
@@ -82,7 +83,8 @@ function EarnDiscoveryCardComponent({ type, result, toolCallId, status }: EarnDi
       borrowApy: m.borrowApy,
       utilization: m.utilization,
       collateralFactor: m.collateralFactor,
-    })) ?? []);
+    })) ??
+    [];
 
   return (
     <BaseInfoCard
@@ -122,7 +124,10 @@ function EarnDiscoveryCardComponent({ type, result, toolCallId, status }: EarnDi
             .filter((o) => o.status === "ok")
             .sort((a, b) => (b.apy ?? 0) - (a.apy ?? 0))
             .map((opp, idx) => (
-              <div key={`${opp.protocol}-${opp.name}-${idx}`} className="rounded-lg border p-3 space-y-2">
+              <div
+                key={`${opp.protocol}-${opp.name}-${idx}`}
+                className="rounded-lg border p-3 space-y-2"
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 min-w-0">
                     <ProtocolBadge name={opp.protocol} />
@@ -137,7 +142,9 @@ function EarnDiscoveryCardComponent({ type, result, toolCallId, status }: EarnDi
 
                 <div className="flex items-center gap-1 flex-wrap">
                   {opp.assets.map((a) => (
-                    <span key={a} className="text-xs bg-muted/40 rounded px-1.5 py-0.5">{a}</span>
+                    <span key={a} className="text-xs bg-muted/40 rounded px-1.5 py-0.5">
+                      {a}
+                    </span>
                   ))}
                 </div>
 
@@ -148,13 +155,19 @@ function EarnDiscoveryCardComponent({ type, result, toolCallId, status }: EarnDi
                     <DetailRow label="Supply" value={<APYDisplay value={opp.supplyApy} />} />
                   )}
                   {opp.borrowApy != null && (
-                    <DetailRow label="Borrow" value={<span className="text-orange-500">{opp.borrowApy?.toFixed(2)}%</span>} />
+                    <DetailRow
+                      label="Borrow"
+                      value={<span className="text-orange-500">{opp.borrowApy?.toFixed(2)}%</span>}
+                    />
                   )}
                   {opp.utilization != null && (
                     <DetailRow label="Util." value={`${opp.utilization?.toFixed(1)}%`} />
                   )}
                   {opp.collateralFactor != null && (
-                    <DetailRow label="CF" value={`${((opp.collateralFactor ?? 0) * 100).toFixed(0)}%`} />
+                    <DetailRow
+                      label="CF"
+                      value={`${((opp.collateralFactor ?? 0) * 100).toFixed(0)}%`}
+                    />
                   )}
                 </div>
 

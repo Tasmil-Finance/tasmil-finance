@@ -77,9 +77,13 @@ function SwapQuoteCardComponent({ args, result, toolCallId, status }: SwapQuoteC
                   </div>
 
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{quote.amountIn} {tokenIn}</span>
+                    <span className="text-muted-foreground">
+                      {quote.amountIn} {tokenIn}
+                    </span>
                     <ArrowRightLeft className="h-3 w-3 text-muted-foreground mx-2" />
-                    <span className="font-semibold">{quote.amountOut} {tokenOut}</span>
+                    <span className="font-semibold">
+                      {quote.amountOut} {tokenOut}
+                    </span>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">

@@ -11,7 +11,7 @@ interface AssistantMetadata {
   icon?: string;
   name?: string;
   tags?: string[];
-  type?: "Strategy" | "Intelligence";
+  type?: "Execution" | "Discovery" | "Assistant";
   author?: string;
   version?: string;
   category?: string;
@@ -26,16 +26,17 @@ interface AgentCardProps {
   onClick: () => void;
 }
 
-// Map chain name to icon path
+// Map chain name to icon path (files in /public/token/)
 const CHAIN_ICONS: Record<string, string> = {
   stellar: "/token/stellar.png",
-  ethereum: "/images/tokens/eth.png",
-  arbitrum: "/images/tokens/arb.png",
-  optimism: "/images/tokens/op.png",
-  polygon: "/images/tokens/matic.png",
-  bsc: "/images/tokens/bnb.png",
-  avalanche: "/images/tokens/avax.png",
-  base: "/images/tokens/base.png",
+  ethereum: "/token/ethereum.png",
+  arbitrum: "/token/arb.png",
+  optimism: "/token/optimism.png",
+  polygon: "/token/polygon.png",
+  bsc: "/token/bsc.png",
+  avalanche: "/token/avalanche.png",
+  base: "/token/base.png",
+  solana: "/token/solana.png",
 };
 
 function getChainIconPath(chainName: string): string | null {
@@ -74,7 +75,7 @@ export function AgentCard({ assistant, onClick }: AgentCardProps) {
   const metadata = assistant.metadata as AssistantMetadata;
 
   const agentName = metadata?.name || assistant.name || "Unknown Agent";
-  const agentType = metadata?.type || "Intelligence";
+  const agentType = metadata?.type || "Discovery";
   const agentIcon = metadata?.icon;
   const agentDescription = metadata?.description || ["No description available"];
   const supportedChains = metadata?.supportedChains || [];
@@ -104,17 +105,24 @@ export function AgentCard({ assistant, onClick }: AgentCardProps) {
 
           <Badge
             variant="outline"
-            className={`border-border bg-background/50 backdrop-blur-md px-3 py-1 ${agentType === 'Strategy' ? 'text-accent-foreground' : 'text-primary'
-              }`}
+            className={`border-border bg-background/50 backdrop-blur-md px-3 py-1 ${
+              agentType === "Execution" ? "text-accent-foreground" : agentType === "Assistant" ? "text-primary" : "text-muted-foreground"
+            }`}
           >
-            {agentType === 'Strategy' ? <Settings className="mr-1 h-3 w-3" /> : <Sparkles className="mr-1 h-3 w-3" />}
+            {agentType === "Execution" ? (
+              <Settings className="mr-1 h-3 w-3" />
+            ) : (
+              <Sparkles className="mr-1 h-3 w-3" />
+            )}
             {agentType}
           </Badge>
         </div>
 
         {/* Content */}
         <div>
-          <h3 className="mb-3 font-bold text-xl text-foreground group-hover:text-primary transition-colors">{agentName}</h3>
+          <h3 className="mb-3 font-bold text-xl text-foreground group-hover:text-primary transition-colors">
+            {agentName}
+          </h3>
           <ul className="space-y-2 mb-6">
             {agentDescription.slice(0, 3).map((feature, index) => (
               <li key={index} className="flex items-start gap-2 text-muted-foreground text-sm">
@@ -131,21 +139,42 @@ export function AgentCard({ assistant, onClick }: AgentCardProps) {
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground font-medium">Supported Chains</span>
-            <div className="flex -space-x-2">
+            <div className="relative flex -space-x-2 group/chains">
               {supportedChains.slice(0, 4).map((chain, i) => (
-                <div key={i} className="h-8 w-8 rounded-full bg-background ring-2 ring-card flex items-center justify-center overflow-hidden">
+                <div
+                  key={i}
+                  className="h-8 w-8 rounded-full bg-background ring-2 ring-card flex items-center justify-center overflow-hidden"
+                  title={chain}
+                >
                   <ChainIcon chain={chain} size={24} />
                 </div>
               ))}
               {supportedChains.length > 4 && (
-                <div className="h-6 w-6 rounded-full bg-muted ring-2 ring-card flex items-center justify-center text-[9px] text-muted-foreground font-medium">
+                <div className="h-8 w-8 rounded-full bg-muted ring-2 ring-card flex items-center justify-center text-[10px] text-muted-foreground font-medium cursor-default">
                   +{supportedChains.length - 4}
+                </div>
+              )}
+              {/* Tooltip showing all chains on hover */}
+              {supportedChains.length > 4 && (
+                <div className="absolute bottom-full left-0 mb-2 hidden group-hover/chains:flex flex-wrap gap-1.5 p-2 rounded-lg bg-popover border border-border shadow-lg z-50 w-max max-w-[200px]">
+                  {supportedChains.map((chain, i) => (
+                    <div key={i} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <div className="h-5 w-5 rounded-full overflow-hidden flex items-center justify-center shrink-0">
+                        <ChainIcon chain={chain} size={16} />
+                      </div>
+                      <span>{chain}</span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
           </div>
 
-          <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent"
+          >
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>

@@ -18,14 +18,12 @@ interface ChatProviderProps {
  */
 export function ChatProvider({ children, agentId, chatId }: ChatProviderProps) {
   const initialThreadId = chatId === null ? null : chatId;
-  
+
   return (
     <ChatStateProvider initialThreadId={initialThreadId}>
       <ThreadProvider agentId={agentId}>
         <StreamProvider agentId={agentId}>
-          <ArtifactProvider>
-            {children}
-          </ArtifactProvider>
+          <ArtifactProvider>{children}</ArtifactProvider>
         </StreamProvider>
       </ThreadProvider>
     </ChatStateProvider>

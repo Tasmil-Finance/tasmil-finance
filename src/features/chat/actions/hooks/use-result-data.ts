@@ -13,10 +13,7 @@ interface ResultData<T = any> {
  * Hook to extract and normalize result data from MCP tool responses.
  * Handles both `{ success, data, error }` and direct data formats.
  */
-export function useResultData<T = any>(
-  result: unknown,
-  status?: string,
-): ResultData<T> {
+export function useResultData<T = any>(result: unknown, status?: string): ResultData<T> {
   return useMemo(() => {
     const isLoading = !result || status === "pending";
 
@@ -34,13 +31,9 @@ export function useResultData<T = any>(
     }
 
     const hasError =
-      parsed?.success === false ||
-      parsed?.error != null ||
-      parsed?.status === "error";
+      parsed?.success === false || parsed?.error != null || parsed?.status === "error";
 
-    const errorMessage = hasError
-      ? (parsed?.error ?? parsed?.message ?? "Operation failed")
-      : null;
+    const errorMessage = hasError ? (parsed?.error ?? parsed?.message ?? "Operation failed") : null;
 
     const data = (parsed?.data ?? parsed) as T;
 

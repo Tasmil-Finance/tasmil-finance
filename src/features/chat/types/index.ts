@@ -13,4 +13,3 @@ export type {
   SubmitType,
   DecisionType,
 } from "../thread/agent-inbox/types";
-

@@ -3,17 +3,46 @@ import { parsePartialJson } from '@langchain/core/output_parsers';
 import type { AIMessage, Checkpoint, Message } from '@langchain/langgraph-sdk';
 import { LoadExternalComponent } from '@langchain/langgraph-sdk/react-ui';
 import Image from 'next/image';
+import { Loader } from '@/shared/ui/loader';
 import { Fragment } from 'react/jsx-runtime';
 import { ThreadView } from '@/features/chat/thread/agent-inbox';
 import { useArtifact } from '@/features/chat/thread/components/artifact';
 import { MarkdownText } from '@/features/chat/thread/components/markdown-text';
-import { getContentString } from '@/features/chat/lib/thread-utils';
+import {
+  getContentString,
+  stripReasoningSections,
+  extractReasoningContent,
+  hasIncompleteReasoningTags,
+  extractIncompleteReasoningContent,
+} from '@/features/chat/lib/thread-utils';
 import { isAgentInboxInterruptSchema } from '@/lib/agent-inbox-interrupt';
 import { useChatState, useStreamContext } from '@/features/chat/hooks';
 import ComponentMap from '@/shared/components';
+import { AIReasoning, Shimmer } from '@/features/chat/components/ai';
 import { GenericInterruptView } from './generic-interrupt';
 import { BranchSwitcher, CommandBar } from './shared';
 import { ToolCalls, ToolResult } from './tool-calls';
+
+/** Check if a tool call is a supervisor-to-agent delegation */
+function isSupervisorAgentCall(name: string): boolean {
+  return name.startsWith('call_') && name.endsWith('_agent');
+}
+
+/** Filter out supervisor agent calls from tool calls list */
+function getNonSupervisorToolCalls(
+  toolCalls: AIMessage['tool_calls'] | undefined
+): NonNullable<AIMessage['tool_calls']> {
+  if (!toolCalls) return [];
+  return toolCalls.filter((tc) => !isSupervisorAgentCall(tc.name || ''));
+}
+
+/** Check if any tool calls are supervisor agent delegations */
+function hasSupervisorAgentCalls(
+  toolCalls: AIMessage['tool_calls'] | undefined
+): boolean {
+  if (!toolCalls) return false;
+  return toolCalls.some((tc) => isSupervisorAgentCall(tc.name || ''));
+}
 
 function AgentAvatar() {
   return (
@@ -32,9 +61,11 @@ function AgentAvatar() {
 function CustomComponent({
   message,
   thread,
+  filterType,
 }: {
   message: Message;
   thread: ReturnType<typeof useStreamContext>;
+  filterType?: 'reasoning' | 'other';
 }) {
   const artifact = useArtifact();
   const { values } = useStreamContext();
@@ -43,9 +74,25 @@ function CustomComponent({
     (ui: any) => ui.metadata?.message_id === message.id
   );
 
+  // Filter by type if specified
+  let filteredUI = allUIForMessage;
+  if (filterType === 'reasoning') {
+    // Only reasoning UI components
+    filteredUI = allUIForMessage?.filter(
+      (ui: any) =>
+        ui.name?.endsWith('-reasoning') || ui.metadata?.ui_type === 'reasoning'
+    );
+  } else if (filterType === 'other') {
+    // Everything except reasoning
+    filteredUI = allUIForMessage?.filter(
+      (ui: any) =>
+        !ui.name?.endsWith('-reasoning') && ui.metadata?.ui_type !== 'reasoning'
+    );
+  }
+
   // Deduplicate UI items: keep only the LATEST version of each tool call
   // Group by tool_call_id (from props.toolCallId), then keep the last one
-  const customComponents = allUIForMessage?.reduce((acc: any[], ui: any) => {
+  const customComponents = filteredUI?.reduce((acc: any[], ui: any) => {
     const toolCallId = ui.props?.toolCallId;
     if (!toolCallId) {
       // No toolCallId, just add it
@@ -154,6 +201,7 @@ export function AssistantMessage({
   message,
   isLoading,
   handleRegenerate,
+  hideAvatar = false,
 }: {
   message: Message | undefined;
   isLoading: boolean;
@@ -161,10 +209,21 @@ export function AssistantMessage({
     parentCheckpoint: Checkpoint | null | undefined,
     parentValues?: { messages: Message[] }
   ) => void;
+  hideAvatar?: boolean;
 }) {
   const content = message?.content ?? [];
-  const contentString = getContentString(content);
+  const rawContentString = getContentString(content);
+  // Strip reasoning sections - they're displayed separately in AIReasoning component
+  const contentString = stripReasoningSections(rawContentString);
   const { hideToolCalls } = useChatState();
+
+  // Extract reasoning content directly from the raw message content
+  // This handles both complete and incomplete (streaming) reasoning blocks
+  const isReasoningStreaming = hasIncompleteReasoningTags(rawContentString);
+  const reasoningContent = isReasoningStreaming
+    ? extractIncompleteReasoningContent(rawContentString)
+    : extractReasoningContent(rawContentString);
+  const hasReasoning = !!reasoningContent;
 
   const thread = useStreamContext();
   const isLastMessage =
@@ -172,6 +231,15 @@ export function AssistantMessage({
   const hasNoAIOrToolMessages = !thread.messages.find(
     (m) => m.type === 'ai' || m.type === 'tool'
   );
+  // Check if next non-tool message is also an AI message (i.e. this is an intermediate message)
+  const currentIdx = message
+    ? thread.messages.findIndex((m) => m.id === message.id)
+    : -1;
+  const nextVisibleMessage = currentIdx >= 0
+    ? thread.messages.slice(currentIdx + 1).find((m) => m.type !== 'tool')
+    : undefined;
+  const isIntermediateAiMessage =
+    !isLastMessage && nextVisibleMessage?.type === 'ai';
   // @ts-ignore - getMessagesMetadata may not be in type definition
   const meta = message ? thread.getMessagesMetadata?.(message) : undefined;
   const threadInterrupt = thread.interrupt;
@@ -194,14 +262,16 @@ export function AssistantMessage({
     ? parseAnthropicStreamedToolCalls(content)
     : undefined;
 
-  const hasToolCalls =
-    message &&
-    'tool_calls' in message &&
-    message.tool_calls &&
-    message.tool_calls.length > 0;
+  const allToolCalls =
+    message && 'tool_calls' in message ? message.tool_calls : undefined;
+
+  // Separate supervisor agent calls from regular tool calls
+  const isSupervisorDelegating = hasSupervisorAgentCalls(allToolCalls);
+  const regularToolCalls = getNonSupervisorToolCalls(allToolCalls);
+  const hasRegularToolCalls = regularToolCalls.length > 0;
   const toolCallsHaveContents =
-    hasToolCalls &&
-    message.tool_calls?.some(
+    hasRegularToolCalls &&
+    regularToolCalls.some(
       (tc) => tc.args && Object.keys(tc.args).length > 0
     );
   const hasAnthropicToolCalls = !!anthropicStreamedToolCalls?.length;
@@ -213,7 +283,11 @@ export function AssistantMessage({
 
   return (
     <div className="group mr-auto flex w-full items-start gap-3">
-      <AgentAvatar />
+      {hideAvatar ? (
+        <div className="w-8 shrink-0" />
+      ) : (
+        <AgentAvatar />
+      )}
       <div className="flex w-full flex-col gap-2 min-w-0">
         {isToolResult ? (
           <>
@@ -226,38 +300,73 @@ export function AssistantMessage({
           </>
         ) : (
           <>
-            {/* 1. Tool Calls (Running state) - Can be hidden */}
+            {/* 1. Reasoning UI - Show thinking/reasoning FIRST (before text) */}
+            {hasReasoning && (
+              <AIReasoning isStreaming={isReasoningStreaming}>
+                {reasoningContent}
+              </AIReasoning>
+            )}
+
+            {/* 2a. Supervisor coordination indicator */}
+            {isSupervisorDelegating && (
+              <div className="flex items-center gap-2 text-sm py-1.5">
+                <svg
+                  className="h-4 w-4 text-muted-foreground"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M8 2l1.5 3.5L13 7l-3.5 1.5L8 12l-1.5-3.5L3 7l3.5-1.5L8 2z"
+                    stroke="currentColor"
+                    strokeWidth="1.2"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span className="font-medium text-sm text-muted-foreground">
+                  Coordinated agents
+                </span>
+              </div>
+            )}
+
+            {/* 2b. Regular Tool Calls (non-supervisor) — Can be hidden */}
             {!hideToolCalls && (
               <>
-                {(hasToolCalls && toolCallsHaveContents && (
-                  <ToolCalls toolCalls={message.tool_calls} />
+                {(hasRegularToolCalls && toolCallsHaveContents && (
+                  <ToolCalls toolCalls={regularToolCalls} />
                 )) ||
                   (hasAnthropicToolCalls && (
                     <ToolCalls toolCalls={anthropicStreamedToolCalls} />
                   )) ||
-                  (hasToolCalls && (
-                    <ToolCalls toolCalls={message.tool_calls} />
+                  (hasRegularToolCalls && (
+                    <ToolCalls toolCalls={regularToolCalls} />
                   ))}
               </>
             )}
 
-            {/* 2. AI Text Response */}
+            {/* 3. AI Text Response */}
             {contentString.length > 0 && (
-              <div className="py-1 animate-in fade-in duration-200">
+              <div className="animate-in fade-in py-1 duration-200">
                 <MarkdownText>{contentString}</MarkdownText>
               </div>
             )}
 
-            {/* 3. Custom UI Component (e.g., Staking card) - NEVER hidden by hideToolCalls */}
-            {message && <CustomComponent message={message} thread={thread} />}
+            {/* 4. Custom UI Components (e.g., "Using Yield Agent", Staking card) */}
+            {message && (
+              <CustomComponent
+                message={message}
+                thread={thread}
+                filterType="other"
+              />
+            )}
 
             <Interrupt
               interrupt={threadInterrupt}
               isLastMessage={isLastMessage}
               hasNoAIOrToolMessages={hasNoAIOrToolMessages}
             />
-            {/* Only show command bar if there's text content or it's the last message */}
-            {(contentString.length > 0 || isLastMessage) && (
+            {/* Only show command bar on the final message, not intermediate AI messages */}
+            {!isIntermediateAiMessage && (contentString.length > 0 || isLastMessage) && (
               <div className="mr-auto flex items-center gap-2">
                 <BranchSwitcher
                   branch={meta?.branch}
@@ -290,10 +399,11 @@ export function AssistantMessageLoading() {
   return (
     <div className="mr-auto flex items-start gap-3">
       <AgentAvatar />
-      <div className="bg-muted flex h-8 items-center gap-1 rounded-2xl px-4 py-2">
-        <div className="bg-foreground/50 h-1.5 w-1.5 animate-[pulse_1.5s_ease-in-out_infinite] rounded-full"></div>
-        <div className="bg-foreground/50 h-1.5 w-1.5 animate-[pulse_1.5s_ease-in-out_0.5s_infinite] rounded-full"></div>
-        <div className="bg-foreground/50 h-1.5 w-1.5 animate-[pulse_1.5s_ease-in-out_1s_infinite] rounded-full"></div>
+      <div className="flex items-center gap-2 py-1.5">
+        <Loader size={16} className="text-muted-foreground" />
+        <Shimmer className="font-medium text-sm" duration={2}>
+          Thinking...
+        </Shimmer>
       </div>
     </div>
   );

@@ -230,7 +230,11 @@ const GenericResult = ({ data }: { data: any }) => {
   );
 };
 
-function BridgeResultCardComponent({ toolName, result, status = "complete" }: BridgeResultCardProps) {
+function BridgeResultCardComponent({
+  toolName,
+  result,
+  status = "complete",
+}: BridgeResultCardProps) {
   if (status === "executing" || status === "pending") {
     return (
       <div className="rounded-lg border border-border bg-card p-4">

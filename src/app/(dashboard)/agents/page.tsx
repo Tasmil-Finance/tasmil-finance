@@ -15,7 +15,7 @@ interface AssistantMetadata {
   icon?: string;
   name?: string;
   tags?: string[];
-  type?: "Strategy" | "Intelligence";
+  type?: "Execution" | "Discovery" | "Assistant";
   author?: string;
   version?: string;
   category?: string;
@@ -26,12 +26,16 @@ interface AssistantMetadata {
 }
 
 // Valid agent graph_ids to display (filter out legacy/test agents)
-const VALID_AGENT_IDS = ["bridge_agent", "research_agent", "yield_agent", "vault_agent"];
+const VALID_AGENT_IDS = ["supervisor", "info_agent", "swap_agent", "staking_agent", "bridge_agent", "research_agent", "yield_agent", "vault_agent"];
 
 // Map icon paths from /sidebar/ to /agents/ and ensure correct format
 const normalizeIconPath = (icon: string | undefined, graphId: string): string => {
   // Force use of local high-quality 3D icons for known agents
   const defaultIcons: Record<string, string> = {
+    supervisor: "/agents/supervisor-agent.png",
+    info_agent: "/agents/info-agent.png",
+    swap_agent: "/agents/swap-agent.png",
+    staking_agent: "/agents/staking-agent-v6.png",
     bridge_agent: "/agents/bridge-agent-v6.png",
     research_agent: "/agents/research-agent-v6.png",
     yield_agent: "/agents/yield-agent-v6.png",
@@ -101,7 +105,7 @@ export default function AgentsPage() {
   const availableTypes = useMemo(() => {
     const types = validAgents
       .map((assistant) => (assistant.metadata as AssistantMetadata)?.type)
-      .filter((type): type is "Strategy" | "Intelligence" => Boolean(type))
+      .filter((type): type is "Execution" | "Discovery" | "Assistant" => Boolean(type))
       .filter((type, index, array) => array.indexOf(type) === index);
 
     return types;
@@ -153,7 +157,9 @@ export default function AgentsPage() {
 
           {searchAssistants.error && (
             <div className="py-16 text-center">
-              <p className="text-destructive">Error loading agents: {searchAssistants.error.message}</p>
+              <p className="text-destructive">
+                Error loading agents: {searchAssistants.error.message}
+              </p>
             </div>
           )}
 

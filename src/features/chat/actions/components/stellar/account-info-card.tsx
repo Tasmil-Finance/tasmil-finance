@@ -17,7 +17,13 @@ interface AccountInfoCardProps {
   status?: string;
 }
 
-function AccountInfoCardComponent({ type, args, result, toolCallId, status }: AccountInfoCardProps) {
+function AccountInfoCardComponent({
+  type,
+  args,
+  result,
+  toolCallId,
+  status,
+}: AccountInfoCardProps) {
   const { data, isLoading, hasError, errorMessage } = useResultData(result, status);
   const query = args?.["query"] ?? type ?? "info";
 
@@ -56,7 +62,15 @@ function AccountInfoCardComponent({ type, args, result, toolCallId, status }: Ac
   );
 }
 
-function QueryContent({ query, data, toolCallId }: { query: string; data: any; toolCallId?: string }) {
+function QueryContent({
+  query,
+  data,
+  toolCallId,
+}: {
+  query: string;
+  data: any;
+  toolCallId?: string;
+}) {
   if (!data) return <div className="text-sm text-muted-foreground">No data available.</div>;
 
   switch (query) {
@@ -98,7 +112,9 @@ function AccountInfoView({ data }: { data: any }) {
     <div className="space-y-2">
       {account.id && <DetailRow label="Address" value={truncateAddress(account.id)} mono />}
       {account.sequence && <DetailRow label="Sequence" value={account.sequence} mono />}
-      {account.subentry_count != null && <DetailRow label="Subentries" value={account.subentry_count} />}
+      {account.subentry_count != null && (
+        <DetailRow label="Subentries" value={account.subentry_count} />
+      )}
       {balances.length > 0 && (
         <div className="border-t pt-2 mt-2 space-y-1">
           <div className="text-xs text-muted-foreground mb-1">Balances ({balances.length})</div>
@@ -106,7 +122,9 @@ function AccountInfoView({ data }: { data: any }) {
             <DetailRow
               key={i}
               label={b.asset_type === "native" ? "XLM" : (b.code ?? b.asset_code ?? "?")}
-              value={Number.parseFloat(b.balance).toLocaleString(undefined, { maximumFractionDigits: 4 })}
+              value={Number.parseFloat(b.balance).toLocaleString(undefined, {
+                maximumFractionDigits: 4,
+              })}
             />
           ))}
         </div>
@@ -134,9 +152,14 @@ function AssetsView({ data, toolCallId }: { data: any; toolCallId?: string }) {
       <DetailRow label="Total Assets" value={data.count ?? assets.length} />
       <ScrollableList id={`assets-${toolCallId}`} maxHeight={250}>
         {assets.map((a: any, i: number) => (
-          <div key={i} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0 text-sm">
+          <div
+            key={i}
+            className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0 text-sm"
+          >
             <span className="font-medium">{a.type === "native" ? "XLM" : (a.code ?? "?")}</span>
-            <span>{Number.parseFloat(a.balance).toLocaleString(undefined, { maximumFractionDigits: 4 })}</span>
+            <span>
+              {Number.parseFloat(a.balance).toLocaleString(undefined, { maximumFractionDigits: 4 })}
+            </span>
           </div>
         ))}
       </ScrollableList>
@@ -154,9 +177,13 @@ function HistoryView({ data, toolCallId }: { data: any; toolCallId?: string }) {
           <div key={op.id ?? i} className="rounded border p-2 space-y-1 text-xs">
             <div className="flex justify-between">
               <span className="font-medium capitalize">{op.type?.replace(/_/g, " ")}</span>
-              <span className="text-muted-foreground">{op.createdAt ? new Date(op.createdAt).toLocaleDateString() : ""}</span>
+              <span className="text-muted-foreground">
+                {op.createdAt ? new Date(op.createdAt).toLocaleDateString() : ""}
+              </span>
             </div>
-            {op.amount && <DetailRow label="Amount" value={`${op.amount} ${op.assetCode ?? "XLM"}`} />}
+            {op.amount && (
+              <DetailRow label="Amount" value={`${op.amount} ${op.assetCode ?? "XLM"}`} />
+            )}
             {op.to && <DetailRow label="To" value={truncateAddress(op.to)} mono />}
           </div>
         ))}
@@ -169,16 +196,28 @@ function LockedView({ data }: { data: any }) {
   const locked = data.locked ?? {};
   return (
     <div className="space-y-2">
-      <DetailRow label="Total XLM" value={<span className="font-semibold">{data.totalXlm} XLM</span>} />
-      <DetailRow label="Available" value={<span className="text-green-500 font-semibold">{data.available} XLM</span>} />
+      <DetailRow
+        label="Total XLM"
+        value={<span className="font-semibold">{data.totalXlm} XLM</span>}
+      />
+      <DetailRow
+        label="Available"
+        value={<span className="text-green-500 font-semibold">{data.available} XLM</span>}
+      />
       <div className="border-t pt-2 mt-2 space-y-1">
         <div className="text-xs text-muted-foreground mb-1">Locked Breakdown</div>
         <DetailRow label="Base Reserve" value={`${locked.baseReserve} XLM`} />
-        <DetailRow label="Subentry Reserve" value={`${locked.subentryReserve} XLM (${locked.subentryCount} entries)`} />
+        <DetailRow
+          label="Subentry Reserve"
+          value={`${locked.subentryReserve} XLM (${locked.subentryCount} entries)`}
+        />
         {locked.sellingLiabilities !== "0" && (
           <DetailRow label="Selling Liabilities" value={`${locked.sellingLiabilities} XLM`} />
         )}
-        <DetailRow label="Total Locked" value={<span className="font-semibold">{locked.totalLocked} XLM</span>} />
+        <DetailRow
+          label="Total Locked"
+          value={<span className="font-semibold">{locked.totalLocked} XLM</span>}
+        />
       </div>
     </div>
   );
@@ -211,8 +250,12 @@ function OffersView({ data, toolCallId }: { data: any; toolCallId?: string }) {
         {offers.map((o: any, i: number) => (
           <div key={o.id ?? i} className="rounded border p-2 space-y-1 text-xs">
             <div className="flex justify-between">
-              <span>Sell <span className="font-medium">{o.selling}</span></span>
-              <span>Buy <span className="font-medium">{o.buying}</span></span>
+              <span>
+                Sell <span className="font-medium">{o.selling}</span>
+              </span>
+              <span>
+                Buy <span className="font-medium">{o.buying}</span>
+              </span>
             </div>
             <DetailRow label="Amount" value={o.amount} />
             <DetailRow label="Price" value={o.price} />
@@ -232,13 +275,19 @@ function TradesView({ data, toolCallId }: { data: any; toolCallId?: string }) {
         {trades.map((t: any, i: number) => (
           <div key={t.id ?? i} className="rounded border p-2 space-y-1 text-xs">
             <div className="flex justify-between">
-              <span>{t.baseAmount} {t.baseAsset}</span>
+              <span>
+                {t.baseAmount} {t.baseAsset}
+              </span>
               <span className="text-muted-foreground">↔</span>
-              <span>{t.counterAmount} {t.counterAsset}</span>
+              <span>
+                {t.counterAmount} {t.counterAsset}
+              </span>
             </div>
             {t.price && <DetailRow label="Price" value={t.price} />}
             {t.createdAt && (
-              <div className="text-muted-foreground">{new Date(t.createdAt).toLocaleDateString()}</div>
+              <div className="text-muted-foreground">
+                {new Date(t.createdAt).toLocaleDateString()}
+              </div>
             )}
           </div>
         ))}
@@ -251,7 +300,10 @@ function PriceView({ data }: { data: any }) {
   return (
     <div className="space-y-2">
       <DetailRow label="Asset" value={<span className="font-semibold">{data.asset ?? "?"}</span>} />
-      <DetailRow label="Price" value={<span className="text-lg font-bold">${formatPrice(data.price)}</span>} />
+      <DetailRow
+        label="Price"
+        value={<span className="text-lg font-bold">${formatPrice(data.price)}</span>}
+      />
       <DetailRow label="Currency" value={data.currency ?? "USD"} />
       <DetailRow label="Source" value={<ProtocolBadge name={data.source} />} />
     </div>
@@ -285,10 +337,7 @@ function SignersView({ data }: { data: any }) {
   return (
     <div className="space-y-2">
       {data.isMultisig != null && (
-        <DetailRow
-          label="Multisig"
-          value={data.isMultisig ? "Yes" : "No"}
-        />
+        <DetailRow label="Multisig" value={data.isMultisig ? "Yes" : "No"} />
       )}
       <DetailRow label="Master Weight" value={data.masterWeight} />
       {data.thresholds && (
@@ -322,9 +371,26 @@ function SignersView({ data }: { data: any }) {
 function NetworkView({ data }: { data: any }) {
   return (
     <div className="space-y-2">
-      <DetailRow label="Network" value={<span className="font-semibold capitalize">{data.network}</span>} />
-      <DetailRow label="RPC URL" value={<span className="font-mono text-xs truncate max-w-[200px] inline-block">{data.rpcUrl}</span>} />
-      <DetailRow label="Horizon" value={<span className="font-mono text-xs truncate max-w-[200px] inline-block">{data.horizonUrl}</span>} />
+      <DetailRow
+        label="Network"
+        value={<span className="font-semibold capitalize">{data.network}</span>}
+      />
+      <DetailRow
+        label="RPC URL"
+        value={
+          <span className="font-mono text-xs truncate max-w-[200px] inline-block">
+            {data.rpcUrl}
+          </span>
+        }
+      />
+      <DetailRow
+        label="Horizon"
+        value={
+          <span className="font-mono text-xs truncate max-w-[200px] inline-block">
+            {data.horizonUrl}
+          </span>
+        }
+      />
     </div>
   );
 }
@@ -340,7 +406,11 @@ function GenericView({ data }: { data: any }) {
       </div>
     );
   }
-  return <div className="text-xs text-muted-foreground">Data received. Check AI response for details.</div>;
+  return (
+    <div className="text-xs text-muted-foreground">
+      Data received. Check AI response for details.
+    </div>
+  );
 }
 
 export const AccountInfoCard = memo(AccountInfoCardComponent);

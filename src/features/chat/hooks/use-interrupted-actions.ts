@@ -11,7 +11,12 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useStreamContext } from "../providers/stream-provider";
-import type { Decision, DecisionWithEdits, HITLRequest, SubmitType } from "../thread/agent-inbox/types";
+import type {
+  Decision,
+  DecisionWithEdits,
+  HITLRequest,
+  SubmitType,
+} from "../thread/agent-inbox/types";
 import { buildDecisionFromState, createDefaultHumanResponse } from "../thread/agent-inbox/utils";
 
 interface UseInterruptedActionsInput {

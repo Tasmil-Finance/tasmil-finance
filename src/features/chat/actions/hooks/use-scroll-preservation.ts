@@ -23,7 +23,7 @@ export function useScrollPreservation(id: string) {
     (e: React.UIEvent<HTMLDivElement>) => {
       scrollPositions.set(id, e.currentTarget.scrollTop);
     },
-    [id],
+    [id]
   );
 
   return { scrollRef, handleScroll };

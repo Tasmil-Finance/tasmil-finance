@@ -19,10 +19,12 @@ function PureSuggestedActions({ agentId, onSendMessage }: SuggestedActionsProps)
     return getAgentSuggestions(agentId, 4);
   }, [agentId]);
 
-  // Use state to store suggestions
-  const [suggestedActions, setSuggestedActions] = useState(() => getRandomSuggestions());
+  // Initialize with stable (non-random) suggestions for SSR, then randomize on client
+  const [suggestedActions, setSuggestedActions] = useState(() =>
+    getAgentConfig(agentId).suggestions.slice(0, 4)
+  );
 
-  // Refresh suggestions when agent changes
+  // Randomize on mount and when agent changes (client-only)
   useEffect(() => {
     setSuggestedActions(getRandomSuggestions());
   }, [getRandomSuggestions]);

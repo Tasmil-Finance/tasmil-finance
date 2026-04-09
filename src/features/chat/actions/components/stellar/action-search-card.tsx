@@ -30,7 +30,10 @@ interface ActionSearchCardProps {
 }
 
 function ActionSearchCardComponent({ args, result, toolCallId, status }: ActionSearchCardProps) {
-  const { data, isLoading, hasError, errorMessage } = useResultData<ActionSearchData>(result, status);
+  const { data, isLoading, hasError, errorMessage } = useResultData<ActionSearchData>(
+    result,
+    status
+  );
 
   return (
     <BaseInfoCard
@@ -62,7 +65,10 @@ function ActionSearchCardComponent({ args, result, toolCallId, status }: ActionS
               {action.params.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {action.params.map((p) => (
-                    <span key={p} className="text-[10px] bg-muted/40 rounded px-1.5 py-0.5 font-mono">
+                    <span
+                      key={p}
+                      className="text-[10px] bg-muted/40 rounded px-1.5 py-0.5 font-mono"
+                    >
                       {p}
                     </span>
                   ))}

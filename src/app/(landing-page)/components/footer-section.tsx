@@ -85,8 +85,8 @@ export function FooterSection() {
             className="mt-4 mb-6 max-w-2xl text-lg text-white opacity-90 md:mt-6 md:mb-10 md:w-[60%] md:text-xl"
           >
             Experience the future of decentralized finance on Stellar with our AI-powered platform.
-            Trade on Soroswap, lend on Blend, earn Aquarius rewards, and bridge via Allbridge —
-            all managed by intelligent AI agents.
+            Trade on Soroswap, lend on Blend, earn Aquarius rewards, and bridge via Allbridge — all
+            managed by intelligent AI agents.
           </Typography>
 
           <button

@@ -148,8 +148,9 @@ export const FAQSection = () => {
 
             return (
               <div
-                className={`${!isLast || isOpen ? "border-[#E5E5E5] border-b" : ""} ${isFirst && isOpen ? "rounded-t-2xl" : ""
-                  } ${isLast && isOpen ? "rounded-b-2xl" : ""}`}
+                className={`${!isLast || isOpen ? "border-[#E5E5E5] border-b" : ""} ${
+                  isFirst && isOpen ? "rounded-t-2xl" : ""
+                } ${isLast && isOpen ? "rounded-b-2xl" : ""}`}
                 key={faq.id}
               >
                 <div

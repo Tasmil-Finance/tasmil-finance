@@ -29,9 +29,13 @@ export function BaseInfoCard({
 }: BaseInfoCardProps) {
   if (isLoading) {
     return (
-      <div className={cn("w-fit min-w-[280px] rounded-lg border bg-card/40 p-4 shadow-sm", className)}>
+      <div
+        className={cn("w-fit min-w-[280px] rounded-lg border bg-card/40 p-4 shadow-sm", className)}
+      >
         <div className="flex items-center gap-3">
-          <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-full", iconBg)}>
+          <div
+            className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-full", iconBg)}
+          >
             <Loader2 className={cn("h-4 w-4 animate-spin", iconColor)} />
           </div>
           <div className="space-y-1">
@@ -45,7 +49,12 @@ export function BaseInfoCard({
 
   if (error) {
     return (
-      <div className={cn("w-fit min-w-[280px] rounded-lg border border-destructive/30 bg-destructive/5 p-4 shadow-sm", className)}>
+      <div
+        className={cn(
+          "w-fit min-w-[280px] rounded-lg border border-destructive/30 bg-destructive/5 p-4 shadow-sm",
+          className
+        )}
+      >
         <div className="flex items-center gap-2 text-destructive text-sm">
           <AlertCircle className="h-4 w-4 shrink-0" />
           <span>{error}</span>
@@ -59,7 +68,12 @@ export function BaseInfoCard({
       {(Icon || title) && (
         <div className="mb-3 flex items-center gap-3">
           {Icon && (
-            <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-full", iconBg)}>
+            <div
+              className={cn(
+                "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+                iconBg
+              )}
+            >
               <Icon className={cn("h-4 w-4", iconColor)} />
             </div>
           )}

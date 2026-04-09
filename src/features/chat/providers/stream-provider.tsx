@@ -1,11 +1,6 @@
 "use client";
 
-import React, {
-  createContext,
-  useContext,
-  ReactNode,
-  useEffect,
-} from "react";
+import React, { createContext, useContext, ReactNode, useEffect } from "react";
 import { useStream } from "@langchain/langgraph-sdk/react";
 import { type Message } from "@langchain/langgraph-sdk";
 import {
@@ -41,10 +36,7 @@ async function sleep(ms = 4000) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function checkGraphStatus(
-  apiUrl: string,
-  apiKey: string | null,
-): Promise<boolean> {
+async function checkGraphStatus(apiUrl: string, apiKey: string | null): Promise<boolean> {
   try {
     const res = await fetch(`${apiUrl}/info`, {
       ...(apiKey && {
@@ -74,7 +66,7 @@ const StreamSession = ({
 }) => {
   const { threadId, setThreadId } = useChatState();
   const { getThreads, setThreads } = useThreads();
-  
+
   const streamValue = useTypedStream({
     apiUrl,
     apiKey: apiKey ?? undefined,
@@ -102,8 +94,8 @@ const StreamSession = ({
         toast.error("Failed to connect to LangGraph server", {
           description: () => (
             <p>
-              Please ensure your graph is running at <code>{apiUrl}</code> and
-              your API key is correctly set (if connecting to a deployed graph).
+              Please ensure your graph is running at <code>{apiUrl}</code> and your API key is
+              correctly set (if connecting to a deployed graph).
             </p>
           ),
           duration: 10000,
@@ -114,22 +106,15 @@ const StreamSession = ({
     });
   }, [apiKey, apiUrl]);
 
-  return (
-    <StreamContext.Provider value={streamValue}>
-      {children}
-    </StreamContext.Provider>
-  );
+  return <StreamContext.Provider value={streamValue}>{children}</StreamContext.Provider>;
 };
 
-export const StreamProvider: React.FC<{ 
+export const StreamProvider: React.FC<{
   children: ReactNode;
   agentId?: string;
-}> = ({
-  children,
-  agentId,
-}) => {
+}> = ({ children, agentId }) => {
   // Get environment variables
-  const envApiUrl: string | undefined = process.env['NEXT_PUBLIC_API_URL'];
+  const envApiUrl: string | undefined = process.env["NEXT_PUBLIC_API_URL"];
 
   // Use agentId from props as assistantId
   const assistantId = agentId || "";
@@ -145,12 +130,10 @@ export const StreamProvider: React.FC<{
         <div className="animate-in fade-in-0 zoom-in-95 bg-background flex max-w-3xl flex-col rounded-lg border shadow-lg p-6">
           <div className="flex flex-col gap-2">
             <LangGraphLogoSVG className="h-7" />
-            <h1 className="text-xl font-semibold tracking-tight">
-              Configuration Error
-            </h1>
+            <h1 className="text-xl font-semibold tracking-tight">Configuration Error</h1>
             <p className="text-muted-foreground">
-              Missing required configuration. Please ensure NEXT_PUBLIC_API_URL is set
-              and agentId is provided.
+              Missing required configuration. Please ensure NEXT_PUBLIC_API_URL is set and agentId
+              is provided.
             </p>
           </div>
         </div>
@@ -159,11 +142,7 @@ export const StreamProvider: React.FC<{
   }
 
   return (
-    <StreamSession
-      apiKey={apiKey}
-      apiUrl={apiUrl}
-      assistantId={assistantId}
-    >
+    <StreamSession apiKey={apiKey} apiUrl={apiUrl} assistantId={assistantId}>
       {children}
     </StreamSession>
   );

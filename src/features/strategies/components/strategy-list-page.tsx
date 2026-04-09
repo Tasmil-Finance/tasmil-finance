@@ -47,18 +47,20 @@ const getGradient = (index: number) => {
   return gradients[index % gradients.length];
 };
 
-
-
 // Featured Strategy Card
-function FeaturedStrategyCard({ strategy, index }: { strategy: FeaturedStrategy, index: number }) {
+function FeaturedStrategyCard({ strategy, index }: { strategy: FeaturedStrategy; index: number }) {
   return (
     <GlassCard className="group relative h-[240px] cursor-pointer overflow-hidden border-white/5 bg-zinc-900/40 transition-all duration-300 hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/10">
-      <div className={`absolute inset-0 bg-gradient-to-br ${getGradient(index)} opacity-30 group-hover:opacity-50 transition-opacity`} />
+      <div
+        className={`absolute inset-0 bg-gradient-to-br ${getGradient(index)} opacity-30 group-hover:opacity-50 transition-opacity`}
+      />
       <div className="absolute inset-0 bg-[url('/images/grid-pattern.svg')] opacity-20" />
 
       <div className="relative z-10 flex h-full flex-col justify-between p-6">
         <div className="flex justify-between items-start">
-          <Badge className="bg-white/10 text-white hover:bg-white/20 border-white/10 backdrop-blur-md">Featured</Badge>
+          <Badge className="bg-white/10 text-white hover:bg-white/20 border-white/10 backdrop-blur-md">
+            Featured
+          </Badge>
           {/* Chain Logo Placeholder */}
           <div className="h-10 w-10 rounded-full bg-zinc-800/80 ring-1 ring-white/10 backdrop-blur-sm flex items-center justify-center">
             <span className="text-xs font-bold text-zinc-400">ETH</span>
@@ -66,7 +68,9 @@ function FeaturedStrategyCard({ strategy, index }: { strategy: FeaturedStrategy,
         </div>
 
         <div>
-          <h3 className="font-bold text-2xl text-white mb-2 group-hover:text-cyan-400 transition-colors">{strategy.name}</h3>
+          <h3 className="font-bold text-2xl text-white mb-2 group-hover:text-cyan-400 transition-colors">
+            {strategy.name}
+          </h3>
           <p className="text-sm text-zinc-400 line-clamp-2">{strategy.description}</p>
         </div>
       </div>
@@ -78,7 +82,15 @@ function FeaturedStrategyCard({ strategy, index }: { strategy: FeaturedStrategy,
 }
 
 // Strategy Card for Grid View
-function StrategyCard({ strategy, onClick, index }: { strategy: StrategyListItem; onClick: () => void; index: number }) {
+function StrategyCard({
+  strategy,
+  onClick,
+  index,
+}: {
+  strategy: StrategyListItem;
+  onClick: () => void;
+  index: number;
+}) {
   const apyValue = Number.parseFloat(strategy.current_apy.replace("%", ""));
   const isNegative = apyValue < 0;
   const isPositive = apyValue > 0;
@@ -93,7 +105,10 @@ function StrategyCard({ strategy, onClick, index }: { strategy: StrategyListItem
         <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
           <div className="flex -space-x-2">
             {strategy.assets?.slice(0, 3).map((asset, i) => (
-              <div key={i} className="h-8 w-8 rounded-full border-2 border-zinc-900 bg-zinc-800 flex items-center justify-center text-[10px] text-zinc-400 font-bold z-10">
+              <div
+                key={i}
+                className="h-8 w-8 rounded-full border-2 border-zinc-900 bg-zinc-800 flex items-center justify-center text-[10px] text-zinc-400 font-bold z-10"
+              >
                 {asset.alt.charAt(0)}
               </div>
             ))}
@@ -112,7 +127,9 @@ function StrategyCard({ strategy, onClick, index }: { strategy: StrategyListItem
           <span>•</span>
           <span>{strategy.chain?.alt || "Ethereum"}</span>
         </div>
-        <h3 className="font-bold text-lg text-white mb-1 group-hover:text-cyan-400 transition-colors">{strategy.title}</h3>
+        <h3 className="font-bold text-lg text-white mb-1 group-hover:text-cyan-400 transition-colors">
+          {strategy.title}
+        </h3>
 
         <div className="flex flex-wrap gap-1.5 mt-3 mb-4">
           {strategy.tags.slice(0, 3).map((tag) => (
@@ -129,13 +146,17 @@ function StrategyCard({ strategy, onClick, index }: { strategy: StrategyListItem
 
       <GlassCardFooter className="px-5 py-4 border-t border-white/5 bg-black/20 flex justify-between rounded-b-xl">
         <div>
-          <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">Net APY</p>
-          <p className={cn(
-            "font-bold text-lg",
-            isNegative && "text-rose-400",
-            isPositive && "text-emerald-400",
-            !isNegative && !isPositive && "text-zinc-400"
-          )}>
+          <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">
+            Net APY
+          </p>
+          <p
+            className={cn(
+              "font-bold text-lg",
+              isNegative && "text-rose-400",
+              isPositive && "text-emerald-400",
+              !isNegative && !isPositive && "text-zinc-400"
+            )}
+          >
             {strategy.current_apy}
           </p>
         </div>
@@ -171,17 +192,24 @@ function StrategyRow({ strategy, onClick }: { strategy: StrategyListItem; onClic
           <div className="flex items-center gap-3">
             <div className="flex -space-x-2">
               {strategy.assets?.slice(0, 2).map((asset, i) => (
-                <div key={i} className="h-8 w-8 rounded-full border-2 border-zinc-900 bg-zinc-800 flex items-center justify-center text-[10px] text-zinc-400 font-bold z-10">
+                <div
+                  key={i}
+                  className="h-8 w-8 rounded-full border-2 border-zinc-900 bg-zinc-800 flex items-center justify-center text-[10px] text-zinc-400 font-bold z-10"
+                >
                   {asset.alt.charAt(0)}
                 </div>
               ))}
             </div>
             <div>
-              <h3 className="font-bold text-sm text-white group-hover:text-cyan-400 transition-colors">{strategy.title}</h3>
+              <h3 className="font-bold text-sm text-white group-hover:text-cyan-400 transition-colors">
+                {strategy.title}
+              </h3>
               <div className="flex items-center gap-2 text-xs text-zinc-500">
                 <span>{strategy.chain?.alt || "Ethereum"}</span>
                 {strategy.hasPoints && (
-                  <span className="text-amber-400 flex items-center gap-0.5"><Zap className="w-3 h-3 fill-current" /> Points</span>
+                  <span className="text-amber-400 flex items-center gap-0.5">
+                    <Zap className="w-3 h-3 fill-current" /> Points
+                  </span>
                 )}
               </div>
             </div>
@@ -191,16 +219,26 @@ function StrategyRow({ strategy, onClick }: { strategy: StrategyListItem; onClic
         {/* Middle: Stats */}
         <div className="flex items-center gap-12">
           <div>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mb-0.5">Pool Type</p>
+            <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mb-0.5">
+              Pool Type
+            </p>
             <div className="flex gap-1">
-              {strategy.tags.slice(0, 2).map(tag => (
-                <Badge key={tag} variant="outline" className="border-white/5 bg-white/5 text-[10px] text-zinc-400">{tag}</Badge>
+              {strategy.tags.slice(0, 2).map((tag) => (
+                <Badge
+                  key={tag}
+                  variant="outline"
+                  className="border-white/5 bg-white/5 text-[10px] text-zinc-400"
+                >
+                  {tag}
+                </Badge>
               ))}
             </div>
           </div>
 
           <div className="text-right min-w-[80px]">
-            <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mb-0.5">APY</p>
+            <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mb-0.5">
+              APY
+            </p>
             <span
               className={cn(
                 "font-bold text-base",
@@ -287,7 +325,7 @@ function FilterDialog({
                   className={cn(
                     "cursor-pointer border-white/10 bg-white/5 text-xs text-zinc-400 transition-all hover:border-white/20 select-none py-1.5 px-3",
                     selectedCategories.includes(category) &&
-                    "border-cyan-500/50 bg-cyan-500/20 text-cyan-400"
+                      "border-cyan-500/50 bg-cyan-500/20 text-cyan-400"
                   )}
                   onClick={() => toggleCategory(category)}
                 >
@@ -364,7 +402,9 @@ export function StrategyListPage({ className }: StrategyListPageProps) {
     return (
       <div className={cn("space-y-8 p-6 lg:p-10 max-w-[1600px] mx-auto", className)}>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          {[1, 2, 3].map(i => <Skeleton key={i} className="h-[240px] rounded-xl bg-zinc-900/50" />)}
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-[240px] rounded-xl bg-zinc-900/50" />
+          ))}
         </div>
         <div className="space-y-4">
           <div className="flex gap-4">
@@ -372,7 +412,9 @@ export function StrategyListPage({ className }: StrategyListPageProps) {
             <Skeleton className="h-10 w-32 bg-zinc-900/50" />
           </div>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} className="h-[200px] rounded-xl bg-zinc-900/50" />)}
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Skeleton key={i} className="h-[200px] rounded-xl bg-zinc-900/50" />
+            ))}
           </div>
         </div>
       </div>
@@ -391,14 +433,20 @@ export function StrategyListPage({ className }: StrategyListPageProps) {
         <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-8 max-w-[1600px] mx-auto">
           <div className="space-y-4 max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/5 bg-white/5 pl-2 pr-4 py-1 backdrop-blur-md">
-              <Badge className="bg-cyan-500/20 text-cyan-300 border-0 hover:bg-cyan-500/30">New</Badge>
+              <Badge className="bg-cyan-500/20 text-cyan-300 border-0 hover:bg-cyan-500/30">
+                New
+              </Badge>
               <span className="text-xs font-medium text-zinc-300">Prompt-to-DeFi is now live</span>
             </div>
             <h1 className="font-bold text-4xl md:text-6xl text-white tracking-tight leading-[1.1]">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-500">Intelligent</span> DeFi Strategies
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-500">
+                Intelligent
+              </span>{" "}
+              DeFi Strategies
             </h1>
             <p className="text-lg text-zinc-400 max-w-lg leading-relaxed">
-              Deploy capital into automated yield strategies powered by the <span className="text-white font-medium">INFINIT AI Agent Swarm</span>.
+              Deploy capital into automated yield strategies powered by the{" "}
+              <span className="text-white font-medium">INFINIT AI Agent Swarm</span>.
             </p>
           </div>
 
@@ -409,7 +457,9 @@ export function StrategyListPage({ className }: StrategyListPageProps) {
               <p className="text-3xl font-bold text-white mt-1">$42.8M</p>
             </GlassCard>
             <GlassCard className="p-6 text-center bg-zinc-900/40 border-white/5 min-w-[160px]">
-              <p className="text-sm text-zinc-500 uppercase tracking-widest font-bold">Active Agents</p>
+              <p className="text-sm text-zinc-500 uppercase tracking-widest font-bold">
+                Active Agents
+              </p>
               <p className="text-3xl font-bold text-white mt-1">128</p>
             </GlassCard>
           </div>
@@ -511,7 +561,9 @@ export function StrategyListPage({ className }: StrategyListPageProps) {
                   size="icon"
                   className={cn(
                     "h-7 w-7 rounded-md transition-all",
-                    viewMode === "grid" ? "bg-zinc-700 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-300"
+                    viewMode === "grid"
+                      ? "bg-zinc-700 text-white shadow-sm"
+                      : "text-zinc-500 hover:text-zinc-300"
                   )}
                   onClick={() => setViewMode("grid")}
                 >
@@ -522,7 +574,9 @@ export function StrategyListPage({ className }: StrategyListPageProps) {
                   size="icon"
                   className={cn(
                     "h-7 w-7 rounded-md transition-all",
-                    viewMode === "list" ? "bg-zinc-700 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-300"
+                    viewMode === "list"
+                      ? "bg-zinc-700 text-white shadow-sm"
+                      : "text-zinc-500 hover:text-zinc-300"
                   )}
                   onClick={() => setViewMode("list")}
                 >

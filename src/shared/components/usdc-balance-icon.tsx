@@ -17,13 +17,7 @@ export function USDCBalanceIcon() {
           className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-800/50 p-0 backdrop-blur-sm transition-all hover:bg-zinc-800/70"
           variant="ghost"
         >
-          <Image
-            src="/token/usdc.png"
-            alt="USDC"
-            width={24}
-            height={24}
-            className="rounded-full"
-          />
+          <Image src="/token/usdc.png" alt="USDC" width={24} height={24} className="rounded-full" />
         </Button>
       </TooltipTrigger>
       <TooltipContent side="right">

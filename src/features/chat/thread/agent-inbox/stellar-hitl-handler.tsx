@@ -57,7 +57,7 @@ export function StellarHITLHandler({ interrupt, operation }: StellarHITLHandlerP
 
   // Get the execute result (contains unsigned XDR)
   const toolMessage = stream.messages.findLast(
-    (msg: any) => msg.type === "tool" && msg.name === toolName,
+    (msg: any) => msg.type === "tool" && msg.name === toolName
   );
 
   let mcpResponse: Record<string, any> | null = null;
@@ -77,7 +77,7 @@ export function StellarHITLHandler({ interrupt, operation }: StellarHITLHandlerP
   useEffect(() => {
     if (!toolCallId || localResult) return;
     const toolResponse = stream.messages.findLast(
-      (msg: any) => msg.type === "tool" && msg.tool_call_id === toolCallId,
+      (msg: any) => msg.type === "tool" && msg.tool_call_id === toolCallId
     );
     if (toolResponse) {
       try {
@@ -119,7 +119,7 @@ export function StellarHITLHandler({ interrupt, operation }: StellarHITLHandlerP
                 decisions: [{ type: execResult.success ? "approve" : "reject" }],
               },
             },
-          },
+          }
         );
 
         if (execResult.success) {
@@ -136,7 +136,7 @@ export function StellarHITLHandler({ interrupt, operation }: StellarHITLHandlerP
         toast.error("Failed to submit response");
       }
     },
-    [stream, toolCallId, toolName],
+    [stream, toolCallId, toolName]
   );
 
   if (!actionRequest) {

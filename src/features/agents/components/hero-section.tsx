@@ -30,8 +30,8 @@ export function HeroSection({ agentCount }: HeroSectionProps) {
           </h1>
 
           <p className="mb-8 max-w-xl text-muted-foreground text-lg leading-relaxed">
-            Discover AI Tasmil Agents — specialized, collaborative AI Agents
-            that power Intelligence and Strategies
+            Discover AI Tasmil Agents — specialized, collaborative AI Agents that power Intelligence
+            and Strategies
           </p>
 
           <div className="flex items-center gap-4">

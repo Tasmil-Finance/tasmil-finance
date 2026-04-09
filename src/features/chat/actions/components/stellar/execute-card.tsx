@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  ArrowRightLeft,
-  Globe,
-  Coins,
-  TrendingUp,
-  FileCode,
-} from "lucide-react";
+import { ArrowRightLeft, Globe, Coins, TrendingUp, FileCode } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { BaseOperationCard } from "../base/operation-card";
 import { DetailRow } from "../base/indicators";
@@ -31,7 +25,10 @@ interface StellarExecuteCardProps {
   respond?: (result: Record<string, unknown>) => void;
 }
 
-const OPERATION_CONFIG: Record<string, { title: string; buttonText: string; icon: LucideIcon; iconColor: string; iconBg: string }> = {
+const OPERATION_CONFIG: Record<
+  string,
+  { title: string; buttonText: string; icon: LucideIcon; iconColor: string; iconBg: string }
+> = {
   swap_execute: {
     title: "Sign Swap",
     buttonText: "Sign & Swap",
@@ -84,7 +81,11 @@ export function StellarExecuteCard({
   if (result && typeof result === "object") {
     execResult = result as ExecuteResult;
   } else if (typeof result === "string") {
-    try { execResult = JSON.parse(result); } catch { /* ignore */ }
+    try {
+      execResult = JSON.parse(result);
+    } catch {
+      /* ignore */
+    }
   }
 
   const xdr = execResult?.xdr ?? args?.["xdr"];
@@ -122,18 +123,21 @@ export function StellarExecuteCard({
 
   const renderDetails = () => (
     <div className="space-y-2 mb-2">
-      {action && <DetailRow label="Action" value={<span className="capitalize">{action.replace(/_/g, " ")}</span>} />}
-      {protocol && <DetailRow label="Protocol" value={<span className="capitalize">{protocol}</span>} />}
-      {estimatedFee && <DetailRow label="Est. Fee" value={estimatedFee} />}
-      {route && route.length > 1 && (
-        <DetailRow label="Route" value={route.join(" → ")} />
+      {action && (
+        <DetailRow
+          label="Action"
+          value={<span className="capitalize">{action.replace(/_/g, " ")}</span>}
+        />
       )}
+      {protocol && (
+        <DetailRow label="Protocol" value={<span className="capitalize">{protocol}</span>} />
+      )}
+      {estimatedFee && <DetailRow label="Est. Fee" value={estimatedFee} />}
+      {route && route.length > 1 && <DetailRow label="Route" value={route.join(" → ")} />}
       {args?.["tokenIn"] && args?.["tokenOut"] && (
         <DetailRow label="Pair" value={`${args["tokenIn"]} → ${args["tokenOut"]}`} />
       )}
-      {args?.["amount"] && (
-        <DetailRow label="Amount" value={args["amount"] as string} />
-      )}
+      {args?.["amount"] && <DetailRow label="Amount" value={args["amount"] as string} />}
       {args?.["from"] && (
         <DetailRow label="From" value={truncateAddress(String(args["from"]))} mono />
       )}
@@ -144,7 +148,8 @@ export function StellarExecuteCard({
         <div className="border-t pt-2 mt-2">
           <div className="text-xs text-muted-foreground mb-1">Transaction XDR</div>
           <div className="font-mono text-[10px] text-muted-foreground bg-muted/30 rounded p-2 break-all max-h-[60px] overflow-y-auto">
-            {xdr.slice(0, 200)}{xdr.length > 200 ? "..." : ""}
+            {xdr.slice(0, 200)}
+            {xdr.length > 200 ? "..." : ""}
           </div>
         </div>
       )}

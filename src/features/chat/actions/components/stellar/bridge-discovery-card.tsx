@@ -35,7 +35,12 @@ interface BridgeDiscoveryCardProps {
   status?: string;
 }
 
-function BridgeDiscoveryCardComponent({ args, result, toolCallId, status }: BridgeDiscoveryCardProps) {
+function BridgeDiscoveryCardComponent({
+  args,
+  result,
+  toolCallId,
+  status,
+}: BridgeDiscoveryCardProps) {
   const { data, isLoading, hasError, errorMessage } = useResultData<BridgeData>(result, status);
 
   const fromChain = args?.["fromChain"] ?? "?";
@@ -86,15 +91,26 @@ function BridgeDiscoveryCardComponent({ args, result, toolCallId, status }: Brid
                   <>
                     <div className="space-y-1">
                       <DetailRow label="Send" value={quote.amountIn} />
-                      <DetailRow label="Receive" value={<span className="font-semibold">{quote.amountOut}</span>} />
+                      <DetailRow
+                        label="Receive"
+                        value={<span className="font-semibold">{quote.amountOut}</span>}
+                      />
                       <DetailRow label="Fee" value={`${quote.fee} (${quote.feePercent}%)`} />
-                      <DetailRow label="Est. Time" value={formatEstimatedTime(quote.estimatedTime)} />
+                      <DetailRow
+                        label="Est. Time"
+                        value={formatEstimatedTime(quote.estimatedTime)}
+                      />
                     </div>
 
                     {quote.depositAddress && (
                       <div className="text-xs text-muted-foreground border-t pt-2 mt-2">
                         Deposit to: <span className="font-mono">{quote.depositAddress}</span>
-                        {quote.depositMemo && <> | Memo: <span className="font-mono">{quote.depositMemo}</span></>}
+                        {quote.depositMemo && (
+                          <>
+                            {" "}
+                            | Memo: <span className="font-mono">{quote.depositMemo}</span>
+                          </>
+                        )}
                       </div>
                     )}
                   </>

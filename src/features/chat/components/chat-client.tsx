@@ -10,9 +10,11 @@ import { ContentBlocksPreview } from "../thread/components/content-blocks-previe
 import { AssistantMessage, AssistantMessageLoading } from "../components/messages/ai-message";
 import { HumanMessage } from "../components/messages/human-message";
 import { useSearchAssistantsAssistantsSearchPost } from "@/gen/hooks/use-search-assistants-assistants-search-post";
+import { kubbClient } from "@/lib/kubb";
 import { DO_NOT_RENDER_ID_PREFIX, ensureToolCallsHaveResponses } from "@/lib/ensure-tool-responses";
 import { cn } from "@/lib/utils";
 import { useChatState, useStreamContext } from "../hooks";
+import { useWallet } from "@/shared/context/wallet-context";
 import { useFileUpload } from "@/shared/hooks/use-file-upload";
 import { useIsMobile } from "@/shared/hooks/use-mobile";
 import { Button } from "@/shared/ui/button-v2";
@@ -65,9 +67,10 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
   const messages = stream.messages;
   const isLoading = stream.isLoading;
   const { hideToolCalls, setHideToolCalls, setAssistantInfo } = useChatState();
+  const { address: walletAddress } = useWallet();
 
   // Fetch assistant info for avatar
-  const { mutate: searchAssistants } = useSearchAssistantsAssistantsSearchPost();
+  const { mutate: searchAssistants } = useSearchAssistantsAssistantsSearchPost({ client: kubbClient });
 
   useEffect(() => {
     searchAssistants(
@@ -244,11 +247,11 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
     const toolMessages = ensureToolCallsHaveResponses(stream.messages);
 
     stream.submit(
-      { messages: [...toolMessages, newHumanMessage] },
+      { messages: [...toolMessages, newHumanMessage], ...(walletAddress && { wallet_address: walletAddress }) },
       {
         // @ts-ignore - streamMode may not be in type definition
         streamMode: ["values"],
-        streamSubgraphs: true,
+        streamSubgraphs: false,
         streamResumable: true,
         // @ts-ignore - optimisticValues may not be in type definition
         optimisticValues: (prev: any) => ({
@@ -306,11 +309,11 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
     const toolMessages = ensureToolCallsHaveResponses(stream.messages);
 
     stream.submit(
-      { messages: [...toolMessages, newHumanMessage] },
+      { messages: [...toolMessages, newHumanMessage], ...(walletAddress && { wallet_address: walletAddress }) },
       {
         // @ts-ignore - streamMode may not be in type definition
         streamMode: ["values"],
-        streamSubgraphs: true,
+        streamSubgraphs: false,
         streamResumable: true,
         // @ts-ignore - optimisticValues may not be in type definition
         optimisticValues: (prev: any) => ({
@@ -347,10 +350,43 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
           <div className="flex flex-col gap-4">
             {messages
               .filter((m) => !m.id?.startsWith(DO_NOT_RENDER_ID_PREFIX))
-              // Filter out tool messages - they are now shown inline with their AI message's tool calls
-              .filter((m) => m.type !== "tool")
-              .map((message, index) =>
-                message.type === "human" ? (
+              // Filter out tool and system messages - they are not user-facing
+              .filter((m) => m.type !== "tool" && m.type !== "system")
+              // Filter out sub-agent intermediate AI messages that only contain tool calls
+              // (e.g., discover, resolve_pool from sub-agents) with no user-facing text
+              .filter((m) => {
+                if (m.type !== "ai") return true;
+                const aiMsg = m as any;
+                const hasToolCallsOnly =
+                  aiMsg.tool_calls?.length > 0;
+                const content =
+                  typeof aiMsg.content === "string"
+                    ? aiMsg.content.trim()
+                    : Array.isArray(aiMsg.content)
+                      ? aiMsg.content
+                          .filter((c: any) => c.type === "text")
+                          .map((c: any) => c.text?.trim())
+                          .join("")
+                      : "";
+                // Hide AI messages that have tool calls for MCP tools (not supervisor calls) and no text
+                if (hasToolCallsOnly && !content) {
+                  const allAreMcpTools = aiMsg.tool_calls.every(
+                    (tc: any) =>
+                      !tc.name?.startsWith("call_") ||
+                      !tc.name?.endsWith("_agent")
+                  );
+                  if (allAreMcpTools) return false;
+                }
+                return true;
+              })
+              .map((message, index, arr) => {
+                const prevMessage = index > 0 ? arr[index - 1] : undefined;
+                const isConsecutiveAi =
+                  message.type !== "human" &&
+                  prevMessage?.type !== "human" &&
+                  !!prevMessage;
+
+                return message.type === "human" ? (
                   <HumanMessage
                     key={message.id || `${message.type}-${index}`}
                     message={message}
@@ -362,9 +398,10 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
                     message={message}
                     isLoading={isLoading}
                     handleRegenerate={handleRegenerate}
+                    hideAvatar={isConsecutiveAi}
                   />
-                )
-              )}
+                );
+              })}
 
             {/* Special rendering case for interrupt without messages */}
             {hasNoAIOrToolMessages && !!stream.interrupt && (

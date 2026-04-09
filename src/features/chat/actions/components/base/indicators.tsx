@@ -13,22 +13,22 @@ export function StatusBadge({ status }: { status: string | undefined | null }) {
         "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
         isOk
           ? "bg-green-500/10 text-green-600 dark:text-green-400"
-          : "bg-red-500/10 text-red-600 dark:text-red-400",
+          : "bg-red-500/10 text-red-600 dark:text-red-400"
       )}
     >
-      {isOk ? "Available" : status ?? "Unavailable"}
+      {isOk ? "Available" : (status ?? "Unavailable")}
     </span>
   );
 }
 
 /** APY display with color coding: green (20%+), yellow (10-20%), blue (<10%). */
 export function APYDisplay({ value }: { value: number | string | undefined | null }) {
-  if (value === undefined || value === null) return <span className="text-muted-foreground text-xs">N/A</span>;
+  if (value === undefined || value === null)
+    return <span className="text-muted-foreground text-xs">N/A</span>;
   const n = typeof value === "string" ? Number.parseFloat(value) : value;
   if (Number.isNaN(n)) return <span className="text-muted-foreground text-xs">N/A</span>;
 
-  const color =
-    n >= 20 ? "text-green-500" : n >= 10 ? "text-yellow-500" : "text-blue-500";
+  const color = n >= 20 ? "text-green-500" : n >= 10 ? "text-yellow-500" : "text-blue-500";
 
   return <span className={cn("font-semibold", color)}>{n.toFixed(2)}%</span>;
 }
@@ -44,7 +44,12 @@ export function RiskBadge({ risk }: { risk: string | undefined | null }) {
   const Icon = c!.icon;
 
   return (
-    <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium", c!.color)}>
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
+        c!.color
+      )}
+    >
       <Icon className="h-3 w-3" />
       {risk ?? "unknown"}
     </span>
@@ -62,7 +67,8 @@ export function ProtocolBadge({ name }: { name: string | undefined | null }) {
 
 /** Price change indicator with arrow. */
 export function PriceChange({ value }: { value: number | string | undefined | null }) {
-  if (value === undefined || value === null) return <span className="text-muted-foreground text-xs">N/A</span>;
+  if (value === undefined || value === null)
+    return <span className="text-muted-foreground text-xs">N/A</span>;
   const n = typeof value === "string" ? Number.parseFloat(value) : value;
   if (Number.isNaN(n)) return <span className="text-muted-foreground text-xs">N/A</span>;
 
@@ -70,9 +76,15 @@ export function PriceChange({ value }: { value: number | string | undefined | nu
   const Icon = isPositive ? TrendingUp : TrendingDown;
 
   return (
-    <span className={cn("flex items-center gap-1 text-sm", isPositive ? "text-green-500" : "text-red-500")}>
+    <span
+      className={cn(
+        "flex items-center gap-1 text-sm",
+        isPositive ? "text-green-500" : "text-red-500"
+      )}
+    >
       <Icon className="h-3 w-3" />
-      {isPositive ? "+" : ""}{n.toFixed(2)}%
+      {isPositive ? "+" : ""}
+      {n.toFixed(2)}%
     </span>
   );
 }

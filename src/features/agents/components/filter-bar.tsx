@@ -2,7 +2,6 @@
 
 import { Search, Settings, Sparkles } from "lucide-react";
 
-
 interface FilterBarProps {
   activeFilter: string;
   onFilterChange: (filter: string) => void;
@@ -13,9 +12,11 @@ interface FilterBarProps {
 
 const getTypeIcon = (type: string) => {
   switch (type) {
-    case "Strategy":
+    case "Execution":
       return Settings;
-    case "Intelligence":
+    case "Discovery":
+      return Sparkles;
+    case "Assistant":
       return Sparkles;
     default:
       return null;
@@ -40,7 +41,6 @@ export function FilterBar({
 
   return (
     <div className="flex flex-col justify-between gap-4 py-8 md:flex-row md:items-center">
-
       {/* Search Input - On the right in the image but lets keep flexible or match image exactly? 
           Image has filter pills on LEFT and search on RIGHT.
       */}
@@ -50,10 +50,11 @@ export function FilterBar({
           <button
             key={filter.label}
             onClick={() => onFilterChange(filter.label)}
-            className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${activeFilter === filter.label
-              ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-              : "bg-muted text-muted-foreground border border-border hover:bg-accent hover:text-foreground hover:border-accent-foreground/10"
-              }`}
+            className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
+              activeFilter === filter.label
+                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                : "bg-muted text-muted-foreground border border-border hover:bg-accent hover:text-foreground hover:border-accent-foreground/10"
+            }`}
           >
             {filter.label}
           </button>

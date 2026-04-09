@@ -1,13 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import {
-  AlertCircle,
-  ArrowUpRight,
-  CheckCircle,
-  Loader2,
-  Wallet,
-} from "lucide-react";
+import { AlertCircle, ArrowUpRight, CheckCircle, Loader2, Wallet } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/shared/ui/button";
 import { useWallet } from "@/shared/context/wallet-context";
@@ -65,7 +59,7 @@ export function BaseOperationCard({
           hash: persistedResult["hash"] as string | undefined,
           message: String(
             persistedResult["message"] ??
-              (persistedResult["success"] ? "Transaction successful!" : "Transaction failed"),
+              (persistedResult["success"] ? "Transaction successful!" : "Transaction failed")
           ),
         }
       : null);
@@ -86,9 +80,7 @@ export function BaseOperationCard({
       setTxResult({
         success: res.success,
         hash: res.hash,
-        message: res.success
-          ? "Transaction successful!"
-          : (res.error ?? "Transaction failed"),
+        message: res.success ? "Transaction successful!" : (res.error ?? "Transaction failed"),
       });
       respond?.({
         success: res.success,
@@ -157,9 +149,7 @@ export function BaseOperationCard({
         </div>
 
         <div className="rounded-md border border-green-500/30 bg-green-500/20 p-3">
-          <p className="text-green-700 dark:text-green-300 text-sm">
-            {effectiveResult.message}
-          </p>
+          <p className="text-green-700 dark:text-green-300 text-sm">{effectiveResult.message}</p>
         </div>
       </div>
     );
@@ -192,7 +182,9 @@ export function BaseOperationCard({
   return (
     <div className={cardClass}>
       <div className="mb-4 flex items-center gap-3">
-        <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-full", iconBg)}>
+        <div
+          className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-full", iconBg)}
+        >
           <Icon className={cn("h-5 w-5", iconColor)} />
         </div>
         <div className="space-y-1 min-w-0">
