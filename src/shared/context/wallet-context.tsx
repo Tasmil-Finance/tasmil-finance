@@ -1,10 +1,8 @@
 "use client";
 
-import { useConnectModal } from "@rainbow-me/rainbowkit";
 import type React from "react";
-import { createContext, useCallback, useContext, useEffect, useRef } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useAccount, useDisconnect, useSignMessage } from "wagmi";
 import { type AuthUser, useAuthStore } from "@/store/use-auth";
 import { useWalletStore } from "@/store/use-wallet";
 
@@ -15,18 +13,19 @@ interface WalletContextType {
   address: string | null;
   displayAddress: string | null;
   user: AuthUser | null;
-  connect: () => void;
-  disconnect: () => void;
+  connect: () => Promise<void>;
+  disconnect: () => Promise<void>;
+  signTransaction: (xdr: string) => Promise<string>;
   forceReauth: () => Promise<void>;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { address, isConnected } = useAccount();
-  const { disconnect: wagmiDisconnect } = useDisconnect();
-  const { openConnectModal } = useConnectModal();
-  const { signMessageAsync } = useSignMessage();
+  const [address, setAddress] = useState<string | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [kitReady, setKitReady] = useState(false);
+
   const { setWalletState, reset: resetWallet, setSigning, signing } = useWalletStore();
   const {
     isAuthenticated,
@@ -42,30 +41,106 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Track if authentication is currently in progress
   const authInProgressRef = useRef(false);
 
+  // Initialize StellarWalletsKit on mount (client-side only)
+  useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+
+    (async () => {
+      try {
+        const { StellarWalletsKit } = await import(
+          "@creit.tech/stellar-wallets-kit/sdk"
+        );
+        const { defaultModules } = await import(
+          "@creit.tech/stellar-wallets-kit/modules/utils"
+        );
+        const { Networks, KitEventType } = await import(
+          "@creit.tech/stellar-wallets-kit/types"
+        );
+
+        const network =
+          (process.env["NEXT_PUBLIC_STELLAR_NETWORK"] as string) === "PUBLIC"
+            ? Networks.PUBLIC
+            : Networks.TESTNET;
+
+        StellarWalletsKit.init({
+          network,
+          modules: defaultModules(),
+        });
+
+        // Listen for address / state changes
+        unsubscribe = StellarWalletsKit.on(KitEventType.STATE_UPDATED, async () => {
+          try {
+            const { address: addr } = await StellarWalletsKit.getAddress();
+            if (addr) {
+              setAddress(addr);
+              setIsConnected(true);
+              setWalletState({ connected: true, account: addr });
+            }
+          } catch {
+            // Kit may fire state updates before a wallet is selected — ignore
+          }
+        });
+
+        setKitReady(true);
+      } catch (err) {
+        console.error("Failed to initialise StellarWalletsKit:", err);
+      }
+    })();
+
+    return () => {
+      unsubscribe?.();
+    };
+    // Only run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-restore session after kit is ready
+  useEffect(() => {
+    if (!kitReady) return;
+
+    const walletState = useWalletStore.getState();
+    if (!walletState.connected || !walletState.account) return;
+
+    (async () => {
+      try {
+        const { StellarWalletsKit } = await import(
+          "@creit.tech/stellar-wallets-kit/sdk"
+        );
+        const { address: addr } = await StellarWalletsKit.getAddress();
+        if (addr) {
+          setAddress(addr);
+          setIsConnected(true);
+          setWalletState({ connected: true, account: addr });
+          await authenticateWithWallet(addr);
+        } else {
+          resetWallet();
+        }
+      } catch {
+        resetWallet();
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kitReady]);
+
   // Check if current auth state is valid (token exists and user matches address)
   const isAuthValid = useCallback((walletAddress: string) => {
     const { accessToken, user } = useAuthStore.getState();
     if (!accessToken || !user) return false;
-    // Check if user's wallet address matches current connected address
-    return user.walletAddress?.toLowerCase() === walletAddress.toLowerCase();
+    return user.walletAddress === walletAddress;
   }, []);
 
   // Mock authentication function (replace with your actual API calls)
   const authenticateWithWallet = useCallback(
     async (walletAddress: string, forceReauth = false) => {
-      // Prevent if authentication is already in progress
       if (authInProgressRef.current) {
         return;
       }
 
-      // Skip if already authenticated with this address and not forcing reauth
       if (!forceReauth) {
-        // Check if we have valid auth state (persisted in localStorage via zustand)
         if (isAuthValid(walletAddress)) {
           authAttemptedRef.current = walletAddress;
           return;
         }
-        // Also skip if we've already attempted for this address in this session
         if (authAttemptedRef.current === walletAddress && isAuthenticated) {
           return;
         }
@@ -76,19 +151,11 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setLoading(true);
 
       try {
-        // Step 1: Get nonce (mock implementation)
         setSigning(false);
-        const nonce = Math.random().toString(36).substring(7);
-        const message = `Tasmil Finance Login Nonce: ${nonce}`;
 
-        // Step 2: Sign the message
-        setSigning(true);
-        await signMessageAsync({ message });
+        // Mock authentication (replace with actual API call)
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
-        // Step 3: Mock authentication (replace with actual API call)
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
-
-        // Step 4: Mock successful response
         const mockUser: AuthUser = {
           id: `user_${walletAddress.slice(0, 8)}`,
           walletAddress,
@@ -99,7 +166,6 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
         const mockToken = `mock_token_${Date.now()}`;
 
-        // Step 5: Update auth state
         setAuthState({
           accessToken: mockToken,
           user: mockUser,
@@ -116,7 +182,6 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setLoading(false);
         setSigning(false);
 
-        // Handle user rejection (silent)
         if (
           error instanceof Error &&
           (error.message.includes("User rejected") ||
@@ -126,47 +191,61 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           return;
         }
 
-        // Show error for unexpected failures
         const errorMessage =
           error instanceof Error ? error.message : "Authentication failed. Please try again.";
         toast.error(errorMessage);
       }
     },
-    [signMessageAsync, setAuthState, setLoading, setSigning, isAuthValid, isAuthenticated]
+    [setAuthState, setLoading, setSigning, isAuthValid, isAuthenticated]
   );
 
-  // Handle wallet connection changes
-  useEffect(() => {
-    const currentState = useWalletStore.getState();
-    if (currentState.connected !== isConnected || currentState.account !== (address ?? null)) {
-      setWalletState({
-        connected: isConnected,
-        account: address ?? null,
-      });
+  // Connect via StellarWalletsKit built-in modal
+  const connect = useCallback(async () => {
+    try {
+      const { StellarWalletsKit } = await import(
+        "@creit.tech/stellar-wallets-kit/sdk"
+      );
+      const { address: addr } = await StellarWalletsKit.authModal();
+      setAddress(addr);
+      setIsConnected(true);
+      setWalletState({ connected: true, account: addr });
+      await authenticateWithWallet(addr);
+    } catch (err) {
+      console.error("Failed to connect wallet:", err);
+      toast.error("Failed to connect wallet.");
     }
+  }, [setWalletState, authenticateWithWallet]);
 
-    // If wallet is connected, authenticate (will skip if already valid)
-    if (isConnected && address) {
-      authenticateWithWallet(address);
-    } else if (!isConnected) {
-      // Wallet disconnected - clear auth attempt tracking
-      authAttemptedRef.current = null;
-      authInProgressRef.current = false;
+  const disconnect = useCallback(async () => {
+    try {
+      const { StellarWalletsKit } = await import(
+        "@creit.tech/stellar-wallets-kit/sdk"
+      );
+      await StellarWalletsKit.disconnect();
+    } catch {
+      // ignore disconnect errors
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isConnected, address]); // Chỉ phụ thuộc vào isConnected và address
-
-  const connect = useCallback(() => {
-    openConnectModal?.();
-  }, [openConnectModal]);
-
-  const disconnect = useCallback(() => {
-    wagmiDisconnect();
-    authLogout();
+    setAddress(null);
+    setIsConnected(false);
     resetWallet();
+    authLogout();
     authAttemptedRef.current = null;
     authInProgressRef.current = false;
-  }, [wagmiDisconnect, authLogout, resetWallet]);
+  }, [authLogout, resetWallet]);
+
+  const signTransaction = useCallback(
+    async (xdr: string): Promise<string> => {
+      if (!address) throw new Error("Wallet not connected");
+      const { StellarWalletsKit } = await import(
+        "@creit.tech/stellar-wallets-kit/sdk"
+      );
+      const { signedTxXdr } = await StellarWalletsKit.signTransaction(xdr, {
+        address,
+      });
+      return signedTxXdr;
+    },
+    [address]
+  );
 
   const forceReauth = useCallback(async () => {
     if (address) {
@@ -176,17 +255,19 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [address, authenticateWithWallet]);
 
-  const displayAddress = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : null;
+  // Format display address: GABC...WXYZ
+  const displayAddress = address ? `${address.slice(0, 4)}...${address.slice(-4)}` : null;
 
   const value: WalletContextType = {
     isConnected,
     isAuthenticated,
     isAuthenticating: isAuthenticating || signing,
-    address: address ?? null,
+    address,
     displayAddress,
     user,
     connect,
     disconnect,
+    signTransaction,
     forceReauth,
   };
 

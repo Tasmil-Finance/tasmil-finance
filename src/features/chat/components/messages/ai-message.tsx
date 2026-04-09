@@ -1,19 +1,19 @@
-import type { MessageContentComplex } from "@langchain/core/messages";
-import { parsePartialJson } from "@langchain/core/output_parsers";
-import type { AIMessage, Checkpoint, Message } from "@langchain/langgraph-sdk";
-import { LoadExternalComponent } from "@langchain/langgraph-sdk/react-ui";
-import Image from "next/image";
-import { Fragment } from "react/jsx-runtime";
-import { ThreadView } from "@/features/chat/thread/agent-inbox";
-import { useArtifact } from "@/features/chat/thread/components/artifact";
-import { MarkdownText } from "@/features/chat/thread/components/markdown-text";
-import { getContentString } from "@/features/chat/lib/thread-utils";
-import { isAgentInboxInterruptSchema } from "@/lib/agent-inbox-interrupt";
-import { useChatState, useStreamContext } from "@/features/chat/hooks";
-import ComponentMap from "@/shared/components";
-import { GenericInterruptView } from "./generic-interrupt";
-import { BranchSwitcher, CommandBar } from "./shared";
-import { ToolCalls, ToolResult } from "./tool-calls";
+import type { MessageContentComplex } from '@langchain/core/messages';
+import { parsePartialJson } from '@langchain/core/output_parsers';
+import type { AIMessage, Checkpoint, Message } from '@langchain/langgraph-sdk';
+import { LoadExternalComponent } from '@langchain/langgraph-sdk/react-ui';
+import Image from 'next/image';
+import { Fragment } from 'react/jsx-runtime';
+import { ThreadView } from '@/features/chat/thread/agent-inbox';
+import { useArtifact } from '@/features/chat/thread/components/artifact';
+import { MarkdownText } from '@/features/chat/thread/components/markdown-text';
+import { getContentString } from '@/features/chat/lib/thread-utils';
+import { isAgentInboxInterruptSchema } from '@/lib/agent-inbox-interrupt';
+import { useChatState, useStreamContext } from '@/features/chat/hooks';
+import ComponentMap from '@/shared/components';
+import { GenericInterruptView } from './generic-interrupt';
+import { BranchSwitcher, CommandBar } from './shared';
+import { ToolCalls, ToolResult } from './tool-calls';
 
 function AgentAvatar() {
   return (
@@ -39,7 +39,9 @@ function CustomComponent({
   const artifact = useArtifact();
   const { values } = useStreamContext();
   // @ts-ignore - ui may not be in type definition
-  const allUIForMessage = values?.ui?.filter((ui: any) => ui.metadata?.message_id === message.id);
+  const allUIForMessage = values?.ui?.filter(
+    (ui: any) => ui.metadata?.message_id === message.id
+  );
 
   // Deduplicate UI items: keep only the LATEST version of each tool call
   // Group by tool_call_id (from props.toolCallId), then keep the last one
@@ -52,16 +54,18 @@ function CustomComponent({
     }
 
     // Find existing UI with same toolCallId
-    const existingIndex = acc.findIndex((item: any) => item.props?.toolCallId === toolCallId);
-    
+    const existingIndex = acc.findIndex(
+      (item: any) => item.props?.toolCallId === toolCallId
+    );
+
     if (existingIndex >= 0) {
       // Replace with newer version (prefer "complete" over "executing")
       const existing = acc[existingIndex];
       const existingStatus = existing?.props?.status;
       const newStatus = ui.props?.status;
-      
+
       // Replace if new status is "complete" or if both have same status (keep latest)
-      if (newStatus === "complete" || existingStatus === newStatus) {
+      if (newStatus === 'complete' || existingStatus === newStatus) {
         acc[existingIndex] = ui;
       }
       // Otherwise keep existing (e.g., don't replace "complete" with "executing")
@@ -69,27 +73,9 @@ function CustomComponent({
       // New toolCallId, add it
       acc.push(ui);
     }
-    
+
     return acc;
   }, []);
-
-  console.log("[CustomComponent] Debug:", {
-    messageId: message.id,
-    messageType: message.type,
-    allUICount: allUIForMessage?.length,
-    deduplicatedCount: customComponents?.length,
-    allUI: allUIForMessage?.map((ui: any) => ({
-      name: ui.name,
-      toolCallId: ui.props?.toolCallId,
-      status: ui.props?.status,
-      metadata: ui.metadata,
-    })),
-    deduplicatedUI: customComponents?.map((ui: any) => ({
-      name: ui.name,
-      toolCallId: ui.props?.toolCallId,
-      status: ui.props?.status,
-    })),
-  });
 
   if (!customComponents?.length) return null;
   return (
@@ -109,24 +95,26 @@ function CustomComponent({
 
 function parseAnthropicStreamedToolCalls(
   content: MessageContentComplex[]
-): AIMessage["tool_calls"] {
-  const toolCallContents = content.filter((c) => c.type === "tool_use" && c["id"]);
+): AIMessage['tool_calls'] {
+  const toolCallContents = content.filter(
+    (c) => c.type === 'tool_use' && c['id']
+  );
 
   return toolCallContents.map((tc) => {
     const toolCall = tc as Record<string, any>;
     let json: Record<string, any> = {};
-    if (toolCall?.["input"]) {
+    if (toolCall?.['input']) {
       try {
-        json = parsePartialJson(toolCall["input"]) ?? {};
+        json = parsePartialJson(toolCall['input']) ?? {};
       } catch {
         // Pass
       }
     }
     return {
-      name: toolCall["name"] ?? "",
-      id: toolCall["id"] ?? "",
+      name: toolCall['name'] ?? '',
+      id: toolCall['id'] ?? '',
       args: json,
-      type: "tool_call",
+      type: 'tool_call',
     };
   });
 }
@@ -137,16 +125,22 @@ interface InterruptProps {
   hasNoAIOrToolMessages: boolean;
 }
 
-function Interrupt({ interrupt, isLastMessage, hasNoAIOrToolMessages }: InterruptProps) {
+function Interrupt({
+  interrupt,
+  isLastMessage,
+  hasNoAIOrToolMessages,
+}: InterruptProps) {
   const fallbackValue = Array.isArray(interrupt)
     ? (interrupt as Record<string, any>[])
-    : (((interrupt as { value?: unknown } | undefined)?.value ?? interrupt) as Record<string, any>);
+    : (((interrupt as { value?: unknown } | undefined)?.value ??
+        interrupt) as Record<string, any>);
 
   return (
     <>
-      {isAgentInboxInterruptSchema(interrupt) && (isLastMessage || hasNoAIOrToolMessages) && (
-        <ThreadView interrupt={interrupt} />
-      )}
+      {isAgentInboxInterruptSchema(interrupt) &&
+        (isLastMessage || hasNoAIOrToolMessages) && (
+          <ThreadView interrupt={interrupt} />
+        )}
       {interrupt &&
       !isAgentInboxInterruptSchema(interrupt) &&
       (isLastMessage || hasNoAIOrToolMessages) ? (
@@ -173,8 +167,11 @@ export function AssistantMessage({
   const { hideToolCalls } = useChatState();
 
   const thread = useStreamContext();
-  const isLastMessage = thread.messages[thread.messages.length - 1]!.id === message?.id;
-  const hasNoAIOrToolMessages = !thread.messages.find((m) => m.type === "ai" || m.type === "tool");
+  const isLastMessage =
+    thread.messages[thread.messages.length - 1]!.id === message?.id;
+  const hasNoAIOrToolMessages = !thread.messages.find(
+    (m) => m.type === 'ai' || m.type === 'tool'
+  );
   // @ts-ignore - getMessagesMetadata may not be in type definition
   const meta = message ? thread.getMessagesMetadata?.(message) : undefined;
   const threadInterrupt = thread.interrupt;
@@ -182,21 +179,33 @@ export function AssistantMessage({
   const parentCheckpoint = meta?.firstSeenState?.parent_checkpoint;
   // To get state BEFORE AI message for regeneration, we need messages up to (but not including) current AI message
   // Find the index of current message in thread.messages and get all messages before it
-  const currentMessageIndex = message ? thread.messages.findIndex((m) => m.id === message.id) : -1;
+  const currentMessageIndex = message
+    ? thread.messages.findIndex((m) => m.id === message.id)
+    : -1;
   const messagesBeforeCurrent =
-    currentMessageIndex > 0 ? thread.messages.slice(0, currentMessageIndex) : [];
+    currentMessageIndex > 0
+      ? thread.messages.slice(0, currentMessageIndex)
+      : [];
   const parentValues =
-    messagesBeforeCurrent.length > 0 ? { messages: messagesBeforeCurrent } : undefined;
+    messagesBeforeCurrent.length > 0
+      ? { messages: messagesBeforeCurrent }
+      : undefined;
   const anthropicStreamedToolCalls = Array.isArray(content)
     ? parseAnthropicStreamedToolCalls(content)
     : undefined;
 
   const hasToolCalls =
-    message && "tool_calls" in message && message.tool_calls && message.tool_calls.length > 0;
+    message &&
+    'tool_calls' in message &&
+    message.tool_calls &&
+    message.tool_calls.length > 0;
   const toolCallsHaveContents =
-    hasToolCalls && message.tool_calls?.some((tc) => tc.args && Object.keys(tc.args).length > 0);
+    hasToolCalls &&
+    message.tool_calls?.some(
+      (tc) => tc.args && Object.keys(tc.args).length > 0
+    );
   const hasAnthropicToolCalls = !!anthropicStreamedToolCalls?.length;
-  const isToolResult = message?.type === "tool";
+  const isToolResult = message?.type === 'tool';
 
   if (isToolResult && hideToolCalls) {
     return null;
@@ -223,8 +232,12 @@ export function AssistantMessage({
                 {(hasToolCalls && toolCallsHaveContents && (
                   <ToolCalls toolCalls={message.tool_calls} />
                 )) ||
-                  (hasAnthropicToolCalls && <ToolCalls toolCalls={anthropicStreamedToolCalls} />) ||
-                  (hasToolCalls && <ToolCalls toolCalls={message.tool_calls} />)}
+                  (hasAnthropicToolCalls && (
+                    <ToolCalls toolCalls={anthropicStreamedToolCalls} />
+                  )) ||
+                  (hasToolCalls && (
+                    <ToolCalls toolCalls={message.tool_calls} />
+                  ))}
               </>
             )}
 

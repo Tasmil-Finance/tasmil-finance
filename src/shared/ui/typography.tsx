@@ -91,16 +91,16 @@ const typographyVariants = cva("", {
   },
 });
 
-interface TypographyProps<C extends React.ElementType = "p">
+interface TypographyProps<C extends React.ElementType>
   extends VariantProps<typeof typographyVariants> {
   as?: C;
-  children?: React.ReactNode;
+  children: React.ReactNode;
   className?: string;
+  props?: React.ComponentPropsWithoutRef<C>;
   color1?: string;
   color2?: string;
   direction?: "to-t" | "to-tr" | "to-r" | "to-br" | "to-b" | "to-bl" | "to-l" | "to-tl";
   linear?: boolean;
-  [key: string]: any;
 }
 
 export function Typography<C extends React.ElementType = "p">({
@@ -129,7 +129,11 @@ export function Typography<C extends React.ElementType = "p">({
     className
   );
 
-  const componentProps = { className: combinedClassName, ...props, children };
-  // @ts-ignore - Dynamic component type compatibility
-  return <Component {...componentProps} />;
+  const Comp = Component as React.FC<{ className?: string; children?: React.ReactNode }>;
+
+  return (
+    <Comp className={combinedClassName} {...props}>
+      {children}
+    </Comp>
+  );
 }

@@ -2,11 +2,12 @@ import {
   CopilotRuntime,
   copilotRuntimeNextJSAppRouterEndpoint,
   ExperimentalEmptyAdapter,
-} from "@copilotkit/runtime";
-import { LangGraphHttpAgent } from "@copilotkit/runtime/langgraph";
-import type { NextRequest } from "next/server";
+} from '@copilotkit/runtime';
+import { LangGraphHttpAgent } from '@copilotkit/runtime/langgraph';
+import type { NextRequest } from 'next/server';
 
-const LANGGRAPH_URL = process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:8001";
+const LANGGRAPH_URL =
+  process.env['NEXT_PUBLIC_API_URL'] || 'http://localhost:8001';
 
 // 1. Service adapter for multi-agent support
 const serviceAdapter = new ExperimentalEmptyAdapter();
@@ -36,27 +37,10 @@ const runtime = new CopilotRuntime({
 
 // 3. Build a Next.js API route that handles the CopilotKit runtime requests.
 export const POST = async (req: NextRequest) => {
-  // Clone request to read body for logging
-  const clonedReq = req.clone();
-  try {
-    const body = await clonedReq.json();
-    console.log(
-      "[CopilotKit API] Request body:",
-      JSON.stringify({
-        agentName: body.agentName,
-        threadId: body.threadId,
-        // Don't log full messages for brevity
-        messageCount: body.messages?.length,
-      })
-    );
-  } catch (e) {
-    console.log("[CopilotKit API] Could not parse request body");
-  }
-
   const { handleRequest } = copilotRuntimeNextJSAppRouterEndpoint({
     runtime,
     serviceAdapter,
-    endpoint: "/api/copilotkit",
+    endpoint: '/api/copilotkit',
   });
 
   return handleRequest(req);

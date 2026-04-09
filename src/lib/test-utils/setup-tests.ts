@@ -20,28 +20,19 @@ jest.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
-// Mock Web3 providers for DeFi testing
-jest.mock("wagmi", () => ({
-  useAccount: () => ({
-    address: "0x1234567890123456789012345678901234567890",
+// Mock wallet context for Stellar testing
+jest.mock("@/shared/context/wallet-context", () => ({
+  useWallet: () => ({
     isConnected: true,
-    isConnecting: false,
-    isDisconnected: false,
-  }),
-  useBalance: () => ({
-    data: { formatted: "1.0", symbol: "ETH" },
-    isLoading: false,
-    error: null,
-  }),
-  useWriteContract: () => ({
-    writeContract: jest.fn(),
-    isPending: false,
-    error: null,
-  }),
-  useWaitForTransactionReceipt: () => ({
-    data: null,
-    isLoading: false,
-    error: null,
+    isAuthenticated: true,
+    isAuthenticating: false,
+    address: "GABC1234567890ABCDEF1234567890ABCDEF1234567890ABCDEF",
+    displayAddress: "GABC...CDEF",
+    user: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    signTransaction: jest.fn(),
+    forceReauth: jest.fn(),
   }),
 }));
 
