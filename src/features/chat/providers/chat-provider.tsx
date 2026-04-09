@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import type { ReactNode } from "react";
-import { ChatStateProvider } from "./chat-state-provider";
-import { ThreadProvider } from "./thread-provider";
-import { StreamProvider } from "./stream-provider";
-import { ArtifactProvider } from "../thread/components";
+import type { ReactNode } from 'react';
+import { ChatStateProvider } from './chat-state-provider';
+import { ThreadProvider } from './thread-provider';
+import { StreamProvider } from './stream-provider';
+import { ArtifactProvider } from '../thread/components';
 
 interface ChatProviderProps {
   children: ReactNode;
@@ -20,7 +20,10 @@ export function ChatProvider({ children, agentId, chatId }: ChatProviderProps) {
   const initialThreadId = chatId === null ? null : chatId;
 
   return (
-    <ChatStateProvider initialThreadId={initialThreadId}>
+    <ChatStateProvider
+      initialThreadId={initialThreadId}
+      initialAgentId={agentId}
+    >
       <ThreadProvider agentId={agentId}>
         <StreamProvider agentId={agentId}>
           <ArtifactProvider>{children}</ArtifactProvider>

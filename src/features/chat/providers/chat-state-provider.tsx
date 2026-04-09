@@ -1,7 +1,13 @@
-"use client";
+'use client';
 
-import { createContext, type ReactNode, useCallback, useContext, useState } from "react";
-import type { AssistantInfo } from "../types";
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useState,
+} from 'react';
+import type { AssistantInfo } from '../types';
 
 interface ChatStateContextType {
   threadId: string | null;
@@ -12,28 +18,43 @@ interface ChatStateContextType {
   setChatHistoryOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
   assistantInfo: AssistantInfo | null;
   setAssistantInfo: (info: AssistantInfo | null) => void;
+  agentId: string | undefined;
+  setAgentId: (id: string | undefined) => void;
 }
 
-const ChatStateContext = createContext<ChatStateContextType | undefined>(undefined);
+const ChatStateContext = createContext<ChatStateContextType | undefined>(
+  undefined
+);
 
 interface ChatStateProviderProps {
   children: ReactNode;
   initialThreadId?: string | null;
+  initialAgentId?: string;
 }
 
-export function ChatStateProvider({ children, initialThreadId = null }: ChatStateProviderProps) {
+export function ChatStateProvider({
+  children,
+  initialThreadId = null,
+  initialAgentId,
+}: ChatStateProviderProps) {
   const [threadId, setThreadId] = useState<string | null>(initialThreadId);
   const [hideToolCalls, setHideToolCalls] = useState(false);
   const [chatHistoryOpen, setChatHistoryOpen] = useState(false);
-  const [assistantInfo, setAssistantInfo] = useState<AssistantInfo | null>(null);
+  const [assistantInfo, setAssistantInfo] = useState<AssistantInfo | null>(
+    null
+  );
+  const [agentId, setAgentId] = useState<string | undefined>(initialAgentId);
 
-  const handleSetChatHistoryOpen = useCallback((value: boolean | ((prev: boolean) => boolean)) => {
-    if (typeof value === "function") {
-      setChatHistoryOpen(value);
-    } else {
-      setChatHistoryOpen(value);
-    }
-  }, []);
+  const handleSetChatHistoryOpen = useCallback(
+    (value: boolean | ((prev: boolean) => boolean)) => {
+      if (typeof value === 'function') {
+        setChatHistoryOpen(value);
+      } else {
+        setChatHistoryOpen(value);
+      }
+    },
+    []
+  );
 
   return (
     <ChatStateContext.Provider
@@ -46,6 +67,8 @@ export function ChatStateProvider({ children, initialThreadId = null }: ChatStat
         setChatHistoryOpen: handleSetChatHistoryOpen,
         assistantInfo,
         setAssistantInfo,
+        agentId,
+        setAgentId,
       }}
     >
       {children}
@@ -56,7 +79,7 @@ export function ChatStateProvider({ children, initialThreadId = null }: ChatStat
 export function useChatState() {
   const context = useContext(ChatStateContext);
   if (!context) {
-    throw new Error("useChatState must be used within a ChatStateProvider");
+    throw new Error('useChatState must be used within a ChatStateProvider');
   }
   return context;
 }

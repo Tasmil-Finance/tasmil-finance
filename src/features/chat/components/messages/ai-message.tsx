@@ -17,6 +17,7 @@ import {
 } from '@/features/chat/lib/thread-utils';
 import { isAgentInboxInterruptSchema } from '@/lib/agent-inbox-interrupt';
 import { useChatState, useStreamContext } from '@/features/chat/hooks';
+import { getAgentConfig } from '@/features/chat/config/agents.config';
 import ComponentMap from '@/shared/components';
 import { AIReasoning, Shimmer } from '@/features/chat/components/ai';
 import { GenericInterruptView } from './generic-interrupt';
@@ -45,10 +46,16 @@ function hasSupervisorAgentCalls(
 }
 
 function AgentAvatar() {
+  const { agentId } = useChatState();
+
+  // Get the agent config to find the icon
+  const agentConfig = agentId ? getAgentConfig(agentId) : null;
+  const logoSrc = agentConfig?.icon || '/images/logo.png';
+
   return (
-    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full overflow-hidden">
+    <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full shrink-0">
       <Image
-        src="/images/logo.png"
+        src={logoSrc}
         alt="AI Assistant"
         width={32}
         height={32}
@@ -235,9 +242,10 @@ export function AssistantMessage({
   const currentIdx = message
     ? thread.messages.findIndex((m) => m.id === message.id)
     : -1;
-  const nextVisibleMessage = currentIdx >= 0
-    ? thread.messages.slice(currentIdx + 1).find((m) => m.type !== 'tool')
-    : undefined;
+  const nextVisibleMessage =
+    currentIdx >= 0
+      ? thread.messages.slice(currentIdx + 1).find((m) => m.type !== 'tool')
+      : undefined;
   const isIntermediateAiMessage =
     !isLastMessage && nextVisibleMessage?.type === 'ai';
   // @ts-ignore - getMessagesMetadata may not be in type definition
@@ -271,9 +279,7 @@ export function AssistantMessage({
   const hasRegularToolCalls = regularToolCalls.length > 0;
   const toolCallsHaveContents =
     hasRegularToolCalls &&
-    regularToolCalls.some(
-      (tc) => tc.args && Object.keys(tc.args).length > 0
-    );
+    regularToolCalls.some((tc) => tc.args && Object.keys(tc.args).length > 0);
   const hasAnthropicToolCalls = !!anthropicStreamedToolCalls?.length;
   const isToolResult = message?.type === 'tool';
 
@@ -283,11 +289,7 @@ export function AssistantMessage({
 
   return (
     <div className="group mr-auto flex w-full items-start gap-3">
-      {hideAvatar ? (
-        <div className="w-8 shrink-0" />
-      ) : (
-        <AgentAvatar />
-      )}
+      {hideAvatar ? <div className="w-8 shrink-0" /> : <AgentAvatar />}
       <div className="flex w-full flex-col gap-2 min-w-0">
         {isToolResult ? (
           <>
@@ -366,28 +368,29 @@ export function AssistantMessage({
               hasNoAIOrToolMessages={hasNoAIOrToolMessages}
             />
             {/* Only show command bar on the final message, not intermediate AI messages */}
-            {!isIntermediateAiMessage && (contentString.length > 0 || isLastMessage) && (
-              <div className="mr-auto flex items-center gap-2">
-                <BranchSwitcher
-                  branch={meta?.branch}
-                  branchOptions={meta?.branchOptions}
-                  // @ts-ignore - setBranch may not be in type definition
-                  onSelect={(branch) => thread.setBranch?.(branch)}
-                  isLoading={isLoading}
-                />
-                <CommandBar
-                  content={contentString}
-                  isLoading={isLoading}
-                  isAiMessage={true}
-                  handleRegenerate={() =>
-                    handleRegenerate(
-                      parentCheckpoint,
-                      parentValues as { messages: Message[] } | undefined
-                    )
-                  }
-                />
-              </div>
-            )}
+            {!isIntermediateAiMessage &&
+              (contentString.length > 0 || isLastMessage) && (
+                <div className="mr-auto flex items-center gap-2">
+                  <BranchSwitcher
+                    branch={meta?.branch}
+                    branchOptions={meta?.branchOptions}
+                    // @ts-ignore - setBranch may not be in type definition
+                    onSelect={(branch) => thread.setBranch?.(branch)}
+                    isLoading={isLoading}
+                  />
+                  <CommandBar
+                    content={contentString}
+                    isLoading={isLoading}
+                    isAiMessage={true}
+                    handleRegenerate={() =>
+                      handleRegenerate(
+                        parentCheckpoint,
+                        parentValues as { messages: Message[] } | undefined
+                      )
+                    }
+                  />
+                </div>
+              )}
           </>
         )}
       </div>
