@@ -161,10 +161,9 @@ const DEFAULT_GREETING: GreetingContent = {
 
 interface GreetingProps {
   agentId: string;
-  isAnimating?: boolean;
 }
 
-export const Greeting = ({ agentId, isAnimating = false }: GreetingProps) => {
+export const Greeting = ({ agentId }: GreetingProps) => {
   const config = getAgentConfig(agentId);
   const content =
     AGENT_GREETING_CONTENT[config.id] ??
@@ -178,18 +177,11 @@ export const Greeting = ({ agentId, isAnimating = false }: GreetingProps) => {
       key="overview"
     >
       <motion.div
-        animate={
-          isAnimating
-            ? { opacity: 0, scale: 0.3, y: -200, x: -100 }
-            : { opacity: 1, y: 0, scale: 1, x: 0 }
-        }
+        animate={{ opacity: 1, y: 0 }}
         className="mb-4"
         exit={{ opacity: 0, y: 10 }}
-        initial={{ opacity: 0, y: 10, scale: 1, x: 0 }}
-        transition={{
-          delay: isAnimating ? 0 : 0.45,
-          duration: isAnimating ? 0.6 : 0.4,
-        }}
+        initial={{ opacity: 0, y: 10 }}
+        transition={{ delay: 0.45 }}
       >
         <div className="relative h-20 w-20 overflow-hidden rounded-full border border-border/60 bg-muted/30 md:h-24 md:w-24">
           <Image src={logo} alt={config.name} fill className="object-cover" />
@@ -197,28 +189,22 @@ export const Greeting = ({ agentId, isAnimating = false }: GreetingProps) => {
       </motion.div>
 
       <motion.div
-        animate={isAnimating ? { opacity: 0, y: 10 } : { opacity: 1, y: 0 }}
+        animate={{ opacity: 1, y: 0 }}
         className=""
         exit={{ opacity: 0, y: 10 }}
         initial={{ opacity: 0, y: 10 }}
-        transition={{
-          delay: isAnimating ? 0 : 0.5,
-          duration: isAnimating ? 0.3 : 0.4,
-        }}
+        transition={{ delay: 0.5 }}
       >
         <Typography className="font-semibold text-[30px]">
           {content.title}
         </Typography>
       </motion.div>
       <motion.div
-        animate={isAnimating ? { opacity: 0, y: 10 } : { opacity: 1, y: 0 }}
+        animate={{ opacity: 1, y: 0 }}
         className=""
         exit={{ opacity: 0, y: 10 }}
         initial={{ opacity: 0, y: 10 }}
-        transition={{
-          delay: isAnimating ? 0 : 0.6,
-          duration: isAnimating ? 0.3 : 0.4,
-        }}
+        transition={{ delay: 0.6 }}
       >
         <Typography className="text-lg text-muted-foreground md:text-xl">
           {content.subtitle}
@@ -226,14 +212,11 @@ export const Greeting = ({ agentId, isAnimating = false }: GreetingProps) => {
       </motion.div>
 
       <motion.ul
-        animate={isAnimating ? { opacity: 0, y: 10 } : { opacity: 1, y: 0 }}
+        animate={{ opacity: 1, y: 0 }}
         className="mt-6 space-y-2"
         exit={{ opacity: 0, y: 10 }}
         initial={{ opacity: 0, y: 10 }}
-        transition={{
-          delay: isAnimating ? 0 : 0.7,
-          duration: isAnimating ? 0.3 : 0.4,
-        }}
+        transition={{ delay: 0.7 }}
       >
         {content.bullets.slice(0, 3).map((item) => (
           <li
