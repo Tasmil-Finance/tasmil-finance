@@ -64,7 +64,6 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
   const [userScrolledUp, setUserScrolledUp] = useState(false);
   const [isInteractingWithContent, setIsInteractingWithContent] =
     useState(false);
-  const [showGreeting, setShowGreeting] = useState(true);
   const lastMessageCountRef = useRef(0);
 
   // File upload hook
@@ -114,6 +113,9 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
   const config = AGENT_CONFIG[agentId] || DEFAULT_AGENT;
   const chatTitle = chatId === 'new' ? 'New Chat' : `Chat with ${config.name}`;
   const isNewChat = messages.length === 0 && !isLoading;
+
+  // Show greeting only when there are no messages yet
+  const shouldShowGreeting = isNewChat;
 
   // Check if the last AI message is complete (has content and no pending tool calls)
   const lastAiMessage = messages.filter((m) => m.type === 'ai').pop();
@@ -178,16 +180,10 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
       // Only mark firstTokenReceived when AI message actually has content
       if (hasContent && !firstTokenReceived) {
         setFirstTokenReceived(true);
-        // Hide greeting when first actual content arrives
-        if (showGreeting) {
-          setTimeout(() => {
-            setShowGreeting(false);
-          }, 300);
-        }
       }
     }
     prevMessageLength.current = messages.length;
-  }, [messages, firstTokenReceived, showGreeting]);
+  }, [messages, firstTokenReceived]);
 
   // Auto-scroll to bottom only when new messages arrive and user hasn't scrolled up
   // and user is not interacting with scrollable content inside messages
@@ -412,7 +408,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
         className="relative flex-1 overflow-y-auto"
       >
         <div className="mx-auto max-w-3xl px-4 pt-6 pb-4">
-          {showGreeting && <Greeting agentId={agentId} />}
+          {shouldShowGreeting && <Greeting agentId={agentId} />}
 
           <div className="flex flex-col gap-4">
             {messages
