@@ -167,21 +167,27 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
   // Track first token received
   const prevMessageLength = useRef(0);
   useEffect(() => {
-    if (
-      messages.length !== prevMessageLength.current &&
-      messages?.length &&
-      messages[messages.length - 1]?.type === 'ai'
-    ) {
-      setFirstTokenReceived(true);
-      // Hide greeting when first AI response arrives
-      if (showGreeting) {
-        setTimeout(() => {
-          setShowGreeting(false);
-        }, 300);
+    if (messages?.length && messages[messages.length - 1]?.type === 'ai') {
+      const lastAiMsg = messages[messages.length - 1];
+      const hasContent =
+        lastAiMsg &&
+        ((typeof lastAiMsg.content === 'string' &&
+          lastAiMsg.content.trim().length > 0) ||
+          (Array.isArray(lastAiMsg.content) && lastAiMsg.content.length > 0));
+
+      // Only mark firstTokenReceived when AI message actually has content
+      if (hasContent && !firstTokenReceived) {
+        setFirstTokenReceived(true);
+        // Hide greeting when first actual content arrives
+        if (showGreeting) {
+          setTimeout(() => {
+            setShowGreeting(false);
+          }, 300);
+        }
       }
     }
     prevMessageLength.current = messages.length;
-  }, [messages, showGreeting]);
+  }, [messages, firstTokenReceived, showGreeting]);
 
   // Auto-scroll to bottom only when new messages arrive and user hasn't scrolled up
   // and user is not interacting with scrollable content inside messages
