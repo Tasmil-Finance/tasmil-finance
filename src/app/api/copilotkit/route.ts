@@ -16,27 +16,70 @@ const serviceAdapter = new ExperimentalEmptyAdapter();
 // Each agent has its own endpoint path matching backend registration
 const runtime = new CopilotRuntime({
   agents: {
-    // Bridge Agent - Cross-chain token bridging (Allbridge/Stellar)
+    blend_agent: new LangGraphHttpAgent({
+      url: `${LANGGRAPH_URL}/copilotkit/agents/blend_agent`,
+    }),
+    soroswap_agent: new LangGraphHttpAgent({
+      url: `${LANGGRAPH_URL}/copilotkit/agents/soroswap_agent`,
+    }),
+    phoenix_agent: new LangGraphHttpAgent({
+      url: `${LANGGRAPH_URL}/copilotkit/agents/phoenix_agent`,
+    }),
+    aquarius_agent: new LangGraphHttpAgent({
+      url: `${LANGGRAPH_URL}/copilotkit/agents/aquarius_agent`,
+    }),
+    defindex_agent: new LangGraphHttpAgent({
+      url: `${LANGGRAPH_URL}/copilotkit/agents/defindex_agent`,
+    }),
+    templar_agent: new LangGraphHttpAgent({
+      url: `${LANGGRAPH_URL}/copilotkit/agents/templar_agent`,
+    }),
+    allbridge_agent: new LangGraphHttpAgent({
+      url: `${LANGGRAPH_URL}/copilotkit/agents/allbridge_agent`,
+    }),
+    sdex_agent: new LangGraphHttpAgent({
+      url: `${LANGGRAPH_URL}/copilotkit/agents/sdex_agent`,
+    }),
+    lumenswap_agent: new LangGraphHttpAgent({
+      url: `${LANGGRAPH_URL}/copilotkit/agents/lumenswap_agent`,
+    }),
     bridge_agent: new LangGraphHttpAgent({
       url: `${LANGGRAPH_URL}/copilotkit/agents/bridge_agent`,
     }),
-    // Research Agent - Crypto market research and analysis
+    info_agent: new LangGraphHttpAgent({
+      url: `${LANGGRAPH_URL}/copilotkit/agents/info_agent`,
+    }),
     research_agent: new LangGraphHttpAgent({
       url: `${LANGGRAPH_URL}/copilotkit/agents/research_agent`,
     }),
-    // Yield Agent - DeFi yield farming opportunities
     yield_agent: new LangGraphHttpAgent({
       url: `${LANGGRAPH_URL}/copilotkit/agents/yield_agent`,
     }),
-    // Vault Agent - Yield vault management
-    vault_agent: new LangGraphHttpAgent({
-      url: `${LANGGRAPH_URL}/copilotkit/agents/vault_agent`,
+    supervisor: new LangGraphHttpAgent({
+      url: `${LANGGRAPH_URL}/copilotkit/agents/supervisor`,
     }),
   },
 });
 
 // 3. Build a Next.js API route that handles the CopilotKit runtime requests.
 export const POST = async (req: NextRequest) => {
+  // Clone request to read body for logging
+  const clonedReq = req.clone();
+  try {
+    const body = await clonedReq.json();
+    console.log(
+      '[CopilotKit API] Request body:',
+      JSON.stringify({
+        agentName: body.agentName,
+        threadId: body.threadId,
+        // Don't log full messages for brevity
+        messageCount: body.messages?.length,
+      })
+    );
+  } catch {
+    console.log('[CopilotKit API] Could not parse request body');
+  }
+
   const { handleRequest } = copilotRuntimeNextJSAppRouterEndpoint({
     runtime,
     serviceAdapter,

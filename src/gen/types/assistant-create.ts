@@ -4,16 +4,28 @@
  */
 
 export const assistantCreateGraphIdEnum = {
-  agent: "agent",
-  staking_agent: "staking_agent",
+  supervisor: 'supervisor',
+  info_agent: 'info_agent',
+  blend_agent: 'blend_agent',
+  soroswap_agent: 'soroswap_agent',
+  phoenix_agent: 'phoenix_agent',
+  aquarius_agent: 'aquarius_agent',
+  defindex_agent: 'defindex_agent',
+  templar_agent: 'templar_agent',
+  allbridge_agent: 'allbridge_agent',
+  sdex_agent: 'sdex_agent',
+  lumenswap_agent: 'lumenswap_agent',
+  bridge_agent: 'bridge_agent',
+  yield_agent: 'yield_agent',
+  research_agent: 'research_agent',
 } as const;
 
 export type AssistantCreateGraphIdEnumKey =
   (typeof assistantCreateGraphIdEnum)[keyof typeof assistantCreateGraphIdEnum];
 
 export const assistantCreateIfExistsEnum = {
-  raise: "raise",
-  do_nothing: "do_nothing",
+  raise: 'raise',
+  do_nothing: 'do_nothing',
 } as const;
 
 export type AssistantCreateIfExistsEnumKey =

@@ -4,43 +4,55 @@
  */
 
 export const assistantSearchRequestGraphIdEnum = {
-  agent: "agent",
-  staking_agent: "staking_agent",
+  supervisor: 'supervisor',
+  info_agent: 'info_agent',
+  blend_agent: 'blend_agent',
+  soroswap_agent: 'soroswap_agent',
+  phoenix_agent: 'phoenix_agent',
+  aquarius_agent: 'aquarius_agent',
+  defindex_agent: 'defindex_agent',
+  templar_agent: 'templar_agent',
+  allbridge_agent: 'allbridge_agent',
+  sdex_agent: 'sdex_agent',
+  lumenswap_agent: 'lumenswap_agent',
+  bridge_agent: 'bridge_agent',
+  yield_agent: 'yield_agent',
+  research_agent: 'research_agent',
 } as const;
 
 export type AssistantSearchRequestGraphIdEnumKey =
   (typeof assistantSearchRequestGraphIdEnum)[keyof typeof assistantSearchRequestGraphIdEnum];
 
 export const assistantSearchRequestSortByEnum = {
-  assistant_id: "assistant_id",
-  created_at: "created_at",
-  updated_at: "updated_at",
-  name: "name",
-  graph_id: "graph_id",
+  assistant_id: 'assistant_id',
+  created_at: 'created_at',
+  updated_at: 'updated_at',
+  name: 'name',
+  graph_id: 'graph_id',
 } as const;
 
 export type AssistantSearchRequestSortByEnumKey =
   (typeof assistantSearchRequestSortByEnum)[keyof typeof assistantSearchRequestSortByEnum];
 
 export const assistantSearchRequestSortOrderEnum = {
-  asc: "asc",
-  desc: "desc",
+  asc: 'asc',
+  desc: 'desc',
 } as const;
 
 export type AssistantSearchRequestSortOrderEnumKey =
   (typeof assistantSearchRequestSortOrderEnum)[keyof typeof assistantSearchRequestSortOrderEnum];
 
 export const assistantSearchRequestSelectEnum = {
-  assistant_id: "assistant_id",
-  graph_id: "graph_id",
-  name: "name",
-  description: "description",
-  config: "config",
-  context: "context",
-  created_at: "created_at",
-  updated_at: "updated_at",
-  metadata: "metadata",
-  version: "version",
+  assistant_id: 'assistant_id',
+  graph_id: 'graph_id',
+  name: 'name',
+  description: 'description',
+  config: 'config',
+  context: 'context',
+  created_at: 'created_at',
+  updated_at: 'updated_at',
+  metadata: 'metadata',
+  version: 'version',
 } as const;
 
 export type AssistantSearchRequestSelectEnumKey =

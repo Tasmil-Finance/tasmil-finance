@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* include utility classes in streamdown */
 /* @source '../node_modules/streamdown/dist/index.js'; */
@@ -201,10 +201,10 @@
   .CollapsibleContent {
     overflow: hidden;
   }
-  .CollapsibleContent[data-state="open"] {
+  .CollapsibleContent[data-state='open'] {
     animation: slideDown 300ms ease-out;
   }
-  .CollapsibleContent[data-state="closed"] {
+  .CollapsibleContent[data-state='closed'] {
     animation: slideUp 300ms ease-out;
   }
 
@@ -295,6 +295,7 @@
 
   html {
     overflow-x: hidden;
+    font-size: 16px;
   }
 }
 
@@ -303,7 +304,7 @@
     pointer-events: none;
   }
 
-  *[class^="text-"] {
+  *[class^='text-'] {
     color: transparent;
     @apply rounded-md bg-foreground/20 select-none animate-pulse;
   }
@@ -405,8 +406,16 @@
   body {
     @apply bg-background text-foreground;
     background-image:
-      radial-gradient(circle at 15% 50%, rgba(76, 29, 149, 0.08), transparent 25%),
-      radial-gradient(circle at 85% 30%, rgba(14, 165, 233, 0.08), transparent 25%);
+      radial-gradient(
+        circle at 15% 50%,
+        rgba(76, 29, 149, 0.08),
+        transparent 25%
+      ),
+      radial-gradient(
+        circle at 85% 30%,
+        rgba(14, 165, 233, 0.08),
+        transparent 25%
+      );
     background-attachment: fixed;
   }
 
@@ -465,14 +474,14 @@
   }
 
   /* Ensure sub button and dropdown items follow active styling */
-  .sidebar-item-active[data-state="active"] {
+  .sidebar-item-active[data-state='active'] {
     background-color: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
   }
 
   /* Force active styling for sub items */
-  [data-state="active"] .sidebar-item-active,
-  .sidebar-item-active[data-state="active"] {
+  [data-state='active'] .sidebar-item-active,
+  .sidebar-item-active[data-state='active'] {
     background: linear-gradient(to bottom, #b5eaff, #00bfff);
     color: #000000;
   }
@@ -483,96 +492,9 @@
   }
 
   /* Specific styling for dropdown menu items */
-  .sidebar-item-active[role="menuitem"] {
+  .sidebar-item-active[role='menuitem'] {
     background: linear-gradient(to bottom, #b5eaff, #00bfff);
     color: #000000;
-  }
-
-  /* Responsive font size utilities */
-  /* Mobile-first approach - these are the default sizes */
-  .text-xs {
-    font-size: 10px;
-    line-height: 12px;
-  }
-  .text-sm {
-    font-size: 11px;
-    line-height: 13px;
-  }
-  .text-base {
-    font-size: 13px;
-    line-height: 15px;
-  }
-  .text-lg {
-    font-size: 14px;
-    line-height: 16px;
-  }
-  .text-xl {
-    font-size: 16px;
-    line-height: 18px;
-  }
-  .text-2xl {
-    font-size: 18px;
-    line-height: 20px;
-  }
-  .text-3xl {
-    font-size: 20px;
-    line-height: 22px;
-  }
-  .text-4xl {
-    font-size: 24px;
-    line-height: 26px;
-  }
-  .text-5xl {
-    font-size: 28px;
-    line-height: 30px;
-  }
-  .text-6xl {
-    font-size: 32px;
-    line-height: 34px;
-  }
-
-  /* Desktop sizes (md and up) */
-  @media (min-width: 768px) {
-    .text-xs {
-      font-size: 12px;
-      line-height: 14px;
-    }
-    .text-sm {
-      font-size: 13px;
-      line-height: 16px;
-    }
-    .text-base {
-      font-size: 14px;
-      line-height: 18px;
-    }
-    .text-lg {
-      font-size: 16px;
-      line-height: 20px;
-    }
-    .text-xl {
-      font-size: 18px;
-      line-height: 22px;
-    }
-    .text-2xl {
-      font-size: 20px;
-      line-height: 24px;
-    }
-    .text-3xl {
-      font-size: 24px;
-      line-height: 28px;
-    }
-    .text-4xl {
-      font-size: 36px;
-      line-height: 38px;
-    }
-    .text-5xl {
-      font-size: 48px;
-      line-height: 50px;
-    }
-    .text-6xl {
-      font-size: 56px;
-      line-height: 58px;
-    }
   }
 
   /* Line clamp utilities */
@@ -683,27 +605,27 @@
     background: hsl(var(--muted));
   }
 
-  .stepper-vertical-line[data-state="completed"] {
+  .stepper-vertical-line[data-state='completed'] {
     background: hsl(var(--primary));
   }
 
-  .stepper-vertical-line[data-state="active"] {
+  .stepper-vertical-line[data-state='active'] {
     background: hsl(var(--primary));
   }
 
   /* Fix tracking scroll behavior */
-  [data-component="stepper-step-panel"] {
+  [data-component='stepper-step-panel'] {
     scroll-margin-top: 0;
     scroll-padding-top: 0;
   }
 
   /* Ensure proper scroll to step start - scroll to show the title */
-  [data-component="stepper-step"] {
+  [data-component='stepper-step'] {
     scroll-margin-top: 7rem; /* Offset to show title above header */
   }
 
   /* Make sure step title is visible when scrolling */
-  [data-component="stepper-step-title"] {
+  [data-component='stepper-step-title'] {
     scroll-margin-top: 7rem; /* Offset to show title above header */
   }
 
