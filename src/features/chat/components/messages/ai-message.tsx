@@ -1,5 +1,3 @@
-import type { MessageContentComplex } from '@langchain/core/messages';
-import { parsePartialJson } from '@langchain/core/output_parsers';
 import type { AIMessage, Checkpoint, Message } from '@langchain/langgraph-sdk';
 import { LoadExternalComponent } from '@langchain/langgraph-sdk/react-ui';
 import { Loader } from '@/shared/ui/loader';
@@ -21,19 +19,11 @@ import { AIReasoning, Shimmer } from '@/features/chat/components/ai';
 import { AgentAvatar } from '@/features/chat/components/agent-avatar';
 import { GenericInterruptView } from './generic-interrupt';
 import { BranchSwitcher, CommandBar } from './shared';
-import { ToolCalls, ToolResult } from './tool-calls';
+import { ToolResult } from './tool-calls';
 
 /** Check if a tool call is a supervisor-to-agent delegation */
 function isSupervisorAgentCall(name: string): boolean {
   return name.startsWith('call_') && name.endsWith('_agent');
-}
-
-/** Filter out supervisor agent calls from tool calls list */
-function getNonSupervisorToolCalls(
-  toolCalls: AIMessage['tool_calls'] | undefined
-): NonNullable<AIMessage['tool_calls']> {
-  if (!toolCalls) return [];
-  return toolCalls.filter((tc) => !isSupervisorAgentCall(tc.name || ''));
 }
 
 /** Check if any tool calls are supervisor agent delegations */
@@ -124,32 +114,6 @@ function CustomComponent({
       ))}
     </Fragment>
   );
-}
-
-function parseAnthropicStreamedToolCalls(
-  content: MessageContentComplex[]
-): AIMessage['tool_calls'] {
-  const toolCallContents = content.filter(
-    (c) => c.type === 'tool_use' && c['id']
-  );
-
-  return toolCallContents.map((tc) => {
-    const toolCall = tc as Record<string, any>;
-    let json: Record<string, any> = {};
-    if (toolCall?.['input']) {
-      try {
-        json = parsePartialJson(toolCall['input']) ?? {};
-      } catch {
-        // Pass
-      }
-    }
-    return {
-      name: toolCall['name'] ?? '',
-      id: toolCall['id'] ?? '',
-      args: json,
-      type: 'tool_call',
-    };
-  });
 }
 
 interface InterruptProps {
@@ -245,21 +209,11 @@ export function AssistantMessage({
     messagesBeforeCurrent.length > 0
       ? { messages: messagesBeforeCurrent }
       : undefined;
-  const anthropicStreamedToolCalls = Array.isArray(content)
-    ? parseAnthropicStreamedToolCalls(content)
-    : undefined;
-
   const allToolCalls =
     message && 'tool_calls' in message ? message.tool_calls : undefined;
 
   // Separate supervisor agent calls from regular tool calls
   const isSupervisorDelegating = hasSupervisorAgentCalls(allToolCalls);
-  const regularToolCalls = getNonSupervisorToolCalls(allToolCalls);
-  const hasRegularToolCalls = regularToolCalls.length > 0;
-  const toolCallsHaveContents =
-    hasRegularToolCalls &&
-    regularToolCalls.some((tc) => tc.args && Object.keys(tc.args).length > 0);
-  const hasAnthropicToolCalls = !!anthropicStreamedToolCalls?.length;
   const isToolResult = message?.type === 'tool';
 
   if (isToolResult && hideToolCalls) {

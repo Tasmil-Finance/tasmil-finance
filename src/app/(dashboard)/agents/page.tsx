@@ -168,10 +168,10 @@ export default function AgentsPage() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Call hook để lấy agents với body rỗng
+  // Call hook to get agents with empty body
   const searchAssistants = useSearchAssistantsAssistantsSearchPost($ as any);
 
-  // Load agents khi component mount
+  // Load agents when component mounts
   useEffect(() => {
     if (!searchAssistants.data && !searchAssistants.isPending) {
       searchAssistants.mutate({ data: {} });
@@ -267,7 +267,7 @@ export default function AgentsPage() {
   }, [validAgents, activeFilter, searchQuery]);
 
   const handleAgentClick = (assistant: Assistant) => {
-    // Navigate đến /new, thread sẽ được tạo khi gửi message đầu tiên
+    // Navigate to /new, thread will be created when sending the first message
     router.push(`/chat/${assistant.graph_id}/new`);
   };
 

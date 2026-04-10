@@ -18,7 +18,7 @@ export const BackgroundRippleEffect = ({
   const [rippleKey, setRippleKey] = useState(0);
   const [currentWaveRadius, setCurrentWaveRadius] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | undefined>(undefined);
 
   // Auto-trigger random ripples
   useEffect(() => {

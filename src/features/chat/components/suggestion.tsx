@@ -3,6 +3,7 @@
 import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/shared/ui/button-v2";
+import { useRipple, RippleContainer } from "@/shared/ui/ripple-effect";
 
 export type SuggestionProps = Omit<ComponentProps<typeof Button>, "onClick"> & {
   suggestion: string;
@@ -17,14 +18,17 @@ export const Suggestion = ({
   children,
   ...props
 }: SuggestionProps) => {
-  const handleClick = () => {
+  const { ripples, createRipple } = useRipple();
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    createRipple(e);
     onClick?.(suggestion);
   };
 
   return (
     <Button
       className={cn(
-        "cursor-pointer rounded-lg px-3 py-1.5 text-left text-xs h-auto whitespace-normal",
+        "relative overflow-hidden cursor-pointer rounded-lg px-3 py-1.5 text-left text-xs h-auto whitespace-normal",
         className
       )}
       onClick={handleClick}
@@ -32,6 +36,7 @@ export const Suggestion = ({
       variant={variant}
       {...props}
     >
+      <RippleContainer ripples={ripples} />
       {children || suggestion}
     </Button>
   );
