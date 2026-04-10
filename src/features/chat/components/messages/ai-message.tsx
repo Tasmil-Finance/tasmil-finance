@@ -282,6 +282,16 @@ export function AssistantMessage({
         ) : (
           <>
             {/* 1. Reasoning UI - Show thinking/reasoning FIRST (before text) */}
+            {/* 1a. Reasoning from middleware UI messages (preferred) */}
+            {message && (
+              <CustomComponent
+                message={message}
+                thread={thread}
+                filterType="reasoning"
+              />
+            )}
+            
+            {/* 1b. Fallback: Reasoning extracted from message content */}
             {hasReasoning && (
               <AIReasoning isStreaming={isReasoningStreaming}>
                 {reasoningContent}
@@ -310,20 +320,8 @@ export function AssistantMessage({
               </div>
             )}
 
-            {/* 2b. Regular Tool Calls (non-supervisor) — Can be hidden */}
-            {!hideToolCalls && (
-              <>
-                {(hasRegularToolCalls && toolCallsHaveContents && (
-                  <ToolCalls toolCalls={regularToolCalls} />
-                )) ||
-                  (hasAnthropicToolCalls && (
-                    <ToolCalls toolCalls={anthropicStreamedToolCalls} />
-                  )) ||
-                  (hasRegularToolCalls && (
-                    <ToolCalls toolCalls={regularToolCalls} />
-                  ))}
-              </>
-            )}
+            {/* 2b. Regular Tool Calls (non-supervisor) — Hidden, replaced by custom UI */}
+            {/* Tool calls are now shown via custom UI components like "Using Info Agent" */}
 
             {/* 3. AI Text Response */}
             {contentString.length > 0 && (

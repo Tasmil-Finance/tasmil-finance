@@ -1,6 +1,7 @@
 'use client';
 
 import type { Checkpoint, Message } from '@langchain/langgraph-sdk';
+import { AnimatePresence } from 'framer-motion';
 import {
   ArrowDown,
   ArrowLeft,
@@ -34,6 +35,7 @@ import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { Button } from '@/shared/ui/button-v2';
 import { useMultiSidebar } from '@/shared/ui/multi-sidebar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
+import { BackgroundRippleEffect } from '@/shared/ui/background-ripple-effect';
 import { Greeting } from './greeting';
 import { SuggestedActions } from './suggested-actions';
 
@@ -79,8 +81,21 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
 
   // Stream context from provider
   const stream = useStreamContext();
-  const messages = stream.messages;
   const isLoading = stream.isLoading;
+  
+  // Preserve messages to avoid flicker when submitting new message
+  const [displayMessages, setDisplayMessages] = useState<Message[]>([]);
+  
+  useEffect(() => {
+    // Only update display messages if we have messages from stream
+    // This prevents clearing messages during optimistic updates
+    if (stream.messages && stream.messages.length > 0) {
+      setDisplayMessages(stream.messages);
+    }
+  }, [stream.messages]);
+  
+  const messages = displayMessages;
+  
   const { hideToolCalls, setHideToolCalls, setAssistantInfo } = useChatState();
   const { address: walletAddress } = useWallet();
 
@@ -133,11 +148,9 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
   const effectiveIsLoading =
     isLoading && !(isAiResponseComplete && firstTokenReceived);
 
-  // Keep greeting in DOM for animation transition, but fade it out
-  // Show greeting: on new chat OR while first response is loading (before first token arrives)
-  const showGreetingWithAnimation =
-    isNewChat ||
-    (messages.length > 0 && effectiveIsLoading && !firstTokenReceived);
+  // Show greeting only before the first user message.
+  // Let exit animation handle the transition out on first submit.
+  const showGreeting = isNewChat;
 
   // Show suggestions when: new chat OR agent finished responding
   // Use isAiResponseComplete as a faster indicator that AI is done
@@ -392,9 +405,18 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
   );
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
+    <div className="relative flex h-full flex-col overflow-hidden">
+      {/* Background Ripple Effect - z-0 behind content */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        <BackgroundRippleEffect
+          rows={20}
+          cols={15}
+          cellSize={80}
+        />
+      </div>
+
       {/* Header - no border */}
-      <header className="flex shrink-0 items-center gap-3 bg-background px-4 py-3">
+      <header className="relative z-10 flex shrink-0 items-center gap-3 px-4 py-3">
         <Button
           className="h-8 w-8 p-0"
           onClick={() => router.push('/agents')}
@@ -419,14 +441,14 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
       {/* Messages Area - Scrollable, takes remaining space */}
       <div
         ref={messagesContainerRef}
-        className="relative flex-1 overflow-y-auto"
+        className="relative z-10 flex-1 overflow-y-auto"
       >
-        <div className="mx-auto max-w-3xl px-4 pt-6 pb-4">
-          {showGreetingWithAnimation && (
-            <Greeting agentId={agentId} isAnimating={!isNewChat} />
-          )}
+        <div className="mx-auto max-w-3xl px-4 pt-6 pb-4 pointer-events-none">
+          <AnimatePresence initial={false}>
+            {showGreeting && <Greeting agentId={agentId} />}
+          </AnimatePresence>
 
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 pointer-events-auto">
             {messages
               .filter((m) => !m.id?.startsWith(DO_NOT_RENDER_ID_PREFIX))
               // Filter out tool and system messages - they are not user-facing
@@ -474,7 +496,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
                   <AssistantMessage
                     key={message.id || `${message.type}-${index}`}
                     message={message}
-                    isLoading={isLoading}
+                    isLoading={isLoading && index === messages.length - 1}
                     handleRegenerate={handleRegenerate}
                     hideAvatar={isConsecutiveAi}
                   />
@@ -492,7 +514,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
             )}
 
             {effectiveIsLoading && !firstTokenReceived && (
-              <AssistantMessageLoading hideAvatar={showGreetingWithAnimation} />
+              <AssistantMessageLoading />
             )}
           </div>
 
@@ -516,7 +538,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
       {/* Fixed Input Area at Bottom - no border */}
       <div
         className={cn(
-          'shrink-0 bg-background px-4 py-4',
+          'relative z-10 shrink-0 px-4 py-4 pointer-events-auto',
           isMobile && 'pb-6' // Extra padding on mobile for safe area
         )}
       >

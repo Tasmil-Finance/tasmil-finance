@@ -2,6 +2,7 @@
 export * from './alert';
 export * from './avatar';
 export * from './badge';
+export * from './background-ripple-effect';
 export * from './balatro';
 export { default as BorderGlow } from './border-glow';
 export type { ButtonProps as ButtonV1Props } from './button';
@@ -22,6 +23,7 @@ export * from './label';
 export * from './light-pillar';
 export * from './multi-sidebar';
 export * from './password-input';
+export { default as RippleGrid } from './ripple-grid';
 export * from './scroll-area';
 export * from './scroll-based-velocity';
 export * from './separator';

@@ -26,6 +26,17 @@ interface ThreadViewProps {
 // Map HITL tool names to operation types for Stellar execute card
 const EXECUTE_TOOL_OPERATIONS: Record<string, string> = {
   execute: "execute",
+  // Blend lending operations
+  blend_deposit: "blend_deposit",
+  blend_borrow: "blend_borrow",
+  blend_repay: "blend_repay",
+  blend_withdraw: "blend_withdraw",
+  blend_toggle_collateral: "blend_toggle_collateral",
+  blend_claim_emissions: "blend_claim_emissions",
+  blend_backstop_deposit: "blend_backstop_deposit",
+  blend_backstop_queue_withdrawal: "blend_backstop_queue_withdrawal",
+  blend_backstop_dequeue_withdrawal: "blend_backstop_dequeue_withdrawal",
+  blend_backstop_withdraw: "blend_backstop_withdraw",
 };
 
 /**

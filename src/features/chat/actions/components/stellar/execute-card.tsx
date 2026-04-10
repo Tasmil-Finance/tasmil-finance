@@ -57,6 +57,77 @@ const OPERATION_CONFIG: Record<
     iconColor: "text-orange-500",
     iconBg: "bg-orange-500/10",
   },
+  // Blend lending operations
+  blend_deposit: {
+    title: "Sign Blend Deposit",
+    buttonText: "Sign & Deposit",
+    icon: Coins,
+    iconColor: "text-green-500",
+    iconBg: "bg-green-500/10",
+  },
+  blend_borrow: {
+    title: "Sign Blend Borrow",
+    buttonText: "Sign & Borrow",
+    icon: Coins,
+    iconColor: "text-blue-500",
+    iconBg: "bg-blue-500/10",
+  },
+  blend_repay: {
+    title: "Sign Blend Repay",
+    buttonText: "Sign & Repay",
+    icon: Coins,
+    iconColor: "text-purple-500",
+    iconBg: "bg-purple-500/10",
+  },
+  blend_withdraw: {
+    title: "Sign Blend Withdrawal",
+    buttonText: "Sign & Withdraw",
+    icon: Coins,
+    iconColor: "text-orange-500",
+    iconBg: "bg-orange-500/10",
+  },
+  blend_toggle_collateral: {
+    title: "Sign Collateral Toggle",
+    buttonText: "Sign & Toggle",
+    icon: Coins,
+    iconColor: "text-yellow-500",
+    iconBg: "bg-yellow-500/10",
+  },
+  blend_claim_emissions: {
+    title: "Sign Emissions Claim",
+    buttonText: "Sign & Claim",
+    icon: Coins,
+    iconColor: "text-green-500",
+    iconBg: "bg-green-500/10",
+  },
+  blend_backstop_deposit: {
+    title: "Sign Backstop Deposit",
+    buttonText: "Sign & Deposit",
+    icon: Coins,
+    iconColor: "text-blue-500",
+    iconBg: "bg-blue-500/10",
+  },
+  blend_backstop_queue_withdrawal: {
+    title: "Sign Backstop Queue",
+    buttonText: "Sign & Queue",
+    icon: Coins,
+    iconColor: "text-orange-500",
+    iconBg: "bg-orange-500/10",
+  },
+  blend_backstop_dequeue_withdrawal: {
+    title: "Sign Backstop Dequeue",
+    buttonText: "Sign & Dequeue",
+    icon: Coins,
+    iconColor: "text-purple-500",
+    iconBg: "bg-purple-500/10",
+  },
+  blend_backstop_withdraw: {
+    title: "Sign Backstop Withdrawal",
+    buttonText: "Sign & Withdraw",
+    icon: Coins,
+    iconColor: "text-green-500",
+    iconBg: "bg-green-500/10",
+  },
 };
 
 const DEFAULT_CONFIG = {

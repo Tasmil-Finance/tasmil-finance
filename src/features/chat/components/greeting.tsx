@@ -1,7 +1,6 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 import { getAgentConfig } from '@/features/chat/config';
 import { Typography } from '@/shared/ui/typography';
 
@@ -161,10 +160,9 @@ const DEFAULT_GREETING: GreetingContent = {
 
 interface GreetingProps {
   agentId: string;
-  isAnimating?: boolean;
 }
 
-export const Greeting = ({ agentId, isAnimating }: GreetingProps) => {
+export const Greeting = ({ agentId }: GreetingProps) => {
   const config = getAgentConfig(agentId);
   const content =
     AGENT_GREETING_CONTENT[config.id] ??
@@ -174,32 +172,27 @@ export const Greeting = ({ agentId, isAnimating }: GreetingProps) => {
 
   return (
     <motion.div
-      animate={isAnimating ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
-      className="mt-8 flex flex-col gap-6 items-start px-4"
-      exit={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mt-8 flex flex-col items-start gap-4 px-4"
+      exit={{ opacity: 0, y: -12, scale: 0.98, height: 0, marginBottom: 0 }}
       initial={{ opacity: 0, y: 10 }}
       key="greeting"
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.24, ease: 'easeOut' }}
     >
       <motion.div
-        animate={
-          isAnimating
-            ? {
-                opacity: 0,
-                scale: 0.4,
-              }
-            : { opacity: 1, y: 0 }
-        }
-        className="mb-4 w-fit"
-        exit={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        className="w-fit"
+        exit={{ opacity: 0, y: 14, scale: 0.42 }}
         initial={{ opacity: 0, y: 10 }}
-        transition={{
-          delay: isAnimating ? 0 : 0.45,
-          duration: isAnimating ? 0.5 : 0.3,
-        }}
+        transition={{ delay: 0.06, duration: 0.24, ease: 'easeOut' }}
       >
         <div className="relative h-20 w-20 overflow-hidden rounded-full border border-border/60 bg-muted/30 md:h-24 md:w-24">
-          <Image src={logo} alt={config.name} fill className="object-cover" />
+          {/* Using regular img for animation compatibility */}
+          <img
+            src={logo}
+            alt={config.name}
+            className="h-full w-full object-cover"
+          />
         </div>
       </motion.div>
 
@@ -208,9 +201,9 @@ export const Greeting = ({ agentId, isAnimating }: GreetingProps) => {
         className=""
         exit={{ opacity: 0, y: 10 }}
         initial={{ opacity: 0, y: 10 }}
-        transition={{ delay: 0.5, duration: 0.3 }}
+        transition={{ delay: 0.1, duration: 0.22 }}
       >
-        <Typography className="font-semibold text-[30px]">
+        <Typography className="font-semibold text-[30px] -mb-[10px]">
           {content.title}
         </Typography>
       </motion.div>
@@ -219,7 +212,7 @@ export const Greeting = ({ agentId, isAnimating }: GreetingProps) => {
         className=""
         exit={{ opacity: 0, y: 10 }}
         initial={{ opacity: 0, y: 10 }}
-        transition={{ delay: 0.6, duration: 0.3 }}
+        transition={{ delay: 0.14, duration: 0.22 }}
       >
         <Typography className="text-lg text-muted-foreground md:text-xl">
           {content.subtitle}
@@ -228,10 +221,10 @@ export const Greeting = ({ agentId, isAnimating }: GreetingProps) => {
 
       <motion.ul
         animate={{ opacity: 1, y: 0 }}
-        className="mt-6 space-y-2"
+        className="mt-2 space-y-2"
         exit={{ opacity: 0, y: 10 }}
         initial={{ opacity: 0, y: 10 }}
-        transition={{ delay: 0.7, duration: 0.3 }}
+        transition={{ delay: 0.18, duration: 0.22 }}
       >
         {content.bullets.slice(0, 3).map((item) => (
           <li

@@ -22,7 +22,7 @@ interface MultiSidebarLayoutProps {
   showHeader?: boolean;
 }
 
-function Header({ title, showRightSidebar }: { title: string; showRightSidebar: boolean }) {
+function Header({   title, showRightSidebar }: { title: string; showRightSidebar: boolean }) {
   const { toggleSidebar } = useSidebar();
 
   return (
