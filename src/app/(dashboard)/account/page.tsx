@@ -1,5 +1,5 @@
-import { OnboardingPage } from "@/features/account/components/onboarding-page";
+import { redirect } from "next/navigation";
 
 export default function AccountPage() {
-  return <OnboardingPage />;
+  redirect("/farming");
 }

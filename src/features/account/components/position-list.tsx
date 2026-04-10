@@ -29,6 +29,10 @@ function formatCountdown(expiresAt: string): string {
   return `Locked ${hours}h`;
 }
 
+function formatApyPercent(apyDecimal: number): string {
+  return `${(apyDecimal * 100).toFixed(2)}%`;
+}
+
 const POOL_TYPE_COLOR: Record<string, string> = {
   lending: "bg-blue-500/20 text-blue-400 border-blue-500/30",
   backstop: "bg-purple-500/20 text-purple-400 border-purple-500/30",
@@ -37,9 +41,7 @@ const POOL_TYPE_COLOR: Record<string, string> = {
 
 export function PositionList({ positions }: PositionListProps) {
   if (positions.length === 0) {
-    return (
-      <p className="py-6 text-center text-muted-foreground text-sm">No positions yet.</p>
-    );
+    return <p className="py-6 text-center text-muted-foreground text-sm">No positions yet.</p>;
   }
 
   return (
@@ -52,7 +54,7 @@ export function PositionList({ positions }: PositionListProps) {
 }
 
 function PositionRow({ position }: { position: Position }) {
-  const hasQ4W = position.poolType === "backstop" && position.q4wExpiresAt;
+  const q4wExpiresAt = position.poolType === "backstop" ? position.q4wExpiresAt : undefined;
 
   return (
     <div className="flex items-center gap-4 rounded-lg border border-border bg-muted/10 px-4 py-3">
@@ -63,14 +65,14 @@ function PositionRow({ position }: { position: Position }) {
           <Badge
             className={cn(
               "text-[10px]",
-              POOL_TYPE_COLOR[position.poolType] ?? "bg-muted text-muted-foreground",
+              POOL_TYPE_COLOR[position.poolType] ?? "bg-muted text-muted-foreground"
             )}
           >
             {position.poolType}
           </Badge>
-          {hasQ4W && (
+          {q4wExpiresAt && (
             <Badge className="border-orange-500/30 bg-orange-500/20 text-[10px] text-orange-400">
-              {formatCountdown(position.q4wExpiresAt!)}
+              {formatCountdown(q4wExpiresAt)}
             </Badge>
           )}
         </div>
@@ -96,7 +98,7 @@ function PositionRow({ position }: { position: Position }) {
           {formatUsd(position.valueUsd)}
         </span>
         <span className="font-mono text-emerald-400 text-xs">
-          {position.apy.toFixed(2)}% APY
+          {formatApyPercent(position.apy)} APY
         </span>
       </div>
     </div>

@@ -1,5 +1,5 @@
-import { DashboardPage } from "@/features/account/components/dashboard-page";
+import { redirect } from "next/navigation";
 
 export default function AccountDashboardRoute() {
-  return <DashboardPage />;
+  redirect("/farming");
 }

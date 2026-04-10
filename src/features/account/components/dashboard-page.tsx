@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  ArrowDownRight,
-  ArrowUpRight,
-  Clock,
-  Loader2,
-  TrendingUp,
-  Wallet,
-} from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Clock, Loader2, TrendingUp, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -46,6 +39,10 @@ function formatTimestamp(iso: string): string {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+function formatApyPercent(apyDecimal: number): string {
+  return `${(apyDecimal * 100).toFixed(2)}%`;
+}
+
 const ACTIVITY_LABEL: Record<string, string> = {
   DEPLOY: "Account Created",
   FUND: "Deposit",
@@ -81,9 +78,7 @@ export function DashboardPage() {
           <Wallet className="h-8 w-8 text-muted-foreground" />
         </div>
         <h2 className="mb-2 font-bold text-2xl text-foreground">Connect Your Wallet</h2>
-        <p className="text-muted-foreground">
-          Connect your Stellar wallet to view your portfolio.
-        </p>
+        <p className="text-muted-foreground">Connect your Stellar wallet to view your portfolio.</p>
       </div>
     );
   }
@@ -136,7 +131,7 @@ export function DashboardPage() {
                 <p
                   className={cn(
                     "font-mono font-semibold text-lg",
-                    profitPositive ? "text-emerald-400" : "text-red-400",
+                    profitPositive ? "text-emerald-400" : "text-red-400"
                   )}
                 >
                   {formatUsd(Math.abs(position.profitUsd))}
@@ -144,7 +139,7 @@ export function DashboardPage() {
                 <span
                   className={cn(
                     "text-xs",
-                    profitPositive ? "text-emerald-400/70" : "text-red-400/70",
+                    profitPositive ? "text-emerald-400/70" : "text-red-400/70"
                   )}
                 >
                   ({profitPositive ? "+" : "-"}
@@ -159,7 +154,7 @@ export function DashboardPage() {
               <div className="flex items-center gap-1.5">
                 <TrendingUp className="h-4 w-4 text-emerald-400" />
                 <p className="font-mono font-semibold text-emerald-400 text-lg">
-                  {position.currentApy.toFixed(2)}%
+                  {formatApyPercent(position.currentApy)}
                 </p>
               </div>
             </div>

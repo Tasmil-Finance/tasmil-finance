@@ -1,5 +1,5 @@
-import { SettingsPage } from "@/features/account/components/settings-page";
+import { redirect } from "next/navigation";
 
 export default function AccountSettingsRoute() {
-  return <SettingsPage />;
+  redirect("/farming");
 }

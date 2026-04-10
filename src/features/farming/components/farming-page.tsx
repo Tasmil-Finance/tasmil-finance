@@ -10,25 +10,53 @@ import {
   Loader2,
   Pause,
   Play,
+  ShieldOff,
   Tractor,
   TrendingUp,
   Wallet,
   XCircle,
   Zap,
 } from "lucide-react";
-import Link from "next/link";
-
+import { useId, useMemo, useState } from "react";
+import { FundForm } from "@/features/account/components/fund-form";
+import { OnboardingPage } from "@/features/account/components/onboarding-page";
+import { PresetCard } from "@/features/account/components/preset-card";
+import {
+  useActivity,
+  useFundAccount,
+  usePosition,
+  usePresets,
+  useRevoke,
+  useSubmitTx,
+  useUpdatePreset,
+  useWithdraw,
+} from "@/features/account/hooks/use-account-api";
+import type { ActivityItem, RiskPreset } from "@/features/account/types";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button-v2";
 import { Card, CardContent } from "@/shared/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog";
 import { Separator } from "@/shared/ui/separator";
 import { useWalletStore } from "@/store/use-wallet";
-
-import { useActivity, usePosition } from "@/features/account/hooks/use-account-api";
-import type { ActivityItem } from "@/features/account/types";
 import { usePools, useRebalanceStatus } from "../hooks/use-farming-api";
 import type { DiscoveredPool } from "../types";
+
+async function signXdr(xdr: string, publicKey: string): Promise<string> {
+  const { StellarWalletsKit } = await import("@creit.tech/stellar-wallets-kit/sdk");
+  const { signedTxXdr } = await StellarWalletsKit.signTransaction(xdr, {
+    address: publicKey,
+    networkPassphrase:
+      process.env["NEXT_PUBLIC_STELLAR_PASSPHRASE"] ?? "Test SDF Network ; September 2015",
+  });
+  return signedTxXdr;
+}
 
 function formatUsd(value: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -57,6 +85,10 @@ function formatCompactUsd(value: number): string {
   if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(2)}M`;
   if (value >= 1_000) return `$${(value / 1_000).toFixed(1)}K`;
   return formatUsd(value);
+}
+
+function formatApyPercent(apyDecimal: number): string {
+  return `${(apyDecimal * 100).toFixed(2)}%`;
 }
 
 const ACTIVITY_LABEL: Record<string, string> = {
@@ -90,14 +122,38 @@ function riskLabel(score: number): { label: string; color: string } {
 export function FarmingPage() {
   const { account } = useWalletStore();
   const publicKey = account ?? undefined;
+  const [accountModalOpen, setAccountModalOpen] = useState(false);
+  const [accountModalTab, setAccountModalTab] = useState<
+    "fund" | "strategy" | "withdraw" | "security"
+  >("fund");
+  const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [selectedPreset, setSelectedPreset] = useState<RiskPreset | null>(null);
+  const withdrawAmountInputId = useId();
 
   const { data: position, isLoading: positionLoading } = usePosition(publicKey);
   const { data: status, isLoading: statusLoading } = useRebalanceStatus();
-  const { data: pools, isLoading: poolsLoading } = usePools(
-    "USDC",
-    position?.preset?.toUpperCase() ?? "BALANCED",
-  );
+  const { data: registryPoolsData, isLoading: registryPoolsLoading } = usePools();
   const { data: activities, isLoading: activitiesLoading } = useActivity(publicKey);
+  const { data: presets, isLoading: presetsLoading } = usePresets();
+  const fundAccount = useFundAccount();
+  const withdrawMutation = useWithdraw();
+  const revokeMutation = useRevoke();
+  const submitTx = useSubmitTx();
+  const updatePreset = useUpdatePreset();
+
+  const { availableUsd, lockedUsd } = useMemo(() => {
+    const positions = position?.positions ?? [];
+    let available = 0;
+    let locked = 0;
+    for (const pos of positions) {
+      if (pos.poolType === "backstop" && pos.q4wExpiresAt) {
+        locked += pos.valueUsd;
+      } else {
+        available += pos.valueUsd;
+      }
+    }
+    return { availableUsd: available, lockedUsd: locked };
+  }, [position?.positions]);
 
   if (!publicKey) {
     return (
@@ -113,7 +169,7 @@ export function FarmingPage() {
     );
   }
 
-  if (statusLoading || poolsLoading || positionLoading) {
+  if (statusLoading || registryPoolsLoading || positionLoading) {
     return (
       <div className="flex items-center justify-center py-24">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -123,32 +179,124 @@ export function FarmingPage() {
 
   // No managed account yet — prompt to set up
   if (!position) {
-    return (
-      <div className="mx-auto flex max-w-lg flex-col items-center py-24 text-center">
-        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted/20">
-          <Tractor className="h-8 w-8 text-muted-foreground" />
-        </div>
-        <h2 className="mb-2 font-bold text-2xl text-foreground">No Farming Account</h2>
-        <p className="mb-6 text-muted-foreground">
-          Set up a managed smart account to start automated yield farming.
-        </p>
-        <Button variant="gradient" size="lg" asChild>
-          <Link href="/account">Get Started</Link>
-        </Button>
-      </div>
-    );
+    return <OnboardingPage />;
   }
 
-  const eligiblePools = pools ?? [];
-  const totalTvl = eligiblePools.reduce((sum, p) => sum + p.tvlUsd, 0);
+  const registryPools = registryPoolsData ?? [];
   const profitPositive = position.profitUsd >= 0;
+  const accountActionPending =
+    fundAccount.isPending ||
+    withdrawMutation.isPending ||
+    revokeMutation.isPending ||
+    submitTx.isPending;
+
+  const parsedWithdrawAmount = Number.parseFloat(withdrawAmount);
+  const canWithdraw =
+    !Number.isNaN(parsedWithdrawAmount) &&
+    parsedWithdrawAmount > 0 &&
+    parsedWithdrawAmount <= availableUsd;
+
+  const depositablePools = registryPools.filter((p) => !!p.strategyContractAddress);
+  const depositableTvl = depositablePools.reduce((sum, p) => sum + p.tvlUsd, 0);
+
+  const openAccountModal = (tab: "fund" | "strategy" | "withdraw" | "security") => {
+    if (tab === "strategy") {
+      const normalized = position.preset?.toLowerCase();
+      const mapped =
+        normalized === "safe" ? "Safe" : normalized === "aggressive" ? "Aggressive" : "Balanced";
+      setSelectedPreset(mapped);
+    }
+    setAccountModalTab(tab);
+    setAccountModalOpen(true);
+  };
+
+  const handleUpdatePreset = async () => {
+    if (!publicKey || !selectedPreset) return;
+    try {
+      await updatePreset.mutateAsync({ publicKey, preset: selectedPreset });
+      setAccountModalOpen(false);
+    } catch (err) {
+      console.error("Update preset failed:", err);
+    }
+  };
+
+  const handleFund = async (amount: number, token: "USDC" | "XLM") => {
+    if (!publicKey) return;
+    try {
+      const result = await fundAccount.mutateAsync({ publicKey, amount, token });
+      if (!result?.xdr) throw new Error("No fund transaction returned from server");
+
+      const signedXdr = await signXdr(result.xdr, publicKey);
+      await submitTx.mutateAsync({
+        signedXdr,
+        publicKey,
+        txType: "fund",
+        amount,
+        token,
+      });
+      setAccountModalOpen(false);
+    } catch (err) {
+      console.error("Fund failed:", err);
+    }
+  };
+
+  const handleWithdraw = async () => {
+    if (!publicKey || !canWithdraw) return;
+    try {
+      const result = await withdrawMutation.mutateAsync({
+        publicKey,
+        amount: parsedWithdrawAmount,
+      });
+
+      const xdrs: string[] = result?.xdrs ?? (result?.xdr ? [result.xdr] : []);
+      if (xdrs.length === 0) throw new Error("No withdrawal transaction returned from server");
+
+      for (const [i, xdr] of xdrs.entries()) {
+        const signedXdr = await signXdr(xdr, publicKey);
+        const isLast = i === xdrs.length - 1;
+        await submitTx.mutateAsync({
+          signedXdr,
+          ...(isLast
+            ? {
+                publicKey,
+                txType: "withdraw" as const,
+                amount: parsedWithdrawAmount,
+              }
+            : {}),
+        });
+      }
+
+      setWithdrawAmount("");
+      setAccountModalOpen(false);
+    } catch (err) {
+      console.error("Withdraw failed:", err);
+    }
+  };
+
+  const handleRevoke = async () => {
+    if (!publicKey) return;
+    try {
+      const result = await revokeMutation.mutateAsync(publicKey);
+      if (!result?.xdr) throw new Error("No revoke transaction returned from server");
+
+      const signedXdr = await signXdr(result.xdr, publicKey);
+      await submitTx.mutateAsync({
+        signedXdr,
+        publicKey,
+        txType: "revoke",
+      });
+      setAccountModalOpen(false);
+    } catch (err) {
+      console.error("Revoke failed:", err);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.04]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/8 bg-white/4">
             <Tractor className="h-5 w-5 text-emerald-400" />
           </div>
           <div>
@@ -190,7 +338,7 @@ export function FarmingPage() {
                 <p
                   className={cn(
                     "font-mono font-semibold text-lg",
-                    profitPositive ? "text-emerald-400" : "text-red-400",
+                    profitPositive ? "text-emerald-400" : "text-red-400"
                   )}
                 >
                   {formatUsd(Math.abs(position.profitUsd))}
@@ -198,7 +346,7 @@ export function FarmingPage() {
                 <span
                   className={cn(
                     "text-xs",
-                    profitPositive ? "text-emerald-400/70" : "text-red-400/70",
+                    profitPositive ? "text-emerald-400/70" : "text-red-400/70"
                   )}
                 >
                   ({profitPositive ? "+" : "-"}
@@ -211,7 +359,7 @@ export function FarmingPage() {
               <div className="flex items-center gap-1.5">
                 <TrendingUp className="h-4 w-4 text-emerald-400" />
                 <p className="font-mono font-semibold text-emerald-400 text-lg">
-                  {position.currentApy.toFixed(2)}%
+                  {formatApyPercent(position.currentApy)}
                 </p>
               </div>
             </div>
@@ -219,33 +367,34 @@ export function FarmingPage() {
               <span className="text-muted-foreground text-xs">Strategy</span>
               <div className="flex items-center gap-2">
                 <p className="font-medium text-foreground text-lg">{position.preset}</p>
-                <Link
-                  href="/account"
+                <button
+                  type="button"
                   className="text-primary text-xs underline underline-offset-2 hover:text-primary/80"
+                  onClick={() => openAccountModal("strategy")}
                 >
                   Change
-                </Link>
+                </button>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Protocol Stats */}
+      {/* Portfolio & opportunity stats */}
       <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3">
         <StatCard
-          label="Tracked Pools"
-          value={String(eligiblePools.length)}
-          icon={<Activity className="h-4 w-4 text-blue-400" />}
-        />
-        <StatCard
-          label="Protocol TVL"
-          value={formatCompactUsd(totalTvl)}
+          label="Pools You Can Deposit Into"
+          value={String(depositablePools.length)}
           icon={<TrendingUp className="h-4 w-4 text-emerald-400" />}
         />
         <StatCard
-          label="Gas Reserve"
-          value={formatUsd(position.gasReserveUsd)}
+          label="Pools In Your Allocation"
+          value={String(position.positions.length)}
+          icon={<Activity className="h-4 w-4 text-blue-400" />}
+        />
+        <StatCard
+          label="Depositable Market TVL"
+          value={formatCompactUsd(depositableTvl)}
           icon={<Zap className="h-4 w-4 text-yellow-400" />}
         />
       </div>
@@ -253,22 +402,28 @@ export function FarmingPage() {
       {/* Current Allocation */}
       {position.positions.length > 0 && (
         <div className="mb-8">
-          <h2 className="mb-4 font-semibold text-foreground text-lg">Current Allocation</h2>
+          <h2 className="mb-1 font-semibold text-foreground text-lg">Your Current Allocation</h2>
+          <p className="mb-4 text-muted-foreground text-sm">
+            How your capital is currently distributed across active strategies.
+          </p>
           <AllocationTable positions={position.positions} />
         </div>
       )}
 
       <Separator className="mb-8" />
 
-      {/* Pool Registry */}
+      {/* Depositable pools */}
       <div className="mb-8">
-        <h2 className="mb-4 font-semibold text-foreground text-lg">Pool Registry</h2>
-        {eligiblePools.length === 0 ? (
+        <h2 className="mb-1 font-semibold text-foreground text-lg">Available Pools to Deposit</h2>
+        <p className="mb-4 text-muted-foreground text-sm">
+          Only pools that are live and depositable by your agent are shown.
+        </p>
+        {depositablePools.length === 0 ? (
           <p className="py-4 text-center text-muted-foreground text-sm">
-            No pools discovered yet. The agent scans every 10 minutes.
+            No depositable pools available yet.
           </p>
         ) : (
-          <PoolTable pools={eligiblePools} />
+          <PoolTable pools={depositablePools} />
         )}
       </div>
 
@@ -276,18 +431,19 @@ export function FarmingPage() {
 
       {/* Agent Activity */}
       <div className="mb-8">
-        <h2 className="mb-4 font-semibold text-foreground text-lg">Agent Activity</h2>
+        <h2 className="mb-1 font-semibold text-foreground text-lg">Activity Timeline</h2>
+        <p className="mb-4 text-muted-foreground text-sm">
+          Full history of account actions and automation events.
+        </p>
         {activitiesLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
         ) : !activities || activities.length === 0 ? (
-          <p className="py-4 text-center text-muted-foreground text-sm">
-            No activity yet.
-          </p>
+          <p className="py-4 text-center text-muted-foreground text-sm">No activity yet.</p>
         ) : (
           <div className="space-y-2">
-            {activities.slice(0, 20).map((activity) => (
+            {activities.map((activity) => (
               <FarmingActivityRow key={activity.id} activity={activity} />
             ))}
           </div>
@@ -297,14 +453,208 @@ export function FarmingPage() {
       <Separator className="mb-8" />
 
       {/* Action buttons */}
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <Button variant="gradient" size="lg" className="h-12 flex-1" asChild>
-          <Link href="/account">Deposit More</Link>
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+        <Button
+          variant="gradient"
+          size="lg"
+          className="h-12 flex-1"
+          onClick={() => openAccountModal("fund")}
+        >
+          Deposit More
         </Button>
-        <Button variant="outline" size="lg" className="h-12 flex-1" asChild>
-          <Link href="/account/settings">Withdraw</Link>
+        <Button
+          variant="outline"
+          size="lg"
+          className="h-12 flex-1 border-border bg-muted/10 hover:bg-muted/20"
+          onClick={() => openAccountModal("withdraw")}
+        >
+          Withdraw
+        </Button>
+        <Button
+          variant="outline"
+          size="lg"
+          className="h-12 flex-1 border-orange-500/30 bg-orange-500/10 text-orange-300 hover:bg-orange-500/20"
+          onClick={() => openAccountModal("security")}
+        >
+          Revoke Session Key
         </Button>
       </div>
+
+      <Dialog open={accountModalOpen} onOpenChange={setAccountModalOpen}>
+        <DialogContent
+          className={cn(
+            "max-h-[90vh] overflow-y-auto",
+            accountModalTab === "strategy" ? "max-w-5xl" : "max-w-2xl"
+          )}
+        >
+          <DialogHeader>
+            <DialogTitle>
+              {accountModalTab === "fund"
+                ? "Deposit More"
+                : accountModalTab === "strategy"
+                  ? "Change Strategy"
+                  : accountModalTab === "withdraw"
+                    ? "Withdraw"
+                    : "Revoke Session Key"}
+            </DialogTitle>
+            <DialogDescription>
+              {accountModalTab === "fund"
+                ? "Add funds without leaving Farming."
+                : accountModalTab === "strategy"
+                  ? "Choose your risk profile for future allocations."
+                  : accountModalTab === "withdraw"
+                    ? "Withdraw from available positions."
+                    : "Disable automation by revoking the active session key."}
+            </DialogDescription>
+          </DialogHeader>
+
+          {accountModalTab === "fund" && (
+            <div className="space-y-4 pt-3">
+              <FundForm onFund={handleFund} isLoading={accountActionPending} />
+            </div>
+          )}
+
+          {accountModalTab === "strategy" && (
+            <div className="space-y-4 pt-3">
+              <div className="space-y-4">
+                <p className="text-muted-foreground text-sm">
+                  Choose your risk profile. Changes apply to future allocations and rebalances.
+                </p>
+                {presetsLoading ? (
+                  <div className="flex items-center justify-center py-6">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    {presets?.map((preset) => (
+                      <PresetCard
+                        key={preset.name}
+                        preset={preset}
+                        selected={selectedPreset === preset.name}
+                        onSelect={() => setSelectedPreset(preset.name)}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                <Button
+                  variant="gradient"
+                  size="lg"
+                  className="h-12 w-full"
+                  onClick={handleUpdatePreset}
+                  disabled={!selectedPreset || updatePreset.isPending}
+                >
+                  {updatePreset.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Apply Strategy
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {accountModalTab === "withdraw" && (
+            <div className="space-y-4 pt-3">
+              <Card className="border-border bg-muted/10">
+                <CardContent className="space-y-4 p-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-lg border border-border bg-muted/20 p-3">
+                      <p className="text-muted-foreground text-xs">Available (instant)</p>
+                      <p className="font-mono font-semibold text-foreground text-lg">
+                        {formatUsd(availableUsd)}
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-border bg-muted/20 p-3">
+                      <p className="text-muted-foreground text-xs">Locked (backstop queue)</p>
+                      <p className="font-mono font-semibold text-foreground text-lg">
+                        {formatUsd(lockedUsd)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor={withdrawAmountInputId}
+                      className="block text-muted-foreground text-xs"
+                    >
+                      Withdraw amount (USD)
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        id={withdrawAmountInputId}
+                        type="number"
+                        min="0"
+                        max={availableUsd}
+                        step="any"
+                        placeholder="0.00"
+                        value={withdrawAmount}
+                        onChange={(e) => setWithdrawAmount(e.target.value)}
+                        disabled={accountActionPending}
+                        className="w-full rounded-lg border border-border bg-background px-4 py-3 font-mono text-foreground focus:border-primary focus:outline-none disabled:opacity-50"
+                      />
+                      <Button
+                        variant="outline"
+                        size="default"
+                        className="shrink-0"
+                        onClick={() => setWithdrawAmount(availableUsd.toFixed(2))}
+                        disabled={accountActionPending || availableUsd <= 0}
+                      >
+                        Max
+                      </Button>
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="gradient"
+                    size="lg"
+                    className="h-12 w-full"
+                    onClick={handleWithdraw}
+                    disabled={!canWithdraw || accountActionPending}
+                  >
+                    {(withdrawMutation.isPending || submitTx.isPending) && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Withdraw
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {accountModalTab === "security" && (
+            <div className="space-y-4 pt-3">
+              <Card className="border-border bg-muted/10">
+                <CardContent className="space-y-4 p-4">
+                  <div className="flex items-start gap-3 rounded-lg border border-orange-500/30 bg-orange-500/10 p-3">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-orange-400" />
+                    <div className="text-xs">
+                      <p className="font-medium text-orange-300">
+                        Revoke session key is irreversible.
+                      </p>
+                      <p className="text-orange-400/80">
+                        Bot automation stops immediately. In current backend rules, account status
+                        becomes REVOKED and normal withdraw endpoint is blocked.
+                      </p>
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="destructive"
+                    size="lg"
+                    className="h-12 w-full"
+                    onClick={handleRevoke}
+                    disabled={accountActionPending}
+                  >
+                    {(revokeMutation.isPending || submitTx.isPending) && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    <ShieldOff className="mr-2 h-4 w-4" />
+                    Revoke Session Key
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -327,18 +677,14 @@ function BotStatusBanner({
           ? "border-emerald-500/30 bg-emerald-500/5"
           : isHalted
             ? "border-red-500/30 bg-red-500/5"
-            : "border-yellow-500/30 bg-yellow-500/5",
+            : "border-yellow-500/30 bg-yellow-500/5"
       )}
     >
       <CardContent className="flex items-center gap-4 p-4">
         <div
           className={cn(
             "flex h-12 w-12 shrink-0 items-center justify-center rounded-full",
-            isActive
-              ? "bg-emerald-500/20"
-              : isHalted
-                ? "bg-red-500/20"
-                : "bg-yellow-500/20",
+            isActive ? "bg-emerald-500/20" : isHalted ? "bg-red-500/20" : "bg-yellow-500/20"
           )}
         >
           {isActive ? (
@@ -357,7 +703,11 @@ function BotStatusBanner({
             <span
               className={cn(
                 "inline-flex h-2 w-2 rounded-full",
-                isActive ? "animate-pulse bg-emerald-400" : isHalted ? "bg-red-400" : "bg-yellow-400",
+                isActive
+                  ? "animate-pulse bg-emerald-400"
+                  : isHalted
+                    ? "bg-red-400"
+                    : "bg-yellow-400"
               )}
             />
           </div>
@@ -374,15 +724,7 @@ function BotStatusBanner({
   );
 }
 
-function StatCard({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: string;
-  icon: React.ReactNode;
-}) {
+function StatCard({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
   return (
     <Card className="border-border bg-muted/10">
       <CardContent className="p-4">
@@ -413,19 +755,23 @@ function AllocationTable({
     <div className="overflow-hidden rounded-lg border border-border">
       <table className="w-full">
         <thead>
-          <tr className="border-b border-border bg-muted/20">
-            <th className="px-4 py-3 text-left text-muted-foreground text-xs font-medium">Pool</th>
-            <th className="px-4 py-3 text-left text-muted-foreground text-xs font-medium">Type</th>
-            <th className="px-4 py-3 text-right text-muted-foreground text-xs font-medium">Weight</th>
-            <th className="px-4 py-3 text-right text-muted-foreground text-xs font-medium">Value</th>
-            <th className="px-4 py-3 text-right text-muted-foreground text-xs font-medium">APY</th>
+          <tr className="border-border border-b bg-muted/20">
+            <th className="px-4 py-3 text-left font-medium text-muted-foreground text-xs">Pool</th>
+            <th className="px-4 py-3 text-left font-medium text-muted-foreground text-xs">Type</th>
+            <th className="px-4 py-3 text-right font-medium text-muted-foreground text-xs">
+              Weight
+            </th>
+            <th className="px-4 py-3 text-right font-medium text-muted-foreground text-xs">
+              Value
+            </th>
+            <th className="px-4 py-3 text-right font-medium text-muted-foreground text-xs">APY</th>
           </tr>
         </thead>
         <tbody>
           {positions.map((pos) => (
             <tr
               key={`${pos.poolName}-${pos.protocol}`}
-              className="border-b border-border/50 last:border-0"
+              className="border-border/50 border-b last:border-0"
             >
               <td className="px-4 py-3">
                 <div className="flex items-center gap-2">
@@ -437,7 +783,7 @@ function AllocationTable({
                 <Badge
                   className={cn(
                     "text-[10px]",
-                    POOL_TYPE_COLOR[pos.poolType] ?? "bg-muted text-muted-foreground",
+                    POOL_TYPE_COLOR[pos.poolType] ?? "bg-muted text-muted-foreground"
                   )}
                 >
                   {pos.poolType}
@@ -457,13 +803,11 @@ function AllocationTable({
                 </div>
               </td>
               <td className="px-4 py-3 text-right">
-                <span className="font-mono text-foreground text-sm">
-                  {formatUsd(pos.valueUsd)}
-                </span>
+                <span className="font-mono text-foreground text-sm">{formatUsd(pos.valueUsd)}</span>
               </td>
               <td className="px-4 py-3 text-right">
                 <span className="font-mono text-emerald-400 text-sm">
-                  {pos.apy.toFixed(2)}%
+                  {formatApyPercent(pos.apy)}
                 </span>
               </td>
             </tr>
@@ -481,16 +825,18 @@ function PoolTable({ pools }: { pools: DiscoveredPool[] }) {
     <div className="overflow-hidden rounded-lg border border-border">
       <table className="w-full">
         <thead>
-          <tr className="border-b border-border bg-muted/20">
-            <th className="px-4 py-3 text-left text-muted-foreground text-xs font-medium">Pool</th>
-            <th className="px-4 py-3 text-left text-muted-foreground text-xs font-medium">Protocol</th>
-            <th className="px-4 py-3 text-left text-muted-foreground text-xs font-medium">Type</th>
-            <th className="px-4 py-3 text-right text-muted-foreground text-xs font-medium">APY</th>
-            <th className="px-4 py-3 text-right text-muted-foreground text-xs font-medium">TVL</th>
-            <th className="hidden px-4 py-3 text-right text-muted-foreground text-xs font-medium sm:table-cell">
+          <tr className="border-border border-b bg-muted/20">
+            <th className="px-4 py-3 text-left font-medium text-muted-foreground text-xs">Pool</th>
+            <th className="px-4 py-3 text-left font-medium text-muted-foreground text-xs">
+              Protocol
+            </th>
+            <th className="px-4 py-3 text-left font-medium text-muted-foreground text-xs">Type</th>
+            <th className="px-4 py-3 text-right font-medium text-muted-foreground text-xs">APY</th>
+            <th className="px-4 py-3 text-right font-medium text-muted-foreground text-xs">TVL</th>
+            <th className="hidden px-4 py-3 text-right font-medium text-muted-foreground text-xs sm:table-cell">
               Risk
             </th>
-            <th className="hidden px-4 py-3 text-right text-muted-foreground text-xs font-medium md:table-cell">
+            <th className="hidden px-4 py-3 text-right font-medium text-muted-foreground text-xs md:table-cell">
               Updated
             </th>
           </tr>
@@ -499,10 +845,7 @@ function PoolTable({ pools }: { pools: DiscoveredPool[] }) {
           {sorted.map((pool) => {
             const risk = riskLabel(pool.riskScore);
             return (
-              <tr
-                key={pool.id}
-                className="border-b border-border/50 last:border-0"
-              >
+              <tr key={pool.id} className="border-border/50 border-b last:border-0">
                 <td className="px-4 py-3">
                   <span className="font-medium text-foreground text-sm">
                     {pool.assetSymbol}
@@ -516,7 +859,7 @@ function PoolTable({ pools }: { pools: DiscoveredPool[] }) {
                   <Badge
                     className={cn(
                       "text-[10px]",
-                      POOL_TYPE_COLOR[pool.poolType] ?? "bg-muted text-muted-foreground",
+                      POOL_TYPE_COLOR[pool.poolType] ?? "bg-muted text-muted-foreground"
                     )}
                   >
                     {pool.poolType}
@@ -524,7 +867,7 @@ function PoolTable({ pools }: { pools: DiscoveredPool[] }) {
                 </td>
                 <td className="px-4 py-3 text-right">
                   <span className="font-mono text-emerald-400 text-sm">
-                    {pool.currentApy.toFixed(2)}%
+                    {formatApyPercent(pool.currentApy)}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-right">
@@ -534,9 +877,7 @@ function PoolTable({ pools }: { pools: DiscoveredPool[] }) {
                 </td>
                 <td className="hidden px-4 py-3 text-right sm:table-cell">
                   <div className="flex items-center justify-end gap-1.5">
-                    <span className={cn("font-mono text-sm", risk.color)}>
-                      {pool.riskScore}
-                    </span>
+                    <span className={cn("font-mono text-sm", risk.color)}>{pool.riskScore}</span>
                     <span className={cn("text-xs", risk.color)}>{risk.label}</span>
                   </div>
                 </td>
