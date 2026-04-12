@@ -62,8 +62,10 @@ export function SettingsPage() {
     let available = 0;
     let locked = 0;
     let countdown: string | null = null;
+    let positionsTotal = 0;
 
     for (const pos of position.positions) {
+      positionsTotal += pos.valueUsd;
       if (pos.poolType === "backstop" && pos.q4wExpiresAt) {
         locked += pos.valueUsd;
         countdown = formatCountdown(pos.q4wExpiresAt);
@@ -71,6 +73,11 @@ export function SettingsPage() {
         available += pos.valueUsd;
       }
     }
+
+    // Include unallocated keeper-wallet funds (not shown as positions)
+    // so instant withdraw supports funds parked in keeper wallet.
+    const walletAvailable = Math.max((position.totalValueUsd ?? 0) - positionsTotal, 0);
+    available += walletAvailable;
 
     return {
       availableUsd: available,
@@ -96,6 +103,21 @@ export function SettingsPage() {
         publicKey,
         amount: parsedAmount,
       });
+
+      const signedXdrs: string[] = result?.signedXdrs ?? [];
+      if (signedXdrs.length > 0) {
+        for (const [i, signedXdr] of signedXdrs.entries()) {
+          const isLast = i === signedXdrs.length - 1;
+          await submitTx.mutateAsync({
+            signedXdr,
+            ...(isLast ? { publicKey, txType: "withdraw" as const, amount: parsedAmount } : {}),
+          });
+        }
+
+        setWithdrawAmount("");
+        router.push("/farming");
+        return;
+      }
 
       const xdrs: string[] = result?.xdrs ?? (result?.xdr ? [result.xdr] : []);
       if (xdrs.length === 0) {

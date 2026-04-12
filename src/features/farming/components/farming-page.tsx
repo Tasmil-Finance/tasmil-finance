@@ -140,20 +140,29 @@ export function FarmingPage() {
   const revokeMutation = useRevoke();
   const submitTx = useSubmitTx();
   const updatePreset = useUpdatePreset();
+  const canChangeStrategy = false;
 
   const { availableUsd, lockedUsd } = useMemo(() => {
     const positions = position?.positions ?? [];
     let available = 0;
     let locked = 0;
+    let positionsTotal = 0;
     for (const pos of positions) {
+      positionsTotal += pos.valueUsd;
       if (pos.poolType === "backstop" && pos.q4wExpiresAt) {
         locked += pos.valueUsd;
       } else {
         available += pos.valueUsd;
       }
     }
+
+    // Include unallocated keeper-wallet funds (not represented as strategy positions)
+    // so users can still withdraw when funds are parked in the keeper wallet.
+    const walletAvailable = Math.max((position?.totalValueUsd ?? 0) - positionsTotal, 0);
+    available += walletAvailable;
+
     return { availableUsd: available, lockedUsd: locked };
-  }, [position?.positions]);
+  }, [position?.positions, position?.totalValueUsd]);
 
   if (!publicKey) {
     return (
@@ -211,7 +220,7 @@ export function FarmingPage() {
   };
 
   const handleUpdatePreset = async () => {
-    if (!publicKey || !selectedPreset) return;
+    if (!publicKey || !selectedPreset || !canChangeStrategy) return;
     try {
       await updatePreset.mutateAsync({ publicKey, preset: selectedPreset });
       setAccountModalOpen(false);
@@ -247,6 +256,27 @@ export function FarmingPage() {
         publicKey,
         amount: parsedWithdrawAmount,
       });
+
+      const signedXdrs: string[] = result?.signedXdrs ?? [];
+      if (signedXdrs.length > 0) {
+        for (const [i, signedXdr] of signedXdrs.entries()) {
+          const isLast = i === signedXdrs.length - 1;
+          await submitTx.mutateAsync({
+            signedXdr,
+            ...(isLast
+              ? {
+                  publicKey,
+                  txType: "withdraw" as const,
+                  amount: parsedWithdrawAmount,
+                }
+              : {}),
+          });
+        }
+
+        setWithdrawAmount("");
+        setAccountModalOpen(false);
+        return;
+      }
 
       const xdrs: string[] = result?.xdrs ?? (result?.xdr ? [result.xdr] : []);
       if (xdrs.length === 0) throw new Error("No withdrawal transaction returned from server");
@@ -367,13 +397,17 @@ export function FarmingPage() {
               <span className="text-muted-foreground text-xs">Strategy</span>
               <div className="flex items-center gap-2">
                 <p className="font-medium text-foreground text-lg">{position.preset}</p>
-                <button
-                  type="button"
-                  className="text-primary text-xs underline underline-offset-2 hover:text-primary/80"
-                  onClick={() => openAccountModal("strategy")}
-                >
-                  Change
-                </button>
+                {canChangeStrategy ? (
+                  <button
+                    type="button"
+                    className="text-primary text-xs underline underline-offset-2 hover:text-primary/80"
+                    onClick={() => openAccountModal("strategy")}
+                  >
+                    Change
+                  </button>
+                ) : (
+                  <span className="text-muted-foreground text-xs">Managed by admin</span>
+                )}
               </div>
             </div>
           </div>
@@ -516,6 +550,11 @@ export function FarmingPage() {
 
           {accountModalTab === "strategy" && (
             <div className="space-y-4 pt-3">
+              {!canChangeStrategy && (
+                <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3 text-yellow-300 text-sm">
+                  Strategy changes are admin-protected in this environment.
+                </div>
+              )}
               <div className="space-y-4">
                 <p className="text-muted-foreground text-sm">
                   Choose your risk profile. Changes apply to future allocations and rebalances.
@@ -542,7 +581,7 @@ export function FarmingPage() {
                   size="lg"
                   className="h-12 w-full"
                   onClick={handleUpdatePreset}
-                  disabled={!selectedPreset || updatePreset.isPending}
+                  disabled={!canChangeStrategy || !selectedPreset || updatePreset.isPending}
                 >
                   {updatePreset.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Apply Strategy

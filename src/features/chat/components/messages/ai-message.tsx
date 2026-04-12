@@ -43,14 +43,15 @@ function CustomComponent({
 }) {
   const artifact = useArtifact();
   const { values } = useStreamContext();
+  const uiValues = Array.isArray((values as any)?.ui) ? ((values as any).ui as any[]) : [];
 
   console.log("[CustomComponent] Called with:", {
     messageId: message.id,
     messageType: message.type,
     filterType,
-    totalUICount: values?.ui?.length,
-    allUIMessageIds: values?.ui?.map((ui: any) => ui.metadata?.message_id),
-    allUIDetails: values?.ui?.map((ui: any) => ({
+    totalUICount: uiValues.length,
+    allUIMessageIds: uiValues.map((ui: any) => ui.metadata?.message_id),
+    allUIDetails: uiValues.map((ui: any) => ({
       id: ui.id,
       name: ui.name,
       messageId: ui.metadata?.message_id,
@@ -59,8 +60,7 @@ function CustomComponent({
     })),
   });
 
-  // @ts-expect-error - ui may not be in type definition
-  const allUIForMessage = values?.ui?.filter((ui: any) => ui.metadata?.message_id === message.id);
+  const allUIForMessage = uiValues.filter((ui: any) => ui.metadata?.message_id === message.id);
 
   // Debug logging for blend UI
   if (message?.id && allUIForMessage?.length > 0) {

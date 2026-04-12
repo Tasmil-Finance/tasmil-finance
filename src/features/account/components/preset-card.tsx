@@ -5,8 +5,8 @@ import { cn } from "@/lib/utils";
 
 import type { PresetCardData, RiskPreset } from "../types";
 
-function formatApyPercent(apyDecimal: number): string {
-  return (apyDecimal * 100).toFixed(1);
+function formatApyPercent(apyPercent: number): string {
+  return apyPercent.toFixed(1);
 }
 
 interface PresetCardProps {

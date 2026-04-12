@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import type { DiscoveredPool, RebalanceStatus } from "../types";
 
-const API_BASE = process.env["NEXT_PUBLIC_API_URL"] ?? "http://localhost:6756/api";
+const API_BASE = process.env["NEXT_PUBLIC_API_URL"] ?? "http://127.0.0.1:6756/api";
 
 export function useRebalanceStatus() {
   return useQuery<RebalanceStatus>({

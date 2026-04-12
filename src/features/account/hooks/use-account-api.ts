@@ -3,7 +3,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type { ActivityItem, PositionData, PresetCardData } from "../types";
 
-const API_BASE = process.env["NEXT_PUBLIC_API_URL"] ?? "http://localhost:6756/api";
+const API_BASE = process.env["NEXT_PUBLIC_API_URL"] ?? "http://127.0.0.1:6756/api";
 
 export function usePresets() {
   return useQuery<PresetCardData[]>({
@@ -90,6 +90,9 @@ export function useUpdatePreset() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
+        if (res.status === 401) {
+          throw new Error("Unauthorized: strategy changes are admin-protected");
+        }
         throw new Error(body.message ?? `Update preset failed (${res.status})`);
       }
       return (await res.json()).data;

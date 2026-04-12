@@ -14,7 +14,6 @@ import {
   usePresets,
   useSetupAccount,
   useSubmitTx,
-  useUpdatePreset,
 } from "../hooks/use-account-api";
 import type { RiskPreset } from "../types";
 import { FundForm } from "./fund-form";
@@ -82,7 +81,7 @@ export function OnboardingPage() {
   const setupAccount = useSetupAccount();
   const fundAccount = useFundAccount();
   const submitTx = useSubmitTx();
-  const updatePreset = useUpdatePreset();
+  const canChangeStrategy = false;
 
   // Helper to get StellarWalletsKit + passphrase
   const getStellarKit = async () => {
@@ -198,12 +197,7 @@ export function OnboardingPage() {
   // ---- Step 2 → 3 ----
   const handleContinueToFund = async () => {
     if (!selectedPreset || !publicKey) return;
-    try {
-      await updatePreset.mutateAsync({ publicKey, preset: selectedPreset });
-      setCurrentStep(3);
-    } catch (err) {
-      console.error("Failed to save preset:", err);
-    }
+    setCurrentStep(3);
   };
 
   // ---- Step 3: Fund account ----
@@ -392,6 +386,12 @@ export function OnboardingPage() {
             <p className="text-muted-foreground text-sm">
               Select a risk profile. The AI engine will allocate across pools accordingly.
             </p>
+            {!canChangeStrategy && (
+              <p className="mt-2 text-muted-foreground text-xs">
+                Strategy updates are admin-protected in this environment. Selection here is
+                informative; live allocation uses backend default policy.
+              </p>
+            )}
           </div>
 
           {presetsLoading ? (
