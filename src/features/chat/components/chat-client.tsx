@@ -86,9 +86,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
       setIsSubmitting(false);
     }
   }, [stream.isLoading]);
-
-  const messages = displayMessages;
-
+  
   const { hideToolCalls, setHideToolCalls, setAssistantInfo } = useChatState();
   const { address: walletAddress } = useWallet();
 

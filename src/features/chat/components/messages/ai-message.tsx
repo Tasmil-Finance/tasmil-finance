@@ -36,16 +36,53 @@ function CustomComponent({
   message,
   thread,
   filterType,
+  cachedUI,
 }: {
   message: Message;
   thread: ReturnType<typeof useStreamContext>;
-  filterType?: "reasoning" | "other";
+  filterType?: 'reasoning' | 'other' | 'tool-status';
+  cachedUI?: any[];
 }) {
   const artifact = useArtifact();
   const { values } = useStreamContext();
-  const uiValues = Array.isArray((values as any)?.ui) ? ((values as any).ui as any[]) : [];
-
-  const allUIForMessage = uiValues.filter((ui: any) => ui.metadata?.message_id === message.id);
+  
+  // Use cached UI if provided, otherwise fall back to stream values
+  // @ts-ignore - ui may not be in type definition
+  const allUI = cachedUI || (values?.['ui'] as any[] | undefined) || [];
+  
+  // For tool-status UI: Show on the LATEST AI message that comes after the tool-calling message
+  // This ensures tool status persists even when new AI responses appear (e.g., after rejection)
+  const allUIForMessage = allUI.filter((ui: any) => {
+    const uiMessageId = ui.metadata?.message_id;
+    const isToolStatus = ui.name?.includes('-tool-status') || ui.metadata?.ui_type === 'tool_status';
+    
+    if (isToolStatus && filterType === 'tool-status') {
+      // For tool-status: show on current message if it's the latest AI message after the tool-calling message
+      const messages = thread.messages || [];
+      const currentIdx = message ? messages.findIndex((m) => m.id === message.id) : -1;
+      
+      if (currentIdx === -1) return false;
+      
+      // Find the tool-calling message (the one with message_id matching the UI)
+      const toolCallingIdx = messages.findIndex((m) => m.id === uiMessageId);
+      
+      if (toolCallingIdx === -1) return false;
+      
+      // Check if current message is after the tool-calling message
+      if (currentIdx <= toolCallingIdx) return false;
+      
+      // Check if there's a newer AI message after current message
+      const hasNewerAI = messages
+        .slice(currentIdx + 1)
+        .some((m) => m.type === 'ai');
+      
+      // Show tool status on current message if it's the latest AI message after tool call
+      return !hasNewerAI;
+    }
+    
+    // For non-tool-status UI: only show on matching message_id
+    return uiMessageId === message?.id;
+  });
 
   // Filter by type if specified
   let filteredUI = allUIForMessage;
@@ -54,37 +91,127 @@ function CustomComponent({
     filteredUI = allUIForMessage?.filter(
       (ui: any) => ui.name?.endsWith("-reasoning") || ui.metadata?.ui_type === "reasoning"
     );
-  } else if (filterType === "other") {
-    // Everything except reasoning
+  } else if (filterType === "tool-status") {
+    // Only tool-status UI components
     filteredUI = allUIForMessage?.filter(
-      (ui: any) => !ui.name?.endsWith("-reasoning") && ui.metadata?.ui_type !== "reasoning"
+      (ui: any) => ui.name?.includes('-tool-status') || ui.metadata?.ui_type === 'tool_status'
+    );
+    
+    // GLOBAL deduplication for tool-status: Only show the LATEST status across ALL messages
+    // This prevents showing both "calling" and "complete" for the same tool
+    if (filteredUI && filteredUI.length > 0) {
+      const globalToolStatusMap = new Map<string, any>();
+      
+      // Get ALL tool-status UI from ALL messages (not just current message)
+      // @ts-ignore
+      const allToolStatusUI = values?.['ui']?.filter(
+        (ui: any) => ui.name?.includes('-tool-status') || ui.metadata?.ui_type === 'tool_status'
+      ) || [];
+      
+      // Build map of latest status for each toolCallId
+      allToolStatusUI.forEach((ui: any) => {
+        const toolCallId = ui.props?.toolCallId;
+        if (!toolCallId) return;
+        
+        const existing = globalToolStatusMap.get(toolCallId);
+        if (!existing) {
+          globalToolStatusMap.set(toolCallId, ui);
+          return;
+        }
+        
+        // Compare priority
+        const statusPriority: Record<string, number> = {
+          complete: 3,
+          error: 2,
+          calling: 1,
+        };
+        
+        const newPriority = statusPriority[ui.props?.status] || 0;
+        const existingPriority = statusPriority[existing.props?.status] || 0;
+        
+        if (newPriority > existingPriority) {
+          globalToolStatusMap.set(toolCallId, ui);
+        }
+      });
+      
+      // Only keep tool-status UI from current message if it's the latest globally
+      filteredUI = filteredUI.filter((ui: any) => {
+        const toolCallId = ui.props?.toolCallId;
+        if (!toolCallId) return true;
+        
+        const latestGlobal = globalToolStatusMap.get(toolCallId);
+        return latestGlobal?.id === ui.id;
+      });
+    }
+  } else if (filterType === 'other') {
+    // Everything except reasoning and tool-status
+    filteredUI = allUIForMessage?.filter(
+      (ui: any) =>
+        !ui.name?.endsWith('-reasoning') && 
+        ui.metadata?.ui_type !== 'reasoning' &&
+        !ui.name?.includes('-tool-status') &&
+        ui.metadata?.ui_type !== 'tool_status'
     );
   }
 
-  // Deduplicate UI items: keep only the LATEST version of each tool call
-  // Group by tool_call_id (from props.toolCallId), then keep the last one
+  // Deduplicate UI components by toolCallId
+  // For tool-status: Only show the LATEST status (prefer complete > error > calling)
+  // For other UI: Keep only the latest version
   const customComponents = filteredUI?.reduce((acc: any[], ui: any) => {
     const toolCallId = ui.props?.toolCallId;
+    const uiName = ui.name;
+    
+    // For tool-status UI, only keep the most recent/complete status
+    if (uiName?.includes('-tool-status') && toolCallId) {
+      const newStatus = ui.props?.status;
+      
+      const existingIndex = acc.findIndex(
+        (item: any) => 
+          item.name?.includes('-tool-status') && 
+          item.props?.toolCallId === toolCallId
+      );
+      
+      if (existingIndex >= 0) {
+        const existingStatus = acc[existingIndex]?.props?.status;
+        
+        // Status priority: complete > error > calling
+        const statusPriority: Record<string, number> = {
+          complete: 3,
+          error: 2,
+          calling: 1,
+        };
+        
+        const newPriority = statusPriority[newStatus] || 0;
+        const existingPriority = statusPriority[existingStatus] || 0;
+        
+        // Replace if new status has higher or equal priority
+        if (newPriority >= existingPriority) {
+          acc[existingIndex] = ui;
+        }
+      } else {
+        // New tool call, add it
+        acc.push(ui);
+      }
+      return acc;
+    }
+    
     if (!toolCallId) {
       // No toolCallId, just add it
       acc.push(ui);
       return acc;
     }
 
-    // Find existing UI with same toolCallId
-    const existingIndex = acc.findIndex((item: any) => item.props?.toolCallId === toolCallId);
+    // For non-tool-status UI with toolCallId, keep only latest
+    const existingIndex = acc.findIndex(
+      (item: any) => item.props?.toolCallId === toolCallId
+    );
 
     if (existingIndex >= 0) {
-      // Replace with newer version (prefer "complete" over "executing")
-      const existing = acc[existingIndex];
-      const existingStatus = existing?.props?.status;
       const newStatus = ui.props?.status;
-
-      // Replace if new status is "complete" or if both have same status (keep latest)
-      if (newStatus === "complete" || existingStatus === newStatus) {
+      // Replace if new status is "complete" or "error"
+      if (newStatus === 'complete' || newStatus === 'error') {
         acc[existingIndex] = ui;
       }
-      // Otherwise keep existing (e.g., don't replace "complete" with "executing")
     } else {
       // New toolCallId, add it
       acc.push(ui);
@@ -143,6 +270,7 @@ export function AssistantMessage({
   handleRegenerate,
   hideAvatar = false,
   isNewMessageLoading = false,
+  cachedUI,
 }: {
   message: Message | undefined;
   isLoading: boolean;
@@ -152,6 +280,7 @@ export function AssistantMessage({
   ) => void;
   hideAvatar?: boolean;
   isNewMessageLoading?: boolean;
+  cachedUI?: any[];
 }) {
   const content = message?.content ?? [];
   const rawContentString = getContentString(content);
@@ -200,6 +329,51 @@ export function AssistantMessage({
     return null;
   }
 
+  // Check if this message has any UI components (tool-status or other)
+  // Use cached UI if provided, otherwise fall back to stream values
+  const allUI = cachedUI || (thread.values?.['ui'] as any[] | undefined) || [];
+  
+  // For tool-status UI: Show on the LATEST AI message that comes after the tool-calling message
+  // This ensures tool status persists even when new AI responses appear (e.g., after rejection)
+  const allUIForMessage = allUI.filter((ui: any) => {
+    const uiMessageId = ui.metadata?.message_id;
+    const isToolStatus = ui.name?.includes('-tool-status') || ui.metadata?.ui_type === 'tool_status';
+    
+    if (isToolStatus) {
+      // For tool-status: show on current message if it's the latest AI message after the tool-calling message
+      const messages = thread.messages || [];
+      const currentIdx = message ? messages.findIndex((m) => m.id === message.id) : -1;
+      
+      if (currentIdx === -1) return false;
+      
+      // Find the tool-calling message (the one with message_id matching the UI)
+      const toolCallingIdx = messages.findIndex((m) => m.id === uiMessageId);
+      
+      if (toolCallingIdx === -1) return false;
+      
+      // Check if current message is after the tool-calling message
+      if (currentIdx <= toolCallingIdx) return false;
+      
+      // Check if there's a newer AI message after current message
+      const hasNewerAI = messages
+        .slice(currentIdx + 1)
+        .some((m) => m.type === 'ai');
+      
+      // Show tool status on current message if it's the latest AI message after tool call
+      return !hasNewerAI;
+    }
+    
+    // For non-tool-status UI: only show on matching message_id
+    return uiMessageId === message?.id;
+  });
+  
+  const hasAnyUI = allUIForMessage && allUIForMessage.length > 0;
+  
+  // Check if has tool-status UI specifically
+  const hasToolStatusUI = allUIForMessage?.some(
+    (ui: any) => ui.name?.includes('-tool-status')
+  );
+
   return (
     <div className="group mr-auto flex w-full items-start gap-3">
       {hideAvatar ? <div className="w-8 shrink-0" /> : <AgentAvatar />}
@@ -215,10 +389,25 @@ export function AssistantMessage({
           </>
         ) : (
           <>
+            {/* Show "Thinking..." if loading and no content/UI yet */}
+            {isNewMessageLoading && !hasToolStatusUI && !hasAnyUI && contentString.length === 0 && !hasReasoning && (
+              <div className="flex items-center gap-2 py-1.5">
+                <Loader size={16} className="text-muted-foreground" />
+                <Shimmer className="font-medium text-sm" duration={2}>
+                  Thinking...
+                </Shimmer>
+              </div>
+            )}
+          
             {/* 1. Reasoning UI - Show thinking/reasoning FIRST (before text) */}
             {/* 1a. Reasoning from middleware UI messages (preferred) */}
             {message && (
-              <CustomComponent message={message} thread={thread} filterType="reasoning" />
+              <CustomComponent
+                message={message}
+                thread={thread}
+                filterType="reasoning"
+                cachedUI={cachedUI}
+              />
             )}
 
             {/* 1b. Fallback: Reasoning extracted from message content */}
@@ -226,24 +415,27 @@ export function AssistantMessage({
               <AIReasoning isStreaming={isReasoningStreaming}>{reasoningContent}</AIReasoning>
             )}
 
-            {/* AI text — rendered BEFORE tool calls so preamble text
-                ("I'll check your position…") appears above the tool cards,
-                matching the natural reading order of LangGraph agent messages. */}
-            {contentString.length > 0 && (
-              <div className="fade-in animate-in py-1 duration-200">
-                <MarkdownText>{contentString}</MarkdownText>
-              </div>
-            )}
-
-            {/* Tool calls rendered via CopilotKit's useRenderToolCall (genUI) */}
-            {allToolCalls && allToolCalls.length > 0 && message && (
-              <CopilotKitToolCallRenderer
+            {/* 2. Tool Status UI - Show tool calls IMMEDIATELY when called */}
+            {hasToolStatusUI && message && (
+              <CustomComponent
                 message={message}
-                messages={thread.messages}
+                thread={thread}
+                filterType="tool-status"
+                cachedUI={cachedUI}
               />
             )}
 
-            {/* Supervisor coordination indicator (only for supervisor agent calls) */}
+            {/* 3. Custom UI Components - Show IMMEDIATELY after tool status (e.g., Staking card, blend-info) */}
+            {message && (
+              <CustomComponent
+                message={message}
+                thread={thread}
+                filterType="other"
+                cachedUI={cachedUI}
+              />
+            )}
+
+            {/* 4. Supervisor coordination indicator (only for supervisor agent calls) */}
             {isSupervisorDelegating && (
               <div className="flex items-center gap-2 py-1.5 text-sm">
                 <svg
@@ -265,54 +457,42 @@ export function AssistantMessage({
               </div>
             )}
 
+            {/* 5. AI Text Response - Show AFTER UI components */}
+            {contentString.length > 0 && (
+              <div className="fade-in animate-in py-1 duration-200">
+                <MarkdownText>{contentString}</MarkdownText>
+              </div>
+            )}
+
             <Interrupt
               interrupt={threadInterrupt}
               isLastMessage={isLastMessage}
               hasNoAIOrToolMessages={hasNoAIOrToolMessages}
             />
-
-            {/* Check if message has custom UI components */}
-            {(() => {
-              // @ts-expect-error - ui may not be in type definition
-              const allUIForMessage = thread.values?.ui?.filter(
-                (ui: any) => ui.metadata?.message_id === message?.id
-              );
-              const hasCustomUI = allUIForMessage && allUIForMessage.length > 0;
-
-              // Only show command bar if:
-              // - No custom UI
-              // - Not intermediate AI message
-              // - Not loading
-              // - No new message is loading (hide command bar when new message is being generated)
-              return (
-                !hasCustomUI &&
-                !isIntermediateAiMessage &&
-                !isLoading &&
-                !isNewMessageLoading &&
-                (contentString.length > 0 || isLastMessage) && (
-                  <div className="mr-auto flex items-center gap-2">
-                    <BranchSwitcher
-                      branch={meta?.branch}
-                      branchOptions={meta?.branchOptions}
-                      // @ts-expect-error - setBranch may not be in type definition
-                      onSelect={(branch) => thread.setBranch?.(branch)}
-                      isLoading={isLoading}
-                    />
-                    <CommandBar
-                      content={contentString}
-                      isLoading={isLoading}
-                      isAiMessage={true}
-                      handleRegenerate={() =>
-                        handleRegenerate(
-                          parentCheckpoint,
-                          parentValues as { messages: Message[] } | undefined
-                        )
-                      }
-                    />
-                  </div>
-                )
-              );
-            })()}
+            
+            {/* Command bar - only show when no custom UI */}
+            {!hasAnyUI && !isIntermediateAiMessage && !isLoading && !isNewMessageLoading && (contentString.length > 0 || isLastMessage) && (
+              <div className="mr-auto flex items-center gap-2">
+                <BranchSwitcher
+                  branch={meta?.branch}
+                  branchOptions={meta?.branchOptions}
+                  // @ts-ignore - setBranch may not be in type definition
+                  onSelect={(branch) => thread.setBranch?.(branch)}
+                  isLoading={isLoading}
+                />
+                <CommandBar
+                  content={contentString}
+                  isLoading={isLoading}
+                  isAiMessage={true}
+                  handleRegenerate={() =>
+                    handleRegenerate(
+                      parentCheckpoint,
+                      parentValues as { messages: Message[] } | undefined
+                    )
+                  }
+                />
+              </div>
+            )}
           </>
         )}
       </div>

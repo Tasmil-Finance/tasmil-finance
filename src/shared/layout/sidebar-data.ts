@@ -63,13 +63,17 @@ export const sidebarData: SidebarData = {
           url: "/portfolio",
           icon: Wallet,
         },
+      ],
+    },
+    {
+      items: [
         {
-          title: "Farming Agent",
+          title: "Farming",
           url: "/farming",
           icon: Tractor,
         },
       ],
-    },
+    }
   ],
 };
 
