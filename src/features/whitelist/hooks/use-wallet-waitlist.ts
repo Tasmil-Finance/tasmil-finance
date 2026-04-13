@@ -3,6 +3,8 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://backend.tasmil-finance.xyz";
+
 /** Unwrap TransformInterceptor wrapper {success, data} → data */
 function unwrap<T>(raw: unknown): T {
   if (raw && typeof raw === "object" && "data" in raw) {
@@ -15,7 +17,7 @@ function unwrap<T>(raw: unknown): T {
 // ── API client helpers ──
 
 async function requestChallenge(walletAddress: string) {
-  const res = await fetch("/api/waitlist/challenge", {
+  const res = await fetch(`${API_BASE}/api/waitlist/challenge`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ walletAddress }),
@@ -33,7 +35,7 @@ async function registerWallet(payload: {
   referredByCode?: string;
   source?: string;
 }) {
-  const res = await fetch("/api/waitlist/register-wallet", {
+  const res = await fetch(`${API_BASE}/api/waitlist/register-wallet`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -51,7 +53,7 @@ async function registerWallet(payload: {
 
 async function fetchWalletStatus(walletAddress: string) {
   const res = await fetch(
-    `/api/waitlist/status?walletAddress=${encodeURIComponent(walletAddress)}`,
+    `${API_BASE}/api/waitlist/status?walletAddress=${encodeURIComponent(walletAddress)}`,
   );
   const raw = await res.json();
   console.log("[API] GET /status", { status: res.status, ok: res.ok, walletAddress, raw });
@@ -73,7 +75,7 @@ async function fetchWalletStatus(walletAddress: string) {
 
 async function verifyReferralCode(code: string) {
   const res = await fetch(
-    `/api/waitlist/verify-referral?code=${encodeURIComponent(code)}`,
+    `${API_BASE}/api/waitlist/verify-referral?code=${encodeURIComponent(code)}`,
   );
   if (!res.ok) throw new Error("Failed to verify referral code");
   const raw = await res.json();
@@ -81,7 +83,7 @@ async function verifyReferralCode(code: string) {
 }
 
 async function attachWaitlistContact(payload: { walletAddress: string; email: string }) {
-  const res = await fetch("/api/waitlist/contact", {
+  const res = await fetch(`${API_BASE}/api/waitlist/contact`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
