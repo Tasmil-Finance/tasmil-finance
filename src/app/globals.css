@@ -688,6 +688,15 @@
     @apply min-h-svh w-full bg-background text-foreground;
   }
 
+  /* Button cursor pointer */
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
   /* Custom Scrollbar Styles */
   *::-webkit-scrollbar,
   *::-webkit-scrollbar-thumb {
