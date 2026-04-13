@@ -2,13 +2,16 @@
 FROM node:22-alpine AS builder
 WORKDIR /app
 
+# Install Python and build dependencies for native modules (usb, tiny-secp256k1)
+RUN apk add --no-cache python3 make g++ git
+
 RUN npm install -g pnpm
 
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY apps/frontend ./apps/frontend
 COPY packages ./packages
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 WORKDIR /app/apps/frontend
 RUN pnpm run build
