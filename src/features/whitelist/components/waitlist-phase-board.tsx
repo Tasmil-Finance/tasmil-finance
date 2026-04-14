@@ -17,8 +17,11 @@ export function WaitlistPhaseBoard({ referredByCode }: WaitlistPhaseBoardProps) 
   const { data: walletStatus, isLoading: isStatusLoading, isError: isStatusError } = useWalletStatus(address);
   const [skipped, setSkipped] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
+  const [hasJoined, setHasJoined] = useState(false);
 
-  const isRegistered = !!walletStatus;
+  // isRegistered stays true for the rest of the session once the user joins,
+  // even if the background status refetch fails and clears the query cache.
+  const isRegistered = !!walletStatus || hasJoined;
   const hasEmail = !!(walletStatus?.hasEmail || submittedEmail);
 
   // Show spinner only while the initial status check is in flight (not on error).
@@ -47,7 +50,12 @@ export function WaitlistPhaseBoard({ referredByCode }: WaitlistPhaseBoardProps) 
         </div>
       ) : (
         <>
-          {showScreen === 1 && <WaitlistScreen1 referredByCode={referredByCode} />}
+          {showScreen === 1 && (
+            <WaitlistScreen1
+              referredByCode={referredByCode}
+              onJoined={() => setHasJoined(true)}
+            />
+          )}
           {showScreen === 2 && (
             <WaitlistScreen2 onEmailSuccess={handleEmailSuccess} onSkip={handleSkip} />
           )}

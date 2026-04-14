@@ -15,6 +15,7 @@ import {
 
 interface WaitlistScreen1Props {
   referredByCode?: string | null;
+  onJoined?: () => void;
 }
 
 const STEPS: Step[] = [
@@ -23,7 +24,7 @@ const STEPS: Step[] = [
   { id: "done", label: "Done", state: "inactive" },
 ];
 
-export function WaitlistScreen1({ referredByCode }: WaitlistScreen1Props) {
+export function WaitlistScreen1({ referredByCode, onJoined }: WaitlistScreen1Props) {
   const { isConnected, address, connect, displayAddress, isAuthenticating } = useWallet();
   const queryClient = useQueryClient();
   const requestChallenge = useRequestChallenge();
@@ -62,6 +63,10 @@ export function WaitlistScreen1({ referredByCode }: WaitlistScreen1Props) {
       hasEmail: false,
       emailDeliveryEligible: false,
     });
+    // Notify parent so it marks this session as joined (prevents loop-back
+    // to Screen 1 if the background status refetch later fails).
+    onJoined?.();
+    // Background refetch to get real queue rank — fire-and-forget, no await.
     queryClient.invalidateQueries({ queryKey: ["waitlist", "status", address] });
   }, [address, requestChallenge, registerWallet, referredByCode, queryClient]);
 
