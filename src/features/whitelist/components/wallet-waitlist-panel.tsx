@@ -23,7 +23,7 @@ export function WalletWaitlistPanel({ referredByCode }: WalletWaitlistPanelProps
   const queryClient = useQueryClient();
   const requestChallenge = useRequestChallenge();
   const registerWallet = useRegisterWallet();
-  const { data: walletStatus, isLoading: isWalletStatusLoading } = useWalletStatus(address);
+  const { data: walletStatus, isLoading: isWalletStatusLoading, isFetching: isWalletStatusFetching } = useWalletStatus(address);
   const didInvalidateRef = useRef(false);
 
   // Reset mutation state when address changes (e.g., user switches wallet)
@@ -57,7 +57,9 @@ export function WalletWaitlistPanel({ referredByCode }: WalletWaitlistPanelProps
   }, [address, requestChallenge, registerWallet, referredByCode]);
 
   const showRegisteredState = !!walletStatus || registerWallet.isSuccess;
-  const showStatusLoading = registerWallet.isPending || (showRegisteredState && isWalletStatusLoading);
+  const showStatusLoading =
+    registerWallet.isPending ||
+    (showRegisteredState && (isWalletStatusLoading || (isWalletStatusFetching && !walletStatus)));
 
   if (isConnected && address) {
     return (
