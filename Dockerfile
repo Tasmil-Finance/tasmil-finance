@@ -31,10 +31,12 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 COPY --from=builder /app/apps/frontend/.next ./.next
 COPY --from=builder /app/apps/frontend/public ./public
 
+WORKDIR /app/apps/frontend
+
 EXPOSE 3000
 
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV NEXT_PUBLIC_API_URL=https://backend.tasmil-finance.xyz
 
-CMD ["pnpm", "run", "start"]
+CMD ["pnpm", "exec", "next", "start"]
