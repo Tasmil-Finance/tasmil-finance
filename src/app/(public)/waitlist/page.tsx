@@ -4,6 +4,7 @@ import { ShieldCheck, Sparkles, Waypoints } from "lucide-react";
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { WaitlistPhaseBoard } from "@/features/whitelist/components/waitlist-phase-board";
+import { ReferralLoopCard } from "@/features/whitelist/components/referral-loop-card";
 import { PATHS } from "@/shared/constants/routes";
 import { Typography } from "@/shared/ui/typography";
 
@@ -36,12 +37,6 @@ export default function WhitelistPage() {
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
 
         <div className="relative mx-auto flex min-h-[78vh] max-w-6xl flex-col items-center justify-center px-6 py-24 text-center sm:px-8 lg:px-12">
-          <div className="mb-6 inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5">
-            <span className="text-[11px] font-medium uppercase tracking-[0.24em] text-primary">
-              Early Access
-            </span>
-          </div>
-
           <Typography
             variant="h1"
             className="max-w-4xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl"
@@ -65,7 +60,7 @@ export default function WhitelistPage() {
             and smarter capital allocation from day one.
           </Typography>
 
-          <div className="mt-10 w-full max-w-3xl">
+          <div className="mt-10 w-full max-w-[440px]">
             <Suspense fallback={<div className="h-40 w-full rounded-2xl border border-border bg-card/80 animate-pulse" />}>
               <WaitlistPhaseBoardWithRef />
             </Suspense>
@@ -79,7 +74,7 @@ export default function WhitelistPage() {
             <span>Priority early onboarding</span>
           </div>
 
-          <div className="mt-14 flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
+          <div className="mt-8 flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
             <a
               className="transition-colors hover:text-foreground"
               href={PATHS.TELEGRAM}
@@ -106,6 +101,10 @@ export default function WhitelistPage() {
             </a>
           </div>
         </div>
+      </section>
+
+      <section className="mx-auto max-w-[440px] px-6 py-10 sm:px-8">
+        <ReferralLoopCard />
       </section>
 
       <section className="mx-auto max-w-6xl px-6 py-20 sm:px-8 lg:px-12">
