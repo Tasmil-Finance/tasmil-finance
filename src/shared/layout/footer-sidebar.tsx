@@ -1,9 +1,8 @@
 "use client";
 
-import { Copy, User } from "lucide-react";
+import { Copy } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
-import { cn } from "@/lib/utils";
 import { ConnectWalletButton } from "@/shared/components/connect-wallet-button";
 import { useWallet } from "@/shared/context/wallet-context";
 import Balatro from "../ui/balatro";
@@ -20,46 +19,11 @@ const SOCIAL_LINKS = {
   DISCORD: "#", // Discord link not provided
 } as const;
 
-// Component to generate abstract avatar from address
-const AddressAvatar = ({ address, size = "size-12" }: { address: string; size?: string }) => {
-  // Generate a simple hash from address for consistent colors
-  const hash = address.split("").reduce((acc, char) => {
-    const newAcc = (acc << 5) - acc + char.charCodeAt(0);
-    return newAcc & newAcc;
-  }, 0);
-
-  const colors = [
-    "bg-gradient-to-br from-blue-500 to-purple-600",
-    "bg-gradient-to-br from-green-500 to-blue-600",
-    "bg-gradient-to-br from-purple-500 to-pink-600",
-    "bg-gradient-to-br from-orange-500 to-red-600",
-    "bg-gradient-to-br from-cyan-500 to-blue-600",
-    "bg-gradient-to-br from-pink-500 to-purple-600",
-    "bg-gradient-to-br from-yellow-500 to-orange-600",
-    "bg-gradient-to-br from-indigo-500 to-purple-600",
-  ];
-
-  const colorIndex = Math.abs(hash) % colors.length;
-  const gradientClass = colors[colorIndex];
-
-  return (
-    <div
-      className={cn(
-        "flex items-center justify-center rounded-full border-2 border-white/20 font-bold text-sm text-white",
-        size,
-        gradientClass
-      )}
-    >
-      <User className="size-5" />
-    </div>
-  );
-};
-
 export function FooterSidebarSection() {
   const { state } = useSidebar();
   const isOpen = state === "expanded";
   const [depositOpen, setDepositOpen] = useState(false);
-  const { isConnected, address, displayAddress, disconnect } = useWallet();
+  const { isConnected, address } = useWallet();
 
   return (
     <div>
@@ -116,21 +80,7 @@ export function FooterSidebarSection() {
               </div>
             </a>
 
-            <Button
-              className="flex h-auto items-center justify-start gap-2 rounded-xl bg-zinc-800/50 p-3 backdrop-blur-sm transition-all hover:bg-zinc-800/70"
-              onClick={disconnect}
-              variant="ghost"
-            >
-              <AddressAvatar address={address || ""} size="size-8" />
-              <div className="flex flex-1 items-center justify-between">
-                <Typography className="text-white" size="sm" weight="medium">
-                  {displayAddress}
-                </Typography>
-                <Typography className="text-gray-400" size="xs">
-                  Disconnect
-                </Typography>
-              </div>
-            </Button>
+            <ConnectWalletButton />
 
             {/* Social Links */}
             <div className="flex items-center justify-center gap-4 py-1">

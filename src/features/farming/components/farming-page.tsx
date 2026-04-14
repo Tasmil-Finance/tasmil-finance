@@ -26,7 +26,9 @@ import {
   useFundAccount,
   usePosition,
   usePresets,
+  useResumeAccount,
   useRevoke,
+  useSetupAccount,
   useSubmitTx,
   useUpdatePreset,
   useWithdraw,
@@ -128,6 +130,7 @@ export function FarmingPage() {
   >("fund");
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [selectedPreset, setSelectedPreset] = useState<RiskPreset | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const withdrawAmountInputId = useId();
 
   const {
@@ -148,6 +151,9 @@ export function FarmingPage() {
   const revokeMutation = useRevoke();
   const submitTx = useSubmitTx();
   const updatePreset = useUpdatePreset();
+  const setupAccount = useSetupAccount();
+  const resumeAccount = useResumeAccount();
+  const [isReconfiguring, setIsReconfiguring] = useState(false);
   const canChangeStrategy = false;
 
   const { availableUsd, lockedUsd } = useMemo(() => {
@@ -300,6 +306,7 @@ export function FarmingPage() {
   const depositableTvl = depositablePools.reduce((sum, p) => sum + p.tvlUsd, 0);
 
   const openAccountModal = (tab: "fund" | "strategy" | "withdraw" | "security") => {
+    setActionError(null);
     if (tab === "strategy") {
       const normalized = position.preset?.toLowerCase();
       const mapped =
@@ -313,16 +320,20 @@ export function FarmingPage() {
   const handleUpdatePreset = async () => {
     if (!publicKey || !selectedPreset || !canChangeStrategy) return;
     try {
+      setActionError(null);
       await updatePreset.mutateAsync({ publicKey, preset: selectedPreset });
       setAccountModalOpen(false);
     } catch (err) {
-      console.error("Update preset failed:", err);
+      console.warn("Update preset failed:", err);
+      const message = err instanceof Error ? err.message : "Operation failed. Please try again.";
+      setActionError(message);
     }
   };
 
   const handleFund = async (amount: number, token: "USDC" | "XLM") => {
     if (!publicKey) return;
     try {
+      setActionError(null);
       const result = await fundAccount.mutateAsync({ publicKey, amount, token });
       if (!result?.xdr) throw new Error("No fund transaction returned from server");
 
@@ -338,13 +349,16 @@ export function FarmingPage() {
       await Promise.all([refetchPosition(), refetchActivity()]);
       setAccountModalOpen(false);
     } catch (err) {
-      console.error("Fund failed:", err);
+      console.warn("Fund failed:", err);
+      const message = err instanceof Error ? err.message : "Operation failed. Please try again.";
+      setActionError(message);
     }
   };
 
   const handleWithdraw = async () => {
     if (!publicKey || !canWithdraw) return;
     try {
+      setActionError(null);
       const result = await withdrawMutation.mutateAsync({
         publicKey,
         amount: parsedWithdrawAmount,
@@ -384,20 +398,52 @@ export function FarmingPage() {
               }
             : {}),
         });
-
-          await Promise.all([refetchPosition(), refetchActivity()]);
       }
 
+      await Promise.all([refetchPosition(), refetchActivity()]);
       setWithdrawAmount("");
       setAccountModalOpen(false);
     } catch (err) {
-      console.error("Withdraw failed:", err);
+      console.warn("Withdraw failed:", err);
+      const message = err instanceof Error ? err.message : "Operation failed. Please try again.";
+      setActionError(message);
+    }
+  };
+
+  const handleReconfigure = async () => {
+    if (!publicKey) return;
+    try {
+      setIsReconfiguring(true);
+      setActionError(null);
+
+      // 1. Build new setup TX with updated allowed contracts
+      const setupResult = await setupAccount.mutateAsync(publicKey);
+      const setupXdrs = setupResult?.setupTxs ?? [];
+      if (setupXdrs.length === 0 || !setupXdrs[0]) {
+        throw new Error("No setup transaction returned from server");
+      }
+
+      // 2. User signs the configure_session_key TX
+      const signedXdr = await signXdr(setupXdrs[0], publicKey);
+      await submitTx.mutateAsync({ signedXdr });
+
+      // 3. Resume the individual account in the backend
+      await resumeAccount.mutateAsync(publicKey);
+
+      await Promise.all([refetchPosition(), refetchActivity()]);
+    } catch (err) {
+      console.warn("Reconfigure failed:", err);
+      const message = err instanceof Error ? err.message : "Reconfigure failed. Please try again.";
+      setActionError(message);
+    } finally {
+      setIsReconfiguring(false);
     }
   };
 
   const handleRevoke = async () => {
     if (!publicKey) return;
     try {
+      setActionError(null);
       const result = await revokeMutation.mutateAsync(publicKey);
       if (!result?.xdr) throw new Error("No revoke transaction returned from server");
 
@@ -411,7 +457,9 @@ export function FarmingPage() {
       await Promise.all([refetchPosition(), refetchActivity()]);
       setAccountModalOpen(false);
     } catch (err) {
-      console.error("Revoke failed:", err);
+      console.warn("Revoke failed:", err);
+      const message = err instanceof Error ? err.message : "Operation failed. Please try again.";
+      setActionError(message);
     }
   };
 
@@ -433,7 +481,11 @@ export function FarmingPage() {
       </div>
 
       {/* Bot Status Banner */}
-      <BotStatusBanner status={status} />
+      <BotStatusBanner
+        status={status}
+        onReconfigure={handleReconfigure}
+        isReconfiguring={isReconfiguring}
+      />
 
       {/* Account Summary */}
       <Card className="mb-8 border-border bg-muted/10">
@@ -600,7 +652,7 @@ export function FarmingPage() {
         </Button>
       </div>
 
-      <Dialog open={accountModalOpen} onOpenChange={setAccountModalOpen}>
+      <Dialog open={accountModalOpen} onOpenChange={(open) => { setAccountModalOpen(open); if (!open) setActionError(null); }}>
         <DialogContent
           className={cn(
             "max-h-[90vh] overflow-y-auto",
@@ -627,6 +679,13 @@ export function FarmingPage() {
                     : "Disable automation by revoking the active session key."}
             </DialogDescription>
           </DialogHeader>
+
+          {actionError && (
+            <div className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-red-300 text-sm">
+              <XCircle className="h-4 w-4 shrink-0" />
+              <span>{actionError}</span>
+            </div>
+          )}
 
           {accountModalTab === "fund" && (
             <div className="space-y-4 pt-3">
@@ -786,8 +845,12 @@ export function FarmingPage() {
 
 function BotStatusBanner({
   status,
+  onReconfigure,
+  isReconfiguring,
 }: {
   status: { ready: boolean; halted: boolean; haltReason: string | null } | undefined;
+  onReconfigure?: () => void;
+  isReconfiguring?: boolean;
 }) {
   if (!status) return null;
 
@@ -844,6 +907,17 @@ function BotStatusBanner({
                 : "Waiting for session key initialization."}
           </p>
         </div>
+        {isHalted && onReconfigure && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="shrink-0 border-red-500/30 text-red-400 hover:bg-red-500/10"
+            onClick={onReconfigure}
+            disabled={isReconfiguring}
+          >
+            {isReconfiguring ? "Reconfiguring..." : "Reconfigure & Resume"}
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
@@ -967,10 +1041,10 @@ function PoolTable({ pools }: { pools: DiscoveredPool[] }) {
           </tr>
         </thead>
         <tbody>
-          {sorted.map((pool) => {
+          {sorted.map((pool, idx) => {
             const risk = riskLabel(pool.riskScore);
             return (
-              <tr key={pool.id} className="border-border/50 border-b last:border-0">
+              <tr key={`${pool.id}-${idx}`} className="border-border/50 border-b last:border-0">
                 <td className="px-4 py-3">
                   <span className="font-medium text-foreground text-sm">
                     {pool.assetSymbol}

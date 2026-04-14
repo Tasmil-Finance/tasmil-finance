@@ -1,9 +1,24 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useAuthStore } from "@/store/use-auth";
 import type { ActivityItem, PositionData, PresetCardData } from "../types";
 
 const API_BASE = process.env["NEXT_PUBLIC_API_URL"] ?? "https://backend.tasmil-finance.xyz/api";
+
+function getAuthHeaders(): Record<string, string> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const { accessToken, expiresAt } = useAuthStore.getState();
+  if (accessToken && expiresAt && Date.now() < expiresAt) {
+    headers["Authorization"] = `Bearer ${accessToken}`;
+  } else if (accessToken) {
+    // Token expired — trigger re-auth
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("auth-token-expired"));
+    }
+  }
+  return headers;
+}
 
 export function usePresets() {
   return useQuery<PresetCardData[]>({
@@ -22,12 +37,21 @@ export function usePosition(publicKey: string | undefined) {
   return useQuery<PositionData | null>({
     queryKey: ["account", "position", publicKey],
     queryFn: async () => {
-      const res = await fetch(`${API_BASE}/account/position/${publicKey}`);
+      const res = await fetch(`${API_BASE}/account/position/${publicKey}`, {
+        headers: getAuthHeaders(),
+      });
+      if (res.status === 401) {
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("auth-token-expired"));
+        }
+        return null;
+      }
       if (!res.ok) return null;
       const json = await res.json();
       return json.data ?? null;
     },
     enabled: !!publicKey,
+    retry: 1,
     refetchInterval: 30_000,
   });
 }
@@ -36,12 +60,21 @@ export function useActivity(publicKey: string | undefined) {
   return useQuery<ActivityItem[]>({
     queryKey: ["account", "activity", publicKey],
     queryFn: async () => {
-      const res = await fetch(`${API_BASE}/account/activity/${publicKey}`);
+      const res = await fetch(`${API_BASE}/account/activity/${publicKey}`, {
+        headers: getAuthHeaders(),
+      });
+      if (res.status === 401) {
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("auth-token-expired"));
+        }
+        return [];
+      }
       if (!res.ok) return [];
       const json = await res.json();
       return json.data ?? [];
     },
     enabled: !!publicKey,
+    retry: 1,
     refetchInterval: 60_000,
   });
 }
@@ -51,7 +84,7 @@ export function useDeployAccount() {
     mutationFn: async (publicKey: string) => {
       const res = await fetch(`${API_BASE}/account/deploy`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ publicKey }),
       });
       if (!res.ok) {
@@ -68,7 +101,7 @@ export function useFundAccount() {
     mutationFn: async (dto: { publicKey: string; amount: number; token: string }) => {
       const res = await fetch(`${API_BASE}/account/fund`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify(dto),
       });
       if (!res.ok) {
@@ -85,7 +118,7 @@ export function useUpdatePreset() {
     mutationFn: async ({ publicKey, preset }: { publicKey: string; preset: string }) => {
       const res = await fetch(`${API_BASE}/account/preset/${publicKey}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ preset }),
       });
       if (!res.ok) {
@@ -105,7 +138,7 @@ export function useSetupAccount() {
     mutationFn: async (publicKey: string) => {
       const res = await fetch(`${API_BASE}/account/setup`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ publicKey }),
       });
       if (!res.ok) {
@@ -113,6 +146,22 @@ export function useSetupAccount() {
         throw new Error(body.message ?? `Setup request failed (${res.status})`);
       }
       return (await res.json()).data as { setupTxs: string[] };
+    },
+  });
+}
+
+export function useResumeAccount() {
+  return useMutation({
+    mutationFn: async (publicKey: string) => {
+      const res = await fetch(`${API_BASE}/account/resume/${publicKey}`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message ?? `Resume request failed (${res.status})`);
+      }
+      return (await res.json()).data as { status: string };
     },
   });
 }
@@ -130,7 +179,7 @@ export function useSubmitTx() {
     mutationFn: async (params: SubmitTxParams) => {
       const res = await fetch(`${API_BASE}/account/submit`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify(params),
       });
       if (!res.ok) {
@@ -147,7 +196,7 @@ export function useWithdraw() {
     mutationFn: async (dto: { publicKey: string; amount: number }) => {
       const res = await fetch(`${API_BASE}/account/withdraw`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify(dto),
       });
       if (!res.ok) {
@@ -164,7 +213,7 @@ export function useRevoke() {
     mutationFn: async (publicKey: string) => {
       const res = await fetch(`${API_BASE}/account/revoke`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ publicKey }),
       });
       if (!res.ok) {
