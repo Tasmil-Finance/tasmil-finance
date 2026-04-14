@@ -30,8 +30,8 @@ const useTypedStream = useStream<
   }
 >;
 
-type StreamContextType = ReturnType<typeof useTypedStream>;
-const StreamContext = createContext<StreamContextType | undefined>(undefined);
+export type StreamContextType = ReturnType<typeof useTypedStream>;
+export const StreamContext = createContext<StreamContextType | undefined>(undefined);
 
 async function sleep(ms = 4000) {
   return new Promise((resolve) => setTimeout(resolve, ms));
