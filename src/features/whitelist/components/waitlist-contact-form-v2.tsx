@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { useWallet } from "@/shared/context/wallet-context";
 import { useWalletStatus } from "@/features/whitelist/hooks/use-wallet-waitlist";
@@ -24,6 +24,13 @@ export function WaitlistContactFormV2({ onSuccess }: WaitlistContactFormV2Props)
 
   const { address } = useWallet();
   const { refetch: refetchStatus } = useWalletStatus(address);
+
+  // Pre-fill email from localStorage if user previously attached one
+  useEffect(() => {
+    if (!address) return;
+    const saved = localStorage.getItem(`waitlist_email_${address}`);
+    if (saved) setEmail(saved);
+  }, [address]);
 
   const emailValid = isValidEmail(email.trim());
   const canSubmit = emailValid && !isSubmitting;

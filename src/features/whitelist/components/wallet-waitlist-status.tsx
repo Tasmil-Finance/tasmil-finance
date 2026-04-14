@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2, Copy, ExternalLink, Check } from "lucide-react";
 import { useWallet } from "@/shared/context/wallet-context";
@@ -26,6 +26,13 @@ export function WalletWaitlistStatus() {
   const queryClient = useQueryClient();
   const [copied, setCopied] = useState(false);
   const [attachedEmail, setAttachedEmail] = useState<string | null>(null);
+
+  // Restore email from localStorage on mount (persists across page revisits)
+  useEffect(() => {
+    if (!address) return;
+    const saved = localStorage.getItem(`waitlist_email_${address}`);
+    if (saved) setAttachedEmail(saved);
+  }, [address]);
 
   // Consider email done as soon as local state is set (optimistic) or API confirms it
   const hasEmailCompleted = status?.hasEmail || attachedEmail !== null;
@@ -75,6 +82,7 @@ export function WalletWaitlistStatus() {
 
   function handleEmailSuccess(email: string) {
     setAttachedEmail(email);
+    if (address) localStorage.setItem(`waitlist_email_${address}`, email);
 
     // Fire confetti on the email step dot
     setTimeout(() => {
@@ -176,8 +184,8 @@ export function WalletWaitlistStatus() {
       </Card>
 
       {/* 4 — Dedicated email task card (morphs to success on complete) */}
-      {emailTaskDone && attachedEmail ? (
-        <SuccessBanner email={attachedEmail} />
+      {emailTaskDone ? (
+        <SuccessBanner email={attachedEmail ?? ""} />
       ) : (
         <div className="rounded-xl border border-primary/30 bg-primary/5 p-5">
           <Typography variant="p" className="mb-1 font-semibold text-foreground">

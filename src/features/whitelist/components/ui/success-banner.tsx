@@ -21,7 +21,7 @@ export function SuccessBanner({ email, className }: SuccessBannerProps) {
         <Check className="h-3.5 w-3.5" />
       </div>
       <span className="text-sm font-medium text-green-600 dark:text-green-400">
-        Email confirmed: {maskEmail(email)}
+        {email ? `Email confirmed: ${maskEmail(email)}` : "Email confirmed \u2014 you're all set!"}
       </span>
     </div>
   );
