@@ -25,12 +25,10 @@ export function WalletWaitlistStatus() {
   const { data: status, isLoading } = useWalletStatus(address);
   const queryClient = useQueryClient();
   const [copied, setCopied] = useState(false);
-  const [animationPhase, setAnimationPhase] = useState<"idle" | "completing" | "done">("idle");
   const [attachedEmail, setAttachedEmail] = useState<string | null>(null);
 
-  // Guard: only use local email when status hasn't been refetched yet
-  const hasEmailCompleted =
-    status?.hasEmail || (animationPhase === "done" && attachedEmail !== null);
+  // Consider email done as soon as local state is set (optimistic) or API confirms it
+  const hasEmailCompleted = status?.hasEmail || attachedEmail !== null;
 
   const steps: Step[] = [
     { id: "wallet", label: "Wallet", state: "done" },
@@ -77,7 +75,6 @@ export function WalletWaitlistStatus() {
 
   function handleEmailSuccess(email: string) {
     setAttachedEmail(email);
-    setAnimationPhase("completing");
 
     // Fire confetti on the email step dot
     setTimeout(() => {
@@ -87,15 +84,10 @@ export function WalletWaitlistStatus() {
       }
     }, 250);
 
-    // Refetch status so hasEmail propagates to stepper immediately
+    // Refetch status in background so server state stays in sync
     setTimeout(() => {
       queryClient.invalidateQueries({ queryKey: ["waitlist", "status", address] });
     }, 300);
-
-    // Transition to done phase
-    setTimeout(() => {
-      setAnimationPhase("done");
-    }, 1400);
   }
 
   const emailTaskDone = hasEmailCompleted;

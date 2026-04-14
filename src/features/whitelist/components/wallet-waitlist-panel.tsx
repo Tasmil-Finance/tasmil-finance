@@ -62,7 +62,10 @@ export function WalletWaitlistPanel({ referredByCode }: WalletWaitlistPanelProps
   }, [address, requestChallenge, registerWallet, referredByCode, queryClient]);
 
   const showRegisteredState = !!walletStatus || registerWallet.isSuccess;
-  const showStatusLoading = registerWallet.isPending || (showRegisteredState && isWalletStatusLoading);
+  const showStatusLoading =
+    requestChallenge.isPending ||
+    registerWallet.isPending ||
+    (showRegisteredState && isWalletStatusLoading);
 
   if (isConnected && address) {
     return (
@@ -84,7 +87,7 @@ export function WalletWaitlistPanel({ referredByCode }: WalletWaitlistPanelProps
         {showStatusLoading ? (
           <Button variant="gradient" size="lg" disabled className="w-full">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Registering...
+            {requestChallenge.isPending ? "Preparing..." : "Registering..."}
           </Button>
         ) : showRegisteredState ? (
           <WalletWaitlistStatusWithLoading />
@@ -93,19 +96,10 @@ export function WalletWaitlistPanel({ referredByCode }: WalletWaitlistPanelProps
             variant="gradient"
             size="lg"
             onClick={handleRegister}
-            disabled={isAuthenticating || requestChallenge.isPending}
+            disabled={isAuthenticating}
             className="w-full"
           >
-            {requestChallenge.isPending ? (
-              <span className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Preparing...
-              </span>
-            ) : registerWallet.isError ? (
-              "Try again — Join waitlist"
-            ) : (
-              "Join waitlist with this wallet"
-            )}
+            {registerWallet.isError ? "Try again — Join waitlist" : "Join waitlist with this wallet"}
           </Button>
         )}
 
