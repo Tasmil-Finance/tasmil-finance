@@ -44,12 +44,6 @@ export function StellarOperationDispatcher({
   operation,
   ...props
 }: StellarOperationDispatcherProps) {
-  console.log("[StellarOperationDispatcher] Dispatching:", {
-    operation,
-    hasComponent: !!OperationComponentMap[operation ?? ""],
-    componentName: OperationComponentMap[operation ?? ""]?.name,
-  });
-
   const Component = OperationComponentMap[operation ?? ""] ?? StellarExecuteCard;
   return <Component operation={operation} {...props} />;
 }

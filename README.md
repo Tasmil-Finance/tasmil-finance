@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<p align="center">
+	<img src="./public/images/logo.png" alt="Tasmil Frontend" width="120" />
+</p>
 
-## Getting Started
+# Tasmil Frontend
 
-First, run the development server:
+Frontend application for Tasmil Finance.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+> For full platform architecture (Frontend + Backend + AI + MCP + Contracts), see the workspace root README: `../../README.md`.
+
+## Stack
+
+- Next.js 16 (App Router)
+- React 19
+- TailwindCSS 4
+- Radix UI
+- TanStack Query
+- CopilotKit
+- Kubb-generated API hooks
+
+## Directory Highlights
+
+```text
+src/
+├─ app/        # Route tree
+├─ features/   # Domain modules
+├─ shared/     # Shared UI and utilities
+├─ gen/        # Generated API clients (do not edit manually)
+├─ providers/  # Global providers
+└─ store/      # Zustand stores
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm install
+pnpm dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Runs on http://localhost:3000.
 
-## Learn More
+## API Client Generation
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm generate:api
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+This regenerates typed API clients/hooks from OpenAPI.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Quality & Tests
 
-## Deploy on Vercel
+```bash
+pnpm lint
+pnpm check
+pnpm type-check
+pnpm test
+pnpm test:e2e
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Integration Notes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Frontend communicates with backend APIs and AI-assisted flows.
+- Wallet and strategy UX integrates with Stellar/Soroban workflows.
+- Keep generated code in `src/gen` untouched; regenerate instead.

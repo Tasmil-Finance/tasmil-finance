@@ -51,6 +51,7 @@ export function SettingsPage() {
 
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [copied, setCopied] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const withdrawAmountId = useId();
 
   // Compute available vs locked amounts
@@ -102,6 +103,7 @@ export function SettingsPage() {
 
   const handleWithdraw = async () => {
     if (!publicKey || !isValidWithdraw) return;
+    setActionError(null);
     try {
       const result = await withdrawMutation.mutateAsync({
         publicKey,
@@ -138,12 +140,21 @@ export function SettingsPage() {
       setWithdrawAmount("");
       router.push("/farming");
     } catch (err) {
-      console.error("Withdraw failed:", err);
+      const message =
+        err instanceof Error ? err.message : "Withdraw failed. Please try again.";
+      if (message.toLowerCase().includes("reject") || message.toLowerCase().includes("cancel")) {
+        console.warn("Withdraw cancelled by user:", message);
+        setActionError("Transaction was cancelled.");
+      } else {
+        console.warn("Withdraw failed:", message);
+        setActionError(message);
+      }
     }
   };
 
   const handleRevoke = async () => {
     if (!publicKey) return;
+    setActionError(null);
     try {
       const result = await revokeMutation.mutateAsync(publicKey);
 
@@ -160,7 +171,15 @@ export function SettingsPage() {
 
       router.push("/farming");
     } catch (err) {
-      console.error("Revoke failed:", err);
+      const message =
+        err instanceof Error ? err.message : "Revoke failed. Please try again.";
+      if (message.toLowerCase().includes("reject") || message.toLowerCase().includes("cancel")) {
+        console.warn("Revoke cancelled by user:", message);
+        setActionError("Transaction was cancelled.");
+      } else {
+        console.warn("Revoke failed:", message);
+        setActionError(message);
+      }
     }
   };
 
@@ -203,6 +222,14 @@ export function SettingsPage() {
         <h1 className="mb-1 font-bold text-3xl text-foreground">Account Settings</h1>
         <p className="text-muted-foreground text-sm">Withdraw funds or manage bot access.</p>
       </div>
+
+      {/* Action error banner */}
+      {actionError && (
+        <div className="mb-6 flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3">
+          <AlertTriangle className="h-4 w-4 shrink-0 text-destructive" />
+          <p className="text-destructive text-sm">{actionError}</p>
+        </div>
+      )}
 
       {/* ---- Withdraw section ---- */}
       <Card className="mb-8 border-border bg-muted/10">

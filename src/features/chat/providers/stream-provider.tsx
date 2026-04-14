@@ -89,21 +89,6 @@ const StreamSession = ({
     },
   });
 
-  // Debug: Log messages when they change to see what we receive from backend
-  useEffect(() => {
-    if (streamValue.messages && threadId) {
-      console.log("[StreamProvider] Messages received from backend:", {
-        threadId,
-        messageCount: streamValue.messages.length,
-        messages: streamValue.messages.map((m: any) => ({
-          id: m.id,
-          type: m.type,
-          content: typeof m.content === "string" ? m.content.substring(0, 50) : "[complex]",
-        })),
-      });
-    }
-  }, [streamValue.messages, threadId]);
-
   useEffect(() => {
     checkGraphStatus(apiUrl, apiKey).then((ok) => {
       if (!ok) {

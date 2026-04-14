@@ -76,7 +76,6 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
     // Only update display messages if we have messages from stream
     // This prevents clearing messages during optimistic updates
     if (stream.messages && stream.messages.length > 0) {
-      console.log("[ChatClient] Stream messages updated:", stream.messages.length, stream.messages);
       setDisplayMessages(stream.messages);
     }
   }, [stream.messages]);
@@ -427,7 +426,6 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
                   // NEVER filter out the last AI message - it needs to render UI components
                   const isLastAiMessage = index === arr.length - 1 && m.type === "ai";
                   if (isLastAiMessage) {
-                    console.log("[ChatClient] Keeping last AI message (will render UI):", m.id);
                     return true;
                   }
 
@@ -437,26 +435,10 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
             aiMsg.tool_calls.every(
                       (tc: any) => !tc.name?.startsWith("call_") || !tc.name?.endsWith("_agent")
                     );
-                    console.log("[ChatClient] AI message filter check:", {
-                      messageId: m.id,
-                      hasToolCallsOnly,
-                      content,
-                      contentLength: content.length,
-                      allAreMcpTools,
-                      toolCalls: aiMsg.tool_calls,
-                      willFilter: allAreMcpTools,
-                    });
                     if (allAreMcpTools) return false;
                   }
                   return true;
                 });
-
-              console.log(
-                "[ChatClient] Filtered messages:",
-                filtered.length,
-                "from",
-                messages.length
-              );
 
               return filtered.map((message, index, arr) => {
                 const prevMessage = index > 0 ? arr[index - 1] : undefined;

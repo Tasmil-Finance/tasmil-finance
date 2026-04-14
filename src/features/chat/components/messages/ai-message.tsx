@@ -45,32 +45,7 @@ function CustomComponent({
   const { values } = useStreamContext();
   const uiValues = Array.isArray((values as any)?.ui) ? ((values as any).ui as any[]) : [];
 
-  console.log("[CustomComponent] Called with:", {
-    messageId: message.id,
-    messageType: message.type,
-    filterType,
-    totalUICount: uiValues.length,
-    allUIMessageIds: uiValues.map((ui: any) => ui.metadata?.message_id),
-    allUIDetails: uiValues.map((ui: any) => ({
-      id: ui.id,
-      name: ui.name,
-      messageId: ui.metadata?.message_id,
-      operation: ui.props?.operation,
-      type: ui.props?.type,
-    })),
-  });
-
   const allUIForMessage = uiValues.filter((ui: any) => ui.metadata?.message_id === message.id);
-
-  // Debug logging for blend UI
-  if (message?.id && allUIForMessage?.length > 0) {
-    console.log("[AI Message] UI found for message:", {
-      messageId: message.id,
-      uiCount: allUIForMessage.length,
-      uiNames: allUIForMessage.map((ui: any) => ui.name),
-      uiProps: allUIForMessage.map((ui: any) => ui.props),
-    });
-  }
 
   // Filter by type if specified
   let filteredUI = allUIForMessage;
@@ -119,26 +94,8 @@ function CustomComponent({
   }, []);
 
   if (!customComponents?.length) {
-    console.log("[CustomComponent] No components to render", {
-      messageId: message.id,
-      filterType,
-      allUICount: allUIForMessage?.length,
-    });
     return null;
   }
-
-  console.log("[CustomComponent] Rendering components:", {
-    messageId: message.id,
-    filterType,
-    componentCount: customComponents.length,
-    components: customComponents.map((c: any) => ({
-      id: c.id,
-      name: c.name,
-      operation: c.props?.operation,
-      status: c.props?.status,
-      hasXdr: !!c.props?.result?.xdr,
-    })),
-  });
 
   return (
     <Fragment key={message.id}>

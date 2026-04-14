@@ -15,25 +15,32 @@ interface AuthState {
   accessToken: string | null;
   user: AuthUser | null;
   isLoading: boolean;
+  expiresAt: number | null;
   setAuthState: (state: { accessToken: string; user: AuthUser }) => void;
   setLoading: (loading: boolean) => void;
   logout: () => void;
+  isTokenExpired: () => boolean;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       isAuthenticated: false,
       accessToken: null,
       user: null,
       isLoading: false,
-      setAuthState: ({ accessToken, user }) =>
+      expiresAt: null,
+      setAuthState: ({ accessToken, user }) => {
+        // JWT expires in 24h — store the deadline so we can detect stale tokens
+        const expiresAt = Date.now() + 23 * 60 * 60 * 1000; // 23h (1h safety margin)
         set({
           isAuthenticated: true,
           accessToken,
           user,
           isLoading: false,
-        }),
+          expiresAt,
+        });
+      },
       setLoading: (isLoading) => set({ isLoading }),
       logout: () =>
         set({
@@ -41,7 +48,13 @@ export const useAuthStore = create<AuthState>()(
           accessToken: null,
           user: null,
           isLoading: false,
+          expiresAt: null,
         }),
+      isTokenExpired: () => {
+        const { expiresAt } = get();
+        if (!expiresAt) return true;
+        return Date.now() > expiresAt;
+      },
     }),
     {
       name: "auth-storage",
@@ -49,6 +62,7 @@ export const useAuthStore = create<AuthState>()(
         isAuthenticated: state.isAuthenticated,
         accessToken: state.accessToken,
         user: state.user,
+        expiresAt: state.expiresAt,
       }),
     }
   )

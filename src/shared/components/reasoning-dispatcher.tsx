@@ -16,12 +16,6 @@ export function ReasoningDispatcher({
   duration?: number;
   isStreaming?: boolean;
 }) {
-  console.log("[ReasoningDispatcher] Props received:", {
-    content: content?.substring?.(0, 100),
-    duration,
-    isStreaming,
-  });
-
   return (
     <AIReasoning duration={duration} isStreaming={isStreaming ?? false}>
       {content || "Thinking..."}

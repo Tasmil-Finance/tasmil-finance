@@ -143,24 +143,68 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setLoading(true);
 
       try {
+        const API_BASE = process.env["NEXT_PUBLIC_API_URL"] ?? "http://127.0.0.1:6756/api";
+
+        // Step 1: Request a challenge nonce from the server
+        const challengeRes = await fetch(`${API_BASE}/auth/challenge`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ publicKey: walletAddress }),
+        });
+        if (!challengeRes.ok) {
+          throw new Error("Failed to get auth challenge");
+        }
+        const { data: challengeData } = await challengeRes.json();
+
+        // Step 2: Build a TX for the user to sign (proves private key ownership)
+        const { TransactionBuilder, Operation, Account, Networks } = await import(
+          "@stellar/stellar-sdk"
+        );
+        const network =
+          (process.env["NEXT_PUBLIC_STELLAR_NETWORK"] as string) === "PUBLIC"
+            ? Networks.PUBLIC
+            : Networks.TESTNET;
+        const account = new Account(walletAddress, "0");
+        const tx = new TransactionBuilder(account, {
+          fee: "100",
+          networkPassphrase: network,
+        })
+          .addOperation(
+            Operation.manageData({ name: "tasmil auth", value: challengeData.challenge })
+          )
+          .setTimeout(300)
+          .build();
+
+        // Step 3: Sign with wallet
+        setSigning(true);
+        const { StellarWalletsKit } = await import("@creit.tech/stellar-wallets-kit/sdk");
+        const { signedTxXdr } = await StellarWalletsKit.signTransaction(tx.toXDR(), {
+          address: walletAddress,
+          networkPassphrase: network,
+        });
+
+        // Step 4: Verify signature and get JWT
         setSigning(false);
-
-        // Mock authentication (replace with actual API call)
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        const mockUser: AuthUser = {
-          id: `user_${walletAddress.slice(0, 8)}`,
-          walletAddress,
-          type: "regular",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
-        const mockToken = `mock_token_${Date.now()}`;
+        const response = await fetch(`${API_BASE}/auth/verify`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ publicKey: walletAddress, signedXdr: signedTxXdr }),
+        });
+        if (!response.ok) {
+          throw new Error("Authentication verification failed");
+        }
+        const result = await response.json();
+        const { accessToken, user: userData } = result.data;
 
         setAuthState({
-          accessToken: mockToken,
-          user: mockUser,
+          accessToken,
+          user: {
+            id: userData.id || `user_${walletAddress.slice(0, 8)}`,
+            walletAddress,
+            type: "regular",
+            createdAt: userData.createdAt || new Date().toISOString(),
+            updatedAt: userData.updatedAt || new Date().toISOString(),
+          },
         });
 
         toast.success("Wallet connected successfully!");
@@ -190,6 +234,18 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     },
     [setAuthState, setLoading, setSigning, isAuthValid, isAuthenticated]
   );
+
+  // Listen for auth token expiration and trigger re-authentication
+  useEffect(() => {
+    const handler = () => {
+      if (address) {
+        authAttemptedRef.current = null;
+        authenticateWithWallet(address, true);
+      }
+    };
+    window.addEventListener("auth-token-expired", handler);
+    return () => window.removeEventListener("auth-token-expired", handler);
+  }, [address, authenticateWithWallet]);
 
   // Connect via StellarWalletsKit built-in modal
   const connect = useCallback(async () => {
