@@ -2,6 +2,7 @@
 
 import type { LucideIcon } from "lucide-react";
 import { ArrowRightLeft, Coins } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { useStreamContext } from "@/features/chat/hooks";
@@ -128,7 +129,23 @@ export function BlendExecuteCard({
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
-          return parsed.status || initialStatus;
+          const storedStatus = parsed.status || initialStatus;
+          
+          // If transaction was pending/executing when page reloaded, mark as failed
+          if (storedStatus === "executing" || storedStatus === "pending") {
+            // Mark as failed due to page reload
+            const failedState = {
+              status: "error",
+              result: {
+                success: false,
+                error: "Transaction cancelled - page reloaded",
+              },
+            };
+            localStorage.setItem(storageKey, JSON.stringify(failedState));
+            return "error";
+          }
+          
+          return storedStatus;
         } catch {
           // Ignore
         }
@@ -143,6 +160,16 @@ export function BlendExecuteCard({
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
+          const storedStatus = parsed.status;
+          
+          // If was pending/executing, return error result
+          if (storedStatus === "executing" || storedStatus === "pending") {
+            return {
+              success: false,
+              error: "Transaction cancelled - page reloaded",
+            };
+          }
+          
           return parsed.result || null;
         } catch {
           // Ignore
@@ -163,7 +190,7 @@ export function BlendExecuteCard({
     
     for (let i = messages.length - 1; i >= 0; i--) {
       const msg = messages[i];
-      if (msg && msg.type === 'ai' && 'tool_calls' in msg && msg.tool_calls) {
+      if (msg.type === 'ai' && 'tool_calls' in msg && msg.tool_calls) {
         const hasMatchingToolCall = msg.tool_calls.some((tc: any) => {
           const tcId = tc.id || tc.get?.('id');
           return tcId === toolCallId;
@@ -188,14 +215,32 @@ export function BlendExecuteCard({
       setIsTransactionCancelled(true);
       // Update localStorage
       if (storageKey) {
-        localStorage.setItem(storageKey, JSON.stringify({ status, result }));
+        const failedState = {
+          status: 'error',
+          result: {
+            success: false,
+            error: 'Transaction cancelled - new message sent',
+          },
+        };
+        localStorage.setItem(storageKey, JSON.stringify(failedState));
       }
-      setLocalStatus(status as any);
-      setLocalResult(result);
-    },
-    [storageKey]
-  );
-
+    }
+  }, [stream.messages, toolCallId, localStatus, storageKey]);
+  
+  // If transaction is cancelled, show error status
+  const effectiveStatus = isTransactionCancelled ? 'error' : localStatus;
+  const effectiveResult = isTransactionCancelled 
+    ? { success: false, error: 'Transaction cancelled - new message sent' }
+    : (localResult || result);
+  
+  const updatePersisted = useCallback((status: string, result: ExecuteResult | null) => {
+    if (storageKey) {
+      localStorage.setItem(storageKey, JSON.stringify({ status, result }));
+    }
+    setLocalStatus(status as any);
+    setLocalResult(result);
+  }, [storageKey]);
+  
   const config = OPERATION_CONFIG[operation ?? ""] ?? DEFAULT_CONFIG;
 
   let execResult: ExecuteResult | null = null;
@@ -215,11 +260,25 @@ export function BlendExecuteCard({
 
   const handleExecute = useCallback(
     async (address: string) => {
+      console.log("[BlendExecuteCard] handleExecute started:", {
+        address,
+        hasXdr: !!xdr,
+        operation,
+        toolCallId,
+        currentStreamMessages: stream.messages.length,
+        messageIds: stream.messages.map((m) => m.id),
+      });
+
       if (!xdr) {
         return { success: false, error: "No transaction XDR available" };
       }
 
       try {
+        // Set waiting for transaction state
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('transaction-signing-started'));
+        }
+        
         updatePersisted("inProgress", null);
 
         const { StellarWalletsKit } = await import("@creit.tech/stellar-wallets-kit/sdk");
@@ -288,6 +347,12 @@ export function BlendExecuteCard({
             content: `Transaction ${hash} submitted successfully`,
           };
 
+          console.log("[BlendExecuteCard] Submitting success message:", {
+            messageId: successMessage.id,
+            currentStreamMessages: stream.messages.length,
+            messageIds: stream.messages.map((m) => m.id),
+          });
+
           await stream.submit(
             { messages: [successMessage] },
             {
@@ -297,6 +362,16 @@ export function BlendExecuteCard({
               streamResumable: true,
             }
           );
+
+          console.log("[BlendExecuteCard] Success message submitted, stream state after:", {
+            streamMessages: stream.messages.length,
+            messageIds: stream.messages.map((m) => m.id),
+          });
+
+          // Clear waiting state
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('transaction-signing-completed'));
+          }
 
           return successResult;
         } else {
@@ -319,6 +394,17 @@ export function BlendExecuteCard({
             content: "Transaction rejected by user",
           };
 
+          console.log("[BlendExecuteCard] Submitting rejection message:", {
+            messageId: rejectionMessage.id,
+            currentStreamMessages: stream.messages.length,
+            messageIds: stream.messages.map((m) => m.id),
+            lastFewMessages: stream.messages.slice(-3).map((m) => ({
+              id: m.id,
+              type: m.type,
+              content: typeof m.content === "string" ? m.content.slice(0, 50) : "non-string",
+            })),
+          });
+
           await stream.submit(
             { messages: [rejectionMessage] },
             {
@@ -328,6 +414,8 @@ export function BlendExecuteCard({
               streamResumable: true,
             }
           );
+
+          console.log("[BlendExecuteCard] Rejection message submitted");
 
           return { success: false, error: "Transaction rejected by user" };
         }
@@ -343,6 +431,17 @@ export function BlendExecuteCard({
           content: `Transaction failed: ${msg}`,
         };
 
+        console.log("[BlendExecuteCard] Submitting error message:", {
+          messageId: errorMessage.id,
+          currentStreamMessages: stream.messages.length,
+          messageIds: stream.messages.map((m) => m.id),
+          lastFewMessages: stream.messages.slice(-3).map((m) => ({
+            id: m.id,
+            type: m.type,
+            content: typeof m.content === "string" ? m.content.slice(0, 50) : "non-string",
+          })),
+        });
+
         await stream.submit(
           { messages: [errorMessage] },
           {
@@ -352,6 +451,8 @@ export function BlendExecuteCard({
             streamResumable: true,
           }
         );
+
+        console.log("[BlendExecuteCard] Error message submitted");
 
         return errorResult;
       }
@@ -397,8 +498,8 @@ export function BlendExecuteCard({
       iconColor={config.iconColor}
       iconBg={config.iconBg}
       buttonText={config.buttonText}
-      status={localStatus}
-      result={localResult || result}
+      status={effectiveStatus}
+      result={effectiveResult}
       onExecute={handleExecute}
       renderDetails={renderDetails}
     />
