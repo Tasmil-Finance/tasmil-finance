@@ -9,7 +9,7 @@ function isAdminAuthenticated(): boolean {
     const raw = localStorage.getItem("admin-auth-storage");
     if (!raw) return false;
     const parsed = JSON.parse(raw);
-    return parsed.state?.isAuthenticated === true;
+    return parsed.state?.isAuthenticated === true && !!parsed.state?.token;
   } catch {
     return false;
   }

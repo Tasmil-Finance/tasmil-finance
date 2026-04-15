@@ -629,10 +629,10 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
 // u2500u2500 Page u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500
 
 export default function AdminDashboardPage() {
-  const { data: stats, isLoading, isError, refetch } = useAdminDashboard();
+  const { data: stats, isLoading, isFetching, isError, refetch } = useAdminDashboard();
   const { data: registrationStats } = useRegistrationStats(30);
 
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return (
       <div className="flex h-64 items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -642,8 +642,10 @@ export default function AdminDashboardPage() {
 
   if (isError) return <ErrorState onRetry={refetch} />;
 
-  const walletStats = stats!.walletStats;
-  const emailDispatches = stats!.emailDispatches;
+  if (!stats) return <ErrorState onRetry={refetch} />;
+
+  const walletStats = stats.walletStats;
+  const emailDispatches = stats.emailDispatches;
 
   return (
     <div className="space-y-6 p-8">
@@ -675,8 +677,8 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <TopReferrers referrers={walletStats.topReferrers} />
         <CampaignsSection
-          campaigns={stats!.campaigns}
-          recentCampaign={stats!.recentCampaign}
+          campaigns={stats.campaigns}
+          recentCampaign={stats.recentCampaign}
         />
       </div>
     </div>
