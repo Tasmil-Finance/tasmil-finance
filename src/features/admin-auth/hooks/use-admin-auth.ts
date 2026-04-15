@@ -28,7 +28,8 @@ export function useAdminAuth() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
+      const json = await response.json();
+      const data = json.data ?? json;
 
       if (!response.ok) {
         setError(data.message ?? "Login failed");

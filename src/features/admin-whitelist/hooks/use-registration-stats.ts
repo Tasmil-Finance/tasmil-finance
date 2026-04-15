@@ -16,7 +16,8 @@ async function fetchRegistrationStats(
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!response.ok) throw new Error("Failed to fetch registration stats");
-  return response.json();
+  const json = await response.json();
+  return json.data ?? json;
 }
 
 export function useRegistrationStats(days = 30) {

@@ -39,7 +39,8 @@ async function fetchDashboard(token: string): Promise<DashboardStats> {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!response.ok) throw new Error("Failed to fetch dashboard");
-  return response.json();
+  const json = await response.json();
+  return json.data ?? json;
 }
 
 export function useAdminDashboard() {
