@@ -44,8 +44,6 @@ function AdminNavItem({
 }
 
 export function AdminSidebar() {
-  const items = adminSidebarData.navGroups.flatMap((g) => g.items);
-
   return (
     <aside className="flex h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar">
       {/* Header */}
@@ -58,26 +56,30 @@ export function AdminSidebar() {
             <span className="text-sm font-semibold text-sidebar-foreground">
               {adminSidebarData.header.brand_name}
             </span>
-            <span className="text-xs text-sidebar-foreground/60">
-              Admin Panel
-            </span>
+            <span className="text-xs text-sidebar-foreground/60">Admin Panel</span>
           </div>
         </Link>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-2 overflow-y-auto p-3">
-        {items.map((item) => (
-          <AdminNavItem
-            key={item.url}
-            title={item.title}
-            url={item.url}
-            icon={item.icon}
-          />
+      <nav className="flex-1 overflow-y-auto p-3">
+        {adminSidebarData.navGroups.map((group, gi) => (
+          <div key={gi} className={gi > 0 ? "mt-4" : ""}>
+            {group.title && (
+              <p className="mb-1 px-4 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
+                {group.title}
+              </p>
+            )}
+            <div className="space-y-0.5">
+              {group.items.map((item) => (
+                <AdminNavItem key={item.url} title={item.title} url={item.url} icon={item.icon} />
+              ))}
+            </div>
+          </div>
         ))}
       </nav>
 
-      {/* Footer — admin identity only, no wallet */}
+      {/* Footer */}
       <div className="flex items-center gap-2 border-t border-sidebar-border p-4">
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-sm font-semibold">
           A

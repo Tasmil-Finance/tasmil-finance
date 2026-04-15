@@ -1,4 +1,4 @@
-import { ArrowLeftRight, Bot, Home, Tractor, Wallet } from "lucide-react";
+import { Bot, Home, KeyRound, Mail, Tractor, Wallet } from "lucide-react";
 
 export interface NavItem {
   title: string;
@@ -99,12 +99,16 @@ export const adminSidebarData: SidebarData = {
   },
   navGroups: [
     {
+      title: "Overview",
       items: [
-        {
-          title: "Dashboard",
-          url: "/admin/dashboard",
-          icon: Home,
-        },
+        { title: "Dashboard", url: "/admin/dashboard", icon: Home },
+      ],
+    },
+    {
+      title: "Waitlist",
+      items: [
+        { title: "Access Codes", url: "/admin/codes", icon: KeyRound },
+        { title: "Campaigns", url: "/admin/campaigns", icon: Mail },
       ],
     },
   ],
