@@ -187,14 +187,10 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setLoading(true);
 
       try {
-        // Auth endpoints live on the NestJS backend, not the AI server
-        const API_BASE =
-          process.env["NEXT_PUBLIC_BACKEND_URL"]
-            ? `${process.env["NEXT_PUBLIC_BACKEND_URL"]}/api`
-            : "http://localhost:6756/api";
+        const API_BASE = process.env["NEXT_PUBLIC_API_URL"] ?? "http://127.0.0.1:6756";
 
         // Step 1: Request a challenge nonce from the server
-        const challengeRes = await fetch(`${API_BASE}/auth/challenge`, {
+        const challengeRes = await fetch(`${API_BASE}/api/auth/challenge`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ publicKey: walletAddress }),
@@ -234,7 +230,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
         // Step 4: Verify signature and get JWT
         setSigning(false);
-        const response = await fetch(`${API_BASE}/auth/verify`, {
+        const response = await fetch(`${API_BASE}/api/auth/verify`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ publicKey: walletAddress, signedXdr: signedTxXdr }),
