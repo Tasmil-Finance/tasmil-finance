@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useWallet } from "@/shared/context/wallet-context";
-import { checkWalletNetwork, parseSigningError } from "@/lib/stellar-network-check";
 
 // ─── Types matching MCP Stellar aggregator API ──────────────────
 
@@ -192,15 +191,11 @@ export function useAggregator(): AggregatorState {
         if (cancelled) return;
         setChains(c);
         setTokens(t);
-        // Validate current selections against new token list, reset if invalid
-        setTokenInState((prev) => {
-          const valid = prev && t.find((tk) => tk.symbol === prev.symbol);
-          return valid || t.find((tk) => tk.symbol === "XLM") || null;
-        });
-        setTokenOutState((prev) => {
-          const valid = prev && t.find((tk) => tk.symbol === prev.symbol);
-          return valid || t.find((tk) => tk.symbol === "USDC") || null;
-        });
+        // Defaults
+        const xlm = t.find((tk) => tk.symbol === "XLM");
+        const usdc = t.find((tk) => tk.symbol === "USDC");
+        if (xlm) setTokenInState(xlm);
+        if (usdc) setTokenOutState(usdc);
       })
       .catch(() => {})
       .finally(() => {
@@ -425,7 +420,6 @@ export function useAggregator(): AggregatorState {
       const data = await res.json();
       if (!data.xdr) throw new Error(data.error || "Failed to build trustline tx");
 
-      await checkWalletNetwork();
       const signedXdr = await signTransaction(data.xdr);
 
       const submitRes = await fetch(`${MCP_STELLAR_URL}/api/aggregator/submit`, {
@@ -442,7 +436,7 @@ export function useAggregator(): AggregatorState {
       setNeedsTrustline(remaining.length > 0);
       setTrustlineToken(remaining[0] ?? null);
     } catch (err) {
-      const msg = parseSigningError(err);
+      const msg = err instanceof Error ? err.message : "Trustline failed";
       // Don't show error for user rejection
       if (!msg.toLowerCase().includes("cancel") && !msg.toLowerCase().includes("reject") && !msg.toLowerCase().includes("denied")) {
         setExecuteError(msg);
@@ -496,7 +490,6 @@ export function useAggregator(): AggregatorState {
 
       if (result.xdr) {
         // 2. Sign XDR with Stellar wallet (triggers wallet popup)
-        await checkWalletNetwork();
         const signedXdr = await signTransaction(result.xdr);
 
         // 3. Submit signed transaction via Soroswap send API (handles Soroban submission)
@@ -512,34 +505,13 @@ export function useAggregator(): AggregatorState {
           throw new Error(submitData.detail || submitData.error || "Transaction submission failed");
         }
 
-        // Verify TX actually succeeded on-chain (submitted != successful)
-        if (submitData.hash) {
-          const MCP2 = process.env["NEXT_PUBLIC_MCP_STELLAR_URL"] || "http://localhost:3009";
-          try {
-            const verifyRes = await fetch(`${MCP2}/api/aggregator/verify?hash=${submitData.hash}`);
-            const verifyData = await verifyRes.json();
-            if (verifyData.successful === false) {
-              throw new Error(verifyData.error || "Transaction failed on-chain");
-            }
-          } catch (verifyErr) {
-            // If verify fails but TX was submitted, show hash anyway with warning
-            if (verifyErr instanceof Error && verifyErr.message.includes("on-chain")) {
-              throw verifyErr;
-            }
-          }
-        }
-
-        // Clear form after success
-        setAmount("");
-        setQuotes([]);
-        setMode(null);
-        setExecuteSuccess(submitData.hash);
+        setExecuteSuccess(`Transaction submitted! Hash: ${submitData.hash}`);
       } else if (result.depositAddress) {
         // Bridge flow — show deposit instructions
         setExecuteSuccess(`Send funds to: ${result.depositAddress}`);
       }
     } catch (err) {
-      const msg = parseSigningError(err);
+      const msg = err instanceof Error ? err.message : "Swap failed";
       if (!msg.toLowerCase().includes("cancel") && !msg.toLowerCase().includes("reject") && !msg.toLowerCase().includes("denied")) {
         setExecuteError(msg);
       }

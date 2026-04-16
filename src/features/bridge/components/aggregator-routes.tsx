@@ -78,16 +78,10 @@ function RouteCard({
         </div>
       </div>
       <div className="flex items-center justify-between mt-2">
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1 text-sm" style={{ color: "var(--muted-foreground)" }}>
-            <Info className="h-3.5 w-3.5" />
-            Fee: {quote.feePercent}
-          </span>
-          <span className="flex items-center gap-1 text-sm" style={{ color: "var(--muted-foreground)" }}>
-            <Clock className="h-3.5 w-3.5" />
-            {quote.estimatedTime}
-          </span>
-        </div>
+        <span className="flex items-center gap-1.5 text-sm" style={{ color: "var(--muted-foreground)" }}>
+          <Info className="h-3.5 w-3.5" />
+          Fee: {quote.feePercent}
+        </span>
         <span className="flex items-center gap-1.5 text-sm font-medium" style={{ color: "var(--muted-foreground)" }}>
           <img src={proto.icon} alt={proto.label} className="h-5 w-5 rounded-sm" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
           {proto.label}

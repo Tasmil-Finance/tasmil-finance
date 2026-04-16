@@ -8,7 +8,6 @@ import { useStreamContext } from "@/features/chat/hooks";
 import type { SignedTxRecord } from "@/features/chat/types/stream.types";
 import { useWallet } from "@/shared/context/wallet-context";
 import { activeNetwork, truncateAddress } from "@/shared/config/stellar";
-import { checkWalletNetwork, parseSigningError } from "@/lib/stellar-network-check";
 import { DetailRow } from "../base/indicators";
 import { BaseOperationCard } from "../base/operation-card";
 
@@ -211,7 +210,6 @@ export function BlendExecuteCard({
       }
 
       try {
-        await checkWalletNetwork();
         const { StellarWalletsKit } = await import("@creit.tech/stellar-wallets-kit/sdk");
 
         try {
@@ -300,9 +298,9 @@ export function BlendExecuteCard({
 
         throw new Error(`Transaction failed with status: ${response.status}`);
       } catch (error) {
-        const msg = parseSigningError(error);
+        const msg = error instanceof Error ? error.message : "Signing failed";
         const isRejection =
-          msg.toLowerCase().includes("rejected") || msg.toLowerCase().includes("denied") || msg.toLowerCase().includes("cancel");
+          msg.includes("rejected") || msg.includes("denied") || msg.includes("cancel");
 
         const cardResult = {
           success: false,
