@@ -123,7 +123,7 @@ export function FooterSidebarSection() {
             {/* XLM Balance Display */}
             <div className="flex items-center gap-2 border border-zinc-700/50 bg-zinc-800/30 rounded-xl px-3 py-2">
               <Image
-                src="/token/stellar.png"
+                src="/token/xlm.png"
                 alt="Stellar"
                 width={32}
                 height={32}
@@ -218,7 +218,7 @@ export function FooterSidebarSection() {
               {/* Balance - Collapsed */}
               <div className="flex h-14 w-full flex-col items-center justify-center gap-1 rounded-xl border border-zinc-700/50 bg-zinc-800/30 backdrop-blur-sm">
                 <Image
-                  src="/token/stellar.png"
+                  src="/token/xlm.png"
                   alt="Stellar"
                   width={20}
                   height={20}

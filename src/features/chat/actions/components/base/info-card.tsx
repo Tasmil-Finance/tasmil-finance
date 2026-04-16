@@ -30,7 +30,7 @@ export function BaseInfoCard({
   if (isLoading) {
     return (
       <div
-        className={cn("w-fit min-w-[280px] rounded-lg border bg-card/40 p-4 shadow-sm", className)}
+        className={cn("w-fit min-w-[280px] max-w-[360px] rounded-lg border bg-card/40 p-4 shadow-sm", className)}
       >
         <div className="flex items-center gap-3">
           <div
@@ -51,7 +51,7 @@ export function BaseInfoCard({
     return (
       <div
         className={cn(
-          "w-fit min-w-[280px] rounded-lg border border-destructive/30 bg-destructive/5 p-4 shadow-sm",
+          "w-fit min-w-[280px] max-w-[360px] rounded-lg border border-destructive/30 bg-destructive/5 p-4 shadow-sm",
           className
         )}
       >
@@ -64,7 +64,7 @@ export function BaseInfoCard({
   }
 
   return (
-    <div className={cn("w-fit min-w-[280px] rounded-lg border bg-card p-4 shadow-sm", className)}>
+    <div className={cn("w-fit min-w-[280px] max-w-[360px] rounded-lg border bg-card p-4 shadow-sm", className)}>
       {(Icon || title) && (
         <div className="mb-3 flex items-center gap-3">
           {Icon && (

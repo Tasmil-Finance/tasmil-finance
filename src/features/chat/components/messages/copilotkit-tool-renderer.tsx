@@ -27,6 +27,19 @@ function getCardRenderer(toolName: string) {
 }
 
 function parseResult(content: string | unknown): unknown {
+  // MCP tools return content as an array of blocks: [{type:"text", text:"..."}]
+  // Extract the text from the first text block before JSON parsing
+  if (Array.isArray(content)) {
+    const textBlock = (content as any[]).find((b) => b?.type === "text" && typeof b?.text === "string");
+    if (textBlock) {
+      try {
+        return JSON.parse(textBlock.text);
+      } catch {
+        return textBlock.text;
+      }
+    }
+    return content;
+  }
   if (typeof content !== "string") return content;
   try {
     return JSON.parse(content);
@@ -124,6 +137,7 @@ export function CopilotKitToolCallRenderer({
                 args={tc.args}
                 result={result?.content}
                 status="complete"
+                toolCallId={tc.id}
               />
             )}
           </div>

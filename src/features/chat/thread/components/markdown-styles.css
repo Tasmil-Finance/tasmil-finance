@@ -25,21 +25,9 @@
   overflow-x: auto;
 }
 
-.markdown-content table {
-  border-collapse: collapse;
-  width: 100%;
-}
+/* Table styles are handled by Tailwind components in markdown-text.tsx */
 
-.markdown-content th,
-.markdown-content td {
-  border: 1px solid #ddd;
-  padding: 8px;
-}
-
-.markdown-content th {
-  background-color: #f2f2f2;
-}
-
-.markdown-content tr:nth-child(even) {
-  background-color: #f9f9f9;
+/* Hide table rows where all cells are empty (AI sometimes generates empty separator rows) */
+.markdown-content tr:not(:has(td:not(:empty), th:not(:empty))) {
+  display: none;
 }

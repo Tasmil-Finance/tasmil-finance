@@ -31,7 +31,7 @@ interface AgentCardProps {
 
 // Map chain name to icon path (files in /public/token/)
 const CHAIN_ICONS: Record<string, string> = {
-  stellar: "/token/stellar.png",
+  stellar: "/token/xlm.png",
   ethereum: "/token/ethereum.png",
   arbitrum: "/token/arb.png",
   optimism: "/token/optimism.png",

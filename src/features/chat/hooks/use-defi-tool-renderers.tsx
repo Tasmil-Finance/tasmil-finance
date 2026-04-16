@@ -10,6 +10,7 @@ import { StellarExecuteCard } from "@/features/chat/actions/components/stellar/e
 import { PoolInfoCard } from "@/features/chat/actions/components/stellar/pool-info-card";
 import { SwapQuoteCard } from "@/features/chat/actions/components/stellar/swap-quote-card";
 import { TxSubmitCard } from "@/features/chat/actions/components/stellar/tx-submit-card";
+import { TrustlineExecuteCard } from "@/features/chat/actions/components/stellar/trustline-execute-card";
 import { SupervisorAgentCallCard } from "@/features/chat/actions/components/stellar/supervisor-agent-call-card";
 
 /**
@@ -111,6 +112,7 @@ export const OPERATION_TOOL_RENDERERS: Array<{
 }> = [
   // Shared
   { toolName: "submit_transaction", operation: "tx_submit", component: TxSubmitCard },
+  { toolName: "execute", operation: "execute", component: TrustlineExecuteCard },
 
   // Soroswap
   { toolName: "swap_build_transaction", operation: "swap_execute", component: StellarExecuteCard },

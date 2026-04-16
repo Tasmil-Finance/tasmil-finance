@@ -30,6 +30,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useChatState, useStreamContext } from '../hooks';
 import { useWallet } from '@/shared/context/wallet-context';
+import { useWalletStore } from '@/store/use-wallet';
 import { useFileUpload } from '@/shared/hooks/use-file-upload';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { Button } from '@/shared/ui/button-v2';
@@ -135,6 +136,10 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
   
   const { hideToolCalls, setHideToolCalls, setAssistantInfo } = useChatState();
   const { address: walletAddress } = useWallet();
+  // Fallback: Zustand persists wallet address synchronously from previous session.
+  // The React state from useWallet() starts null on page load and is set after async kit init.
+  // Using the store as fallback ensures wallet_address is always included even before kit ready.
+  const effectiveWalletAddress = walletAddress ?? useWalletStore.getState().account;
 
   // Fetch assistant info for avatar
   const { mutate: searchAssistants } = useSearchAssistantsAssistantsSearchPost({
@@ -325,36 +330,6 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
     setFirstTokenReceived(false);
     setIsSubmitting(true);
 
-    // Fail all pending transactions in localStorage before sending new message
-    if (typeof window !== 'undefined') {
-      const keys = Object.keys(localStorage);
-      const txKeys = keys.filter(key => key.startsWith('blend-tx-'));
-      
-      txKeys.forEach(key => {
-        try {
-          const stored = localStorage.getItem(key);
-          if (stored) {
-            const parsed = JSON.parse(stored);
-            if (parsed.status === 'executing' || parsed.status === 'pending') {
-              const failedState = {
-                status: 'error',
-                result: {
-                  success: false,
-                  error: 'Transaction cancelled - new message sent',
-                },
-              };
-              localStorage.setItem(key, JSON.stringify(failedState));
-            }
-          }
-        } catch {
-          // Ignore
-        }
-      });
-      
-      // Force re-render by triggering a storage event
-      window.dispatchEvent(new Event('storage'));
-    }
-
     const newHumanMessage: Message = {
       id: uuidv4(),
       type: "human",
@@ -375,7 +350,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
     stream.submit(
       {
         messages: [...stream.messages, ...toolMessages, newHumanMessage],
-        ...(walletAddress && { wallet_address: walletAddress }),
+        ...(effectiveWalletAddress && { wallet_address: effectiveWalletAddress }),
       },
       {
         // @ts-ignore
@@ -449,7 +424,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
       {
         // IMPORTANT: Send ALL existing messages + tool responses + new message
         messages: [...stream.messages, ...toolMessages, newHumanMessage],
-        ...(walletAddress && { wallet_address: walletAddress }),
+        ...(effectiveWalletAddress && { wallet_address: effectiveWalletAddress }),
       },
       {
         // @ts-ignore - streamMode may not be in type definition
@@ -515,7 +490,21 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
 
               return filtered.map((message, index, arr) => {
                 const prevMessage = index > 0 ? arr[index - 1] : undefined;
+                // Check if there's a hidden human message (e.g. __hidden__tx-success-*) between
+                // prevMessage and message in the unfiltered thread. If so, treat as new turn → show avatar.
+                const hasHiddenHumanBetween =
+                  prevMessage && message
+                    ? (() => {
+                        const prevIdx = messages.findIndex((m) => m.id === prevMessage.id);
+                        const currIdx = messages.findIndex((m) => m.id === message.id);
+                        if (prevIdx === -1 || currIdx === -1) return false;
+                        return messages
+                          .slice(prevIdx + 1, currIdx)
+                          .some((m) => m.type === "human" && !!m.id?.startsWith("__hidden__"));
+                      })()
+                    : false;
                 const isConsecutiveAi =
+                  !hasHiddenHumanBetween &&
                   message.type !== "human" && prevMessage?.type !== "human" && !!prevMessage;
 
                 return message.type === "human" ? (
@@ -533,6 +522,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
                     hideAvatar={isConsecutiveAi}
                     isNewMessageLoading={effectiveIsLoading && !firstTokenReceived}
                     cachedUI={uiComponents}
+                    allMessages={messages}
                   />
                 );
               });

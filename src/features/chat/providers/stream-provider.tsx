@@ -25,6 +25,7 @@ const useTypedStream = useStream<
       messages?: Message[] | Message | string;
       ui?: (UIMessage | RemoveUIMessage)[] | UIMessage | RemoveUIMessage;
       context?: Record<string, unknown>;
+      signed_txs?: Record<string, unknown>;
     };
     CustomEventType: UIMessage | RemoveUIMessage;
   }
