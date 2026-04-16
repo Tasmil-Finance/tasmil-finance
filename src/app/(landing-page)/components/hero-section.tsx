@@ -98,12 +98,12 @@ export const HeroSection = () => {
                 gradient={true}
                 variant="h1"
               >
-                to U2U DeFi
+                to Stellar DeFi
               </Typography>
 
               <div className="my-3 max-w-lg">
                 <Typography className="text-center text-gray-300 text-xl" variant="p">
-                  Experience seamless DeFi on U2U blockchain with AI agents, smart swaps, and
+                  Experience seamless DeFi on Stellar blockchain with AI agents, smart swaps, and
                   real-time insights through conversational interactions.
                 </Typography>
               </div>
@@ -165,7 +165,7 @@ export const HeroSection = () => {
                     gradient={true}
                     variant="h1"
                   >
-                    to U2U DeFi
+                    to Stellar DeFi
                   </Typography>
                 </div>
 
@@ -174,7 +174,7 @@ export const HeroSection = () => {
                     className="text-center text-2xl text-gray-300 leading-relaxed"
                     variant="p"
                   >
-                    Experience seamless DeFi on U2U blockchain with AI agents, smart swaps,
+                    Experience seamless DeFi on Stellar blockchain with AI agents, smart swaps,
                     liquidity optimization, and real-time market insights through conversational
                     interactions.
                   </Typography>
