@@ -74,7 +74,7 @@ export function AssistantMessage({
   handleRegenerate,
   hideAvatar = false,
   isNewMessageLoading = false,
-  cachedUI,
+  cachedUI: _cachedUI,
   allMessages,
 }: {
   message: Message | undefined;

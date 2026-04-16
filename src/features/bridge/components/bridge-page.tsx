@@ -7,7 +7,6 @@ import {
   Landmark,
   Wallet,
   Unplug,
-  ChevronDown,
   Clock,
   Info,
   X,
@@ -18,11 +17,10 @@ import { useAppKit, useAppKitNetwork } from "@reown/appkit/react";
 import { solana, solanaTestnet } from "@reown/appkit/networks";
 import { useWallet } from "@/shared/context/wallet-context";
 import { useAggregator } from "@/features/bridge/hooks/use-aggregator";
-import { RoutePicker, AggregatorTokenPicker } from "@/features/bridge/components/chain-token-selector";
+import { AggregatorTokenPicker } from "@/features/bridge/components/chain-token-selector";
 import { AggregatorRoutePanel, SlippageSettings } from "@/features/bridge/components/aggregator-routes";
 import { AddressPicker } from "@/features/bridge/components/address-picker";
 import { useAddressStore } from "@/features/bridge/stores/use-address-store";
-import { getChain } from "@/features/bridge/lib/constants";
 import { BackgroundRippleEffect } from "@/shared/ui/background-ripple-effect";
 import BorderGlow from "@/shared/ui/border-glow";
 
@@ -39,7 +37,6 @@ const C = {
 const EVM_CHAINS = new Set([
   "ethereum", "arbitrum", "base", "polygon", "optimism", "bsc", "avalanche",
 ]);
-const AVAILABLE_TOKENS = ["USDC", "USDT"];
 
 function truncAddr(addr: string) {
   return addr.length <= 12 ? addr : `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -52,7 +49,6 @@ function formatAmount(raw: string, decimals = 7): string {
   return num.toLocaleString(undefined, { maximumFractionDigits: 6 });
 }
 
-type TabMode = "bridge" | "exchange";
 
 const isTestnet = process.env.NEXT_PUBLIC_STELLAR_TESTNET === "true";
 
@@ -79,8 +75,7 @@ export function BridgePage() {
     await disconnectAsync();
   }, [disconnectAsync]);
   const [swapAnim, cycleSwap] = useCycle({ rotateX: 0 }, { rotateX: 180 });
-  const [activeTab, setActiveTab] = useState<TabMode>("bridge");
-  const [tabHovered, setTabHovered] = useState(false);
+  const activeTab = "bridge" as const;
   const [selectedProtocol, setSelectedProtocol] = useState<string | null>(null);
   const hasUserInteracted = useRef(false);
 
@@ -277,7 +272,7 @@ export function BridgePage() {
                         onSelect={(addr) => addrStore.setSelectedSource(addr)}
                         stellarAddress={stellarAddress}
                         evmAddress={evmAddress}
-                        onConnectWallet={isSourceStellar ? () => connectStellar?.() : b.connectEvm}
+                        onConnectWallet={isSourceStellar ? () => connectStellar?.() : connectEvm}
                         onDisconnectStellar={disconnectStellar}
                         onDisconnectEvm={disconnectEvm}
                       />
@@ -343,7 +338,7 @@ export function BridgePage() {
                         onSelect={(addr) => { addrStore.setSelectedDest(addr); agg.setDestAddress(addr); }}
                         stellarAddress={stellarAddress}
                         evmAddress={evmAddress}
-                        onConnectWallet={chainTypeOut === "stellar" ? () => connectStellar?.() : b.connectEvm}
+                        onConnectWallet={chainTypeOut === "stellar" ? () => connectStellar?.() : connectEvm}
                         onDisconnectStellar={disconnectStellar}
                         onDisconnectEvm={disconnectEvm}
                       />
@@ -444,7 +439,7 @@ export function BridgePage() {
                 {needsWallet ? (
                   <button
                     type="button"
-                    onClick={isSourceStellar ? () => connectStellar?.() : b.connectEvm}
+                    onClick={isSourceStellar ? () => connectStellar?.() : connectEvm}
                     className="w-full rounded-2xl font-bold py-4 text-base transition-all flex items-center justify-center gap-2 active:scale-[0.98] hover:scale-[1.02] relative overflow-hidden bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] text-black"
                   >
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 h-4 w-[50%] rounded-full bg-white/80 blur-xl" />
@@ -660,39 +655,6 @@ function WalletHub({
   );
 }
 
-function HeaderWalletIcon({ logo }: { logo?: string }) {
-  return (
-    <span className="inline-flex items-center justify-center shrink-0">
-      {logo ? <img src={logo} alt="" className="h-7 w-7 rounded-full object-contain" /> : <Wallet className="h-6 w-6" style={{ color: C.mutedText }} />}
-    </span>
-  );
-}
-
-function SourceWallet({ isStellar, isEvm, stellarAddr, evmAddr }: {
-  isStellar: boolean; isEvm: boolean; stellarAddr: string | null; evmAddr: string | null;
-}) {
-  const addr = isStellar ? stellarAddr : isEvm ? evmAddr : null;
-  const logo = isStellar ? "/chains/stellar.png" : "/chains/ethereum.png";
-
-  if (addr) {
-    return (
-      <button type="button" className="flex items-center gap-1 rounded-lg py-1 pl-2 pr-1 text-sm transition-colors" style={{ color: C.mutedText }}>
-        <img src={logo} alt="" className="h-4 w-4 rounded-full shrink-0" />
-        <span>{truncAddr(addr)}</span>
-        <ChevronDown className="h-4 w-4 shrink-0" />
-      </button>
-    );
-  }
-  if (isStellar || isEvm) {
-    return (
-      <button type="button" className="text-sm" style={{ color: C.mutedText }}>
-        Manual Transfer
-      </button>
-    );
-  }
-  return null;
-}
-
 /* ── Exchange Tab: Deposit USDC/XLM from CEX ── */
 
 const EXCHANGES = [
@@ -708,8 +670,6 @@ function ExchangeTab({ stellarAddress }: { stellarAddress: string | null }) {
   const [copied, setCopied] = useState(false);
 
   const depositAddress = stellarAddress || "";
-  // Stellar USDC uses memo for some exchanges; for direct wallet it's not needed
-  const memo = selectedToken === "USDC" ? "" : "";
 
   const copyAddress = () => {
     if (!depositAddress) return;

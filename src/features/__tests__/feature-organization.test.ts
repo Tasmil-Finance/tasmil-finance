@@ -124,47 +124,6 @@ describe("Feature Module Organization Property Tests", () => {
       // Current architecture allows cross-feature imports for shared UX flows.
       // Keep this test as a placeholder so the suite remains stable.
       expect(true).toBe(true);
-      return;
-
-      const fs = require("node:fs");
-
-      function checkFeatureIsolation(featureName: string) {
-        const featurePath = join(FEATURES_DIR, featureName);
-
-        function scanDirectory(dirPath: string): void {
-          if (!existsSync(dirPath)) return;
-
-          const items = readdirSync(dirPath, { withFileTypes: true });
-
-          items.forEach((item) => {
-            const itemPath = join(dirPath, item.name);
-
-            if (item.isDirectory()) {
-              scanDirectory(itemPath);
-            } else if (item.name.match(/\.(ts|tsx)$/)) {
-              const content = fs.readFileSync(itemPath, "utf8");
-
-              // Check for direct imports from other features
-              const otherFeatures = EXPECTED_FEATURES.filter((f) => f !== featureName);
-              otherFeatures.forEach((otherFeature) => {
-                const importPattern = new RegExp(`from.*@/features/${otherFeature}`, "g");
-                const matches = content.match(importPattern);
-
-                if (matches) {
-                  // Allow imports from the main features index (which is the proper way)
-                  const directImportPattern = new RegExp(`from.*@/features/${otherFeature}/`, "g");
-
-                  expect(content.match(directImportPattern)).toBeNull();
-                }
-              });
-            }
-          });
-        }
-
-        scanDirectory(featurePath);
-      }
-
-      EXPECTED_FEATURES.forEach(checkFeatureIsolation);
     });
   });
 });

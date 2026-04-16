@@ -3,7 +3,7 @@ import {
   copilotRuntimeNextJSAppRouterEndpoint,
   ExperimentalEmptyAdapter,
 } from "@copilotkit/runtime";
-import { LangGraphHttpAgent } from "@copilotkit/runtime/langgraph";
+import { LangGraphAgent } from "@copilotkit/runtime/langgraph";
 import type { NextRequest } from "next/server";
 
 const LANGGRAPH_URL = process.env["NEXT_PUBLIC_AI_URL"] || "http://localhost:8001";
@@ -34,7 +34,7 @@ const AGENT_NAMES = [
  * when LangGraph tool messages have missing fields, which fails AG-UI Zod validation.
  */
 class SafeLangGraphAgent extends LangGraphAgent {
-  dispatchEvent(event: any): boolean {
+  override dispatchEvent(event: any): boolean {
     // Sanitize TOOL_CALL events to prevent AG-UI Zod validation errors.
     // LangGraph tool messages sometimes have missing toolCallId/toolCallName
     // which causes: "toolCallId: Required", "toolCallName: Required"
@@ -62,12 +62,12 @@ class SafeLangGraphAgent extends LangGraphAgent {
     return super.dispatchEvent(event);
   }
 
-  clone() {
+  override clone() {
     return new SafeLangGraphAgent((this as any).config);
   }
 }
 
-const agents = Object.fromEntries(
+const agentsMap: Record<string, SafeLangGraphAgent> = Object.fromEntries(
   AGENT_NAMES.map((name) => [
     name,
     new SafeLangGraphAgent({
@@ -75,8 +75,11 @@ const agents = Object.fromEntries(
       graphId: name,
       agentId: name,
     }),
-  },
-});
+  ]),
+);
+
+// 2. CopilotKit runtime with all agents registered
+const runtime = new CopilotRuntime({ agents: agentsMap });
 
 // 3. Build a Next.js API route that handles the CopilotKit runtime requests.
 export const POST = async (req: NextRequest) => {

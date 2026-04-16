@@ -2,16 +2,12 @@
 
 import { User } from "lucide-react";
 import Image from "next/image";
-import { QRCodeSVG } from "qrcode.react";
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { ConnectWalletButton } from "@/shared/components/connect-wallet-button";
 import { useWallet } from "@/shared/context/wallet-context";
 import { useStellarBalance } from "@/shared/hooks/use-stellar-balance";
 import Balatro from "../ui/balatro";
-import { Button } from "../ui/button-v2";
 import { CopyButton } from "../ui/copy-button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { useSidebar } from "../ui/sidebar";
 import { TooltipProvider } from "../ui/tooltip";
 import { Typography } from "../ui/typography";
@@ -61,7 +57,6 @@ const AddressAvatar = ({ address, size = "size-12" }: { address: string; size?: 
 export function FooterSidebarSection() {
   const { state } = useSidebar();
   const isOpen = state === "expanded";
-  const [depositOpen, setDepositOpen] = useState(false);
   const { isConnected, address, displayAddress, disconnect } = useWallet();
   const { xlm, isLoading } = useStellarBalance(address);
 

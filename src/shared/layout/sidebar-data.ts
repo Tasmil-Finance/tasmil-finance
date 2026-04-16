@@ -1,4 +1,4 @@
-import { ArrowLeftRight, Bot, Home, Tractor, Wallet } from "lucide-react";
+import { ArrowLeftRight, Bot, Home, Tractor, Wallet, KeyRound, Mail } from "lucide-react";
 
 export interface NavItem {
   title: string;
