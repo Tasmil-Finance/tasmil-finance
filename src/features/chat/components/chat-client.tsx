@@ -599,6 +599,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
                     isNewMessageLoading={effectiveIsLoading && !firstTokenReceived}
                     cachedUI={uiComponents}
                     allMessages={messages}
+                    data-testid="agent-response"
                   />
                 );
               });

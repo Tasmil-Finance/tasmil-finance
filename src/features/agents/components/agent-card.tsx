@@ -83,6 +83,7 @@ export function AgentCard({ assistant, onClick }: AgentCardProps) {
   const agentDescription = metadata?.description || ["No description available"];
   const supportedChains = metadata?.supportedChains || [];
   const agentGroup = metadata?.agentGroup;
+  const agentId = assistant.graph_id || assistant.assistant_id;
 
   const topBadgeLabel =
     agentGroup === "Protocol Agents"
@@ -92,7 +93,12 @@ export function AgentCard({ assistant, onClick }: AgentCardProps) {
         : agentType;
 
   return (
-    <button onClick={onClick} className="h-full cursor-pointer text-left" type="button">
+    <button 
+      onClick={onClick} 
+      className="h-full cursor-pointer text-left" 
+      type="button"
+      data-testid={`agent-card-${agentId}`}
+    >
       <BorderGlow
         animated
         className="group relative flex h-full flex-col overflow-hidden"

@@ -413,34 +413,162 @@ function NetworkView({ data }: { data: any }) {
 
 function BlendPositionView({ data, args }: { data: any; args?: Record<string, any> }) {
   const poolAddress = args?.poolAddress ?? data?.poolAddress;
-  const position = data?.position ?? data;
+  const hasPosition = data?.hasPosition ?? false;
+  const positions: any[] = data?.positions ?? [];
+  const summary = data?.summary;
 
-  const collateral = position?.collateral ?? {};
-  const liabilities = position?.liabilities ?? {};
-  const supply = position?.supply ?? {};
+  // Legacy fallback: old shape { position: { collateral, liabilities, supply } }
+  const legacyPosition = data?.position;
+  const legacyHas = legacyPosition
+    ? Object.keys(legacyPosition.collateral ?? {}).length +
+      Object.keys(legacyPosition.liabilities ?? {}).length +
+      Object.keys(legacyPosition.supply ?? {}).length > 0
+    : false;
 
-  const collateralCount = Object.keys(collateral).length;
-  const liabilitiesCount = Object.keys(liabilities).length;
-  const supplyCount = Object.keys(supply).length;
-  const hasPosition = collateralCount + liabilitiesCount + supplyCount > 0;
+  const showEmpty = !hasPosition && !legacyHas;
+
+  const supplied = positions.filter((p) => p.suppliedAmount != null);
+  const borrowed = positions.filter((p) => p.borrowedAmount != null);
 
   return (
     <div className="space-y-2">
       {poolAddress && (
         <DetailRow label="Pool" value={truncateAddress(String(poolAddress))} mono />
       )}
-      {!hasPosition ? (
+      
+      {/* Summary Section */}
+      {summary && (
+        <div className="rounded-lg bg-muted/30 p-3 space-y-2 border border-border/50">
+          <div className="text-xs font-semibold text-foreground">Position Summary</div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+            {summary.totalSuppliedUsd && (
+              <>
+                <span className="text-muted-foreground">Total Supplied</span>
+                <span className="text-green-400 font-medium">${formatNumber(Number(summary.totalSuppliedUsd))}</span>
+              </>
+            )}
+            {summary.totalBorrowedUsd && (
+              <>
+                <span className="text-muted-foreground">Total Borrowed</span>
+                <span className="text-orange-400 font-medium">${formatNumber(Number(summary.totalBorrowedUsd))}</span>
+              </>
+            )}
+            {summary.availableBorrowUsd && (
+              <>
+                <span className="text-muted-foreground">Available to Borrow</span>
+                <span className="text-blue-400 font-medium">${formatNumber(Number(summary.availableBorrowUsd))}</span>
+              </>
+            )}
+            {summary.healthFactor && (
+              <>
+                <span className="text-muted-foreground">Health Factor</span>
+                <span className={`font-medium ${Number(summary.healthFactor) > 1.5 ? 'text-green-400' : Number(summary.healthFactor) > 1.1 ? 'text-yellow-400' : 'text-red-400'}`}>
+                  {Number(summary.healthFactor).toFixed(2)}
+                </span>
+              </>
+            )}
+            {summary.claimableBlnd && Number(summary.claimableBlnd) > 0 && (
+              <>
+                <span className="text-muted-foreground">Claimable BLND</span>
+                <span className="text-purple-400 font-medium">{formatNumber(Number(summary.claimableBlnd))} BLND</span>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {showEmpty ? (
         <div className="text-muted-foreground text-xs">No open position in this pool.</div>
       ) : (
         <>
-          {collateralCount > 0 && (
-            <DetailRow label="Collateral reserves" value={collateralCount} />
+          {supplied.length > 0 && (
+            <div className="mt-2 space-y-1 border-t pt-2">
+              <div className="text-muted-foreground text-xs font-medium mb-1">Supplied</div>
+              {supplied.map((p, i) => (
+                <div key={i} className="rounded-lg bg-muted/20 p-2 space-y-1 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold">{p.symbol ?? p.asset}</span>
+                    {p.isCollateral && (
+                      <span className="rounded-full bg-blue-500/10 px-2 py-0.5 text-blue-400 text-[10px]">Collateral</span>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-muted-foreground">
+                    <span>Amount</span>
+                    <span className="text-foreground font-medium">{formatNumber(Number(p.suppliedAmount))} {p.symbol}</span>
+                    {p.netApy != null && (
+                      <>
+                        <span>Net APY</span>
+                        <span className={`font-semibold ${Number(p.netApy) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          {Number(p.netApy) >= 0 ? '+' : ''}{Number(p.netApy).toFixed(2)}%
+                        </span>
+                      </>
+                    )}
+                    {p.supplyApy != null && (
+                      <>
+                        <span>Supply APY</span>
+                        <span className="text-green-400">{Number(p.supplyApy).toFixed(2)}%</span>
+                      </>
+                    )}
+                    {p.supplyEmissionApy != null && Number(p.supplyEmissionApy) > 0 && (
+                      <>
+                        <span className="text-[10px]">+ BLND Emission</span>
+                        <span className="text-purple-400 text-[10px]">+{Number(p.supplyEmissionApy).toFixed(2)}%</span>
+                      </>
+                    )}
+                    {p.borrowCapacityUsd != null && (
+                      <>
+                        <span>Borrow Capacity</span>
+                        <span className="text-foreground">${formatNumber(Number(p.borrowCapacityUsd))}</span>
+                      </>
+                    )}
+                    {p.suppliedUsd != null && (
+                      <>
+                        <span>Value</span>
+                        <span className="text-foreground">${formatNumber(Number(p.suppliedUsd))}</span>
+                      </>
+                    )}
+                    {p.assetPrice > 0 && (
+                      <>
+                        <span>Price</span>
+                        <span className="text-foreground">${formatPrice(p.assetPrice)}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
-          {supplyCount > 0 && (
-            <DetailRow label="Supply reserves" value={supplyCount} />
-          )}
-          {liabilitiesCount > 0 && (
-            <DetailRow label="Borrow reserves" value={liabilitiesCount} />
+          {borrowed.length > 0 && (
+            <div className="mt-2 space-y-1 border-t pt-2">
+              <div className="text-muted-foreground text-xs font-medium mb-1">Borrowed</div>
+              {borrowed.map((p, i) => (
+                <div key={i} className="rounded-lg bg-muted/20 p-2 space-y-1 text-xs">
+                  <span className="font-semibold">{p.symbol ?? p.asset}</span>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-muted-foreground">
+                    <span>Amount</span>
+                    <span className="text-foreground font-medium">{formatNumber(Number(p.borrowedAmount))} {p.symbol}</span>
+                    {p.borrowApy != null && (
+                      <>
+                        <span>Borrow APY</span>
+                        <span className="text-orange-400">{Number(p.borrowApy).toFixed(2)}%</span>
+                      </>
+                    )}
+                    {p.borrowEmissionApy != null && Number(p.borrowEmissionApy) > 0 && (
+                      <>
+                        <span className="text-[10px]">- BLND Rewards</span>
+                        <span className="text-purple-400 text-[10px]">-{Number(p.borrowEmissionApy).toFixed(2)}%</span>
+                      </>
+                    )}
+                    {p.borrowedUsd != null && (
+                      <>
+                        <span>Value</span>
+                        <span className="text-foreground">${formatNumber(Number(p.borrowedUsd))}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </>
       )}

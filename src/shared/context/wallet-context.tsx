@@ -194,7 +194,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             : "http://localhost:6756/api";
 
         // Step 1: Request a challenge nonce from the server
-        const challengeRes = await fetch(`${API_BASE}/api/auth/challenge`, {
+        const challengeRes = await fetch(`${API_BASE}/auth/challenge`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ publicKey: walletAddress }),
@@ -234,7 +234,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
         // Step 4: Verify signature and get JWT
         setSigning(false);
-        const response = await fetch(`${API_BASE}/api/auth/verify`, {
+        const response = await fetch(`${API_BASE}/auth/verify`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ publicKey: walletAddress, signedXdr: signedTxXdr }),

@@ -78,7 +78,12 @@ export function ConnectWalletButton({ compact }: ConnectWalletButtonProps) {
     return compact ? (
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button className="h-10 w-10 p-0" onClick={connect} variant="gradient">
+          <Button 
+            className="h-10 w-10 p-0" 
+            onClick={connect} 
+            variant="gradient"
+            data-testid="connect-wallet"
+          >
             <Wallet className="h-5 w-5" />
           </Button>
         </TooltipTrigger>
@@ -87,7 +92,12 @@ export function ConnectWalletButton({ compact }: ConnectWalletButtonProps) {
         </TooltipContent>
       </Tooltip>
     ) : (
-      <Button className="w-full" onClick={connect} variant="gradient">
+      <Button 
+        className="w-full" 
+        onClick={connect} 
+        variant="gradient"
+        data-testid="connect-wallet"
+      >
         Connect Wallet
       </Button>
     );
@@ -101,6 +111,7 @@ export function ConnectWalletButton({ compact }: ConnectWalletButtonProps) {
           <Button
             className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-800/50 p-0 backdrop-blur-sm transition-all hover:bg-zinc-800/70"
             variant="ghost"
+            data-testid="wallet-connected"
           >
             <AddressAvatar address={address || ""} size="size-8" />
           </Button>
@@ -129,6 +140,7 @@ export function ConnectWalletButton({ compact }: ConnectWalletButtonProps) {
           <DropdownMenuItem
             onClick={disconnect}
             className="text-red-400 focus:bg-red-500/10 focus:text-red-400"
+            data-testid="disconnect-wallet"
           >
             <LogOut className="mr-2 h-4 w-4" />
             Disconnect

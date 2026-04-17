@@ -133,20 +133,40 @@ const mocks = {
     },
   },
 
-  // blend_get_user_position → position maps
+  // blend_get_user_position → enriched positions
   blend_user_position: {
     success: true,
-    position: {
-      collateral: { "0": 5000000000, "1": 2500000000 },
-      liabilities: { "1": 1000000000 },
-      supply: {},
-    },
+    hasPosition: true,
+    poolAddress: "CAPB...5PRW",
+    positions: [
+      {
+        reserveIndex: 0,
+        asset: "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+        symbol: "XLM",
+        isCollateral: true,
+        isSupply: false,
+        isBorrow: false,
+        suppliedAmount: "1.000000",
+        borrowedAmount: null,
+        supplyApy: 0.11,
+        borrowApy: 2.45,
+        collateralFactor: 0.75,
+        liabilityFactor: 1.25,
+        assetPrice: 0.1066,
+        borrowCapacityUsd: "0.0800",
+        borrowedUsd: null,
+        totalSupply: "12000.0000",
+        totalBorrow: "7000.0000",
+      },
+    ],
   },
 
   // blend_user_position empty
   blend_user_position_empty: {
     success: true,
-    position: { collateral: {}, liabilities: {}, supply: {} },
+    hasPosition: false,
+    poolAddress: "CAPB...5PRW",
+    positions: [],
   },
 
   // swap_get_quote / compare_swap

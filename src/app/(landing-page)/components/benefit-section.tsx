@@ -70,7 +70,7 @@ export const BenefitSection = () => {
       label: "AI Agent System",
       title: "Conversational DeFi Intelligence",
       description:
-        "Transform complex DeFi operations on Stellar into simple conversations. Execute sophisticated strategies across Blend, Soroswap, Aquarius, and Phoenix with natural language commands while maintaining full non-custodial control of your assets.",
+        "Execute DeFi strategies across Blend, Soroswap, Aquarius, and Phoenix with natural language — fully non-custodial.",
       background: BENEFIT_IMAGES.bg1,
     },
     {
@@ -78,7 +78,7 @@ export const BenefitSection = () => {
       label: "Creator Economy",
       title: "Build, Deploy, Earn on Stellar",
       description:
-        "Create custom trading agents for Stellar DeFi without coding. Design strategies, test in simulation environment, then publish to our marketplace for passive revenue through performance-based fees from the Stellar community.",
+        "Build custom trading agents for Stellar DeFi without coding. Publish to our marketplace and earn performance-based fees.",
       background: BENEFIT_IMAGES.bg2,
     },
     {
@@ -86,7 +86,7 @@ export const BenefitSection = () => {
       label: "Stellar Ecosystem Integration",
       title: "Native Stellar DeFi Gateway",
       description:
-        "Seamless integration with Stellar's entire DeFi ecosystem — Soroswap, Blend, Aquarius, Phoenix, SDEX, and Allbridge. Real-time portfolio tracking, cross-protocol yield optimization via Soroban, and intelligent routing through our self-custody wallet architecture.",
+        "Native integration with Soroswap, Blend, Aquarius, Phoenix, and SDEX. Real-time portfolio tracking and cross-protocol yield optimization via Soroban.",
       background: BENEFIT_IMAGES.bg3,
     },
   ];
