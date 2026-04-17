@@ -1,3 +1,12 @@
-// Main features barrel export
+export * as Account from "./account";
+export * as Admin from "./admin";
+export * as AdminAuth from "./admin-auth";
+export * as AdminWhitelist from "./admin-whitelist";
 export * as Agents from "./agents";
+export * as Bridge from "./bridge";
 export * as Chat from "./chat";
+export * as Farming from "./farming";
+export * as Landing from "./landing";
+export * as Portfolio from "./portfolio";
+export * as Strategies from "./strategies";
+export * as Whitelist from "./whitelist";

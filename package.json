@@ -12,10 +12,10 @@
     "format:fix": "biome format --write .",
     "check": "biome check .",
     "check:fix": "biome check --write .",
-    "generate:api": "node scripts/kubb/fix-openapi.js && kubb && node scripts/kubb/fix-imports.js && node scripts/kubb/clean-temp.js",
-    "generate:api:dev": "node scripts/kubb/fix-openapi.js && kubb && node scripts/kubb/fix-imports.js",
-    "generate:backend": "node scripts/kubb/fix-openapi-backend.js && kubb --config kubb.config.backend.js && node scripts/kubb/fix-imports.js --dir=src/gen-backend && node scripts/kubb/clean-temp.js",
-    "generate:backend:dev": "node scripts/kubb/fix-openapi-backend.js && kubb --config kubb.config.backend.js && node scripts/kubb/fix-imports.js --dir=src/gen-backend",
+    "generate:api": "node scripts/kubb/fix-openapi.js && kubb --config kubb.config.ai.js && node scripts/kubb/fix-imports.js && node scripts/kubb/clean-temp.js",
+    "generate:api:dev": "node scripts/kubb/fix-openapi.js && kubb --config kubb.config.ai.js && node scripts/kubb/fix-imports.js",
+    "generate:backend": "node scripts/kubb/fix-openapi-backend.js && kubb --config kubb.config.backend.js && node scripts/kubb/fix-imports.js --dir=src/gen-backend && node scripts/kubb/fix-backend-types.js && node scripts/kubb/clean-temp.js",
+    "generate:backend:dev": "node scripts/kubb/fix-openapi-backend.js && kubb --config kubb.config.backend.js && node scripts/kubb/fix-imports.js --dir=src/gen-backend && node scripts/kubb/fix-backend-types.js",
     "generate:all": "pnpm generate:api && pnpm generate:backend",
     "test:api": "node -e \"require('./src/lib/test-api.ts').testApiConnection().then(console.log)\"",
     "test": "jest",
@@ -126,7 +126,8 @@
     "typescript": "^5",
     "use-stick-to-bottom": "^1.1.1",
     "uuid": "^13.0.0",
-    "zustand": "^5.0.8"
+    "zustand": "^5.0.8",
+    "@tasmil/adapter-sdk": "workspace:*"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.2",

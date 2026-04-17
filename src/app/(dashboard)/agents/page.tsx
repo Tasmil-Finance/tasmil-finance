@@ -2,12 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { AgentCard } from "@/features/agents/components/agent-card";
 import { FilterBar } from "@/features/agents/components/filter-bar";
 import { HeroSection } from "@/features/agents/components/hero-section";
 import { AGENTS } from "@/features/chat/config/agents.config";
-import { useSearchAssistantsAssistantsSearchPost } from "@/gen";
-import type { Assistant } from "@/gen/types/assistant";
+import { useSearchAssistantsAssistantsSearchPost } from "@/gen-ai";
+import type { Assistant } from "@/gen-ai/types/assistant";
 import { $ } from "@/lib/kubb";
 
 // Define metadata interface based on the response structure
@@ -269,35 +270,73 @@ export default function AgentsPage() {
 
         <section className="py-8">
           {searchAssistants.isPending && (
-            <div className="py-16 text-center">
-              <p className="text-muted-foreground">Loading agents...</p>
-            </div>
+            <motion.div
+              className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-[280px] animate-pulse rounded-xl border border-border bg-card"
+                />
+              ))}
+            </motion.div>
           )}
 
           {searchAssistants.error && (
-            <div className="py-16 text-center">
+            <motion.div
+              className="py-16 text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
               <p className="text-destructive">
                 Error loading agents: {searchAssistants.error.message}
               </p>
-            </div>
+            </motion.div>
           )}
 
           {!searchAssistants.isPending && !searchAssistants.error && (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredAgents.map((assistant: any) => (
-                <AgentCard
-                  key={assistant.assistant_id}
-                  assistant={assistant}
-                  onClick={() => handleAgentClick(assistant)}
-                />
-              ))}
-            </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeFilter + searchQuery}
+                className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                {filteredAgents.map((assistant: any, idx: number) => (
+                  <motion.div
+                    key={assistant.assistant_id}
+                    className="h-full"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.4,
+                      delay: idx * 0.06,
+                      ease: "easeOut",
+                    }}
+                  >
+                    <AgentCard
+                      assistant={assistant}
+                      onClick={() => handleAgentClick(assistant)}
+                    />
+                  </motion.div>
+                ))}
+              </motion.div>
+            </AnimatePresence>
           )}
 
           {!searchAssistants.isPending && filteredAgents.length === 0 && (
-            <div className="py-16 text-center">
+            <motion.div
+              className="py-16 text-center"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+            >
               <p className="text-muted-foreground">No agents found matching your criteria.</p>
-            </div>
+            </motion.div>
           )}
         </section>
       </div>

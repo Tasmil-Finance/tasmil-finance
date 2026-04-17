@@ -2,6 +2,7 @@
 
 import { Wallet } from "lucide-react";
 import { ProgressStepper, type Step } from "./ui/stepper";
+import { Button } from "@/shared/ui/button";
 import { Typography } from "@/shared/ui/typography";
 import { WaitlistContactFormV2 } from "./waitlist-contact-form-v2";
 import { useWallet } from "@/shared/context/wallet-context";
@@ -58,13 +59,14 @@ export function WaitlistScreen2({ onEmailSuccess, onSkip }: WaitlistScreen2Props
         <WaitlistContactFormV2 onSuccess={onEmailSuccess} />
       </div>
 
-      <button
+      <Button
         type="button"
+        variant="link"
         onClick={onSkip}
-        className="text-center text-xs text-muted-foreground underline underline-offset-2 transition-colors hover:text-foreground"
+        className="h-auto p-0 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
       >
         Skip for now
-      </button>
+      </Button>
     </div>
   );
 }

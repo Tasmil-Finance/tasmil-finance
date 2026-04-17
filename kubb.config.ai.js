@@ -37,7 +37,7 @@ const config = defineConfig({
   },
 
   output: {
-    path: "./src/gen",
+    path: "./src/gen-ai",
     clean: true,
     write: true,
     format: false,

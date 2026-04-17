@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useAdminAuthStore } from "@/features/admin-auth/store/use-admin-auth-store";
+import { useAdminAuthStore } from "@/store/use-admin-auth";
 
 export interface RegistrationDataPoint {
   date: string;

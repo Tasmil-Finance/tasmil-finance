@@ -32,7 +32,7 @@ const config: Config = {
   collectCoverageFrom: [
     "src/**/*.{js,jsx,ts,tsx}",
     "!src/**/*.d.ts",
-    "!src/gen/**",
+    "!src/gen-ai/**",
     "!src/**/*.stories.{js,jsx,ts,tsx}",
     "!src/**/*.config.{js,jsx,ts,tsx}",
     "!src/app/**/layout.tsx",

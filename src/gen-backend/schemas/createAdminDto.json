@@ -1,0 +1,1 @@
+{"type":"object","properties":{"email":{"type":"string","example":"admin@zyf.ai"},"password":{"type":"string","example":"strongpassword"},"role":{"type":"string","example":"SUPER_ADMIN"}},"required":["email","password","role"],"x-readme-ref-name":"CreateAdminDto"}

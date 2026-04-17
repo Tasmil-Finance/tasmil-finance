@@ -1,0 +1,1 @@
+{"type":"object","properties":{"email":{"type":"string","example":"user@example.com","description":"Email address for access code delivery"},"walletAddress":{"type":"string","example":"GBX..."}},"required":["email","walletAddress"],"x-readme-ref-name":"AttachWaitlistContactDto"}

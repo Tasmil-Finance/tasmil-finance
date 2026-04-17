@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
+import { Bot } from "lucide-react";
 import { getAgentConfig } from "@/features/chat/config/agents.config";
 import { useChatState } from "@/features/chat/hooks";
 
@@ -11,6 +13,7 @@ interface AgentAvatarProps {
 
 export function AgentAvatar({ size = "md", showBorder = false }: AgentAvatarProps) {
   const { agentId } = useChatState();
+  const [error, setError] = useState(false);
 
   // Get the agent config to find the icon
   const agentConfig = agentId ? getAgentConfig(agentId) : null;
@@ -30,13 +33,18 @@ export function AgentAvatar({ size = "md", showBorder = false }: AgentAvatarProp
     <div
       className={`flex ${config.container} shrink-0 items-center justify-center overflow-hidden rounded-full ${borderClass}`}
     >
-      <Image
-        src={logoSrc}
-        alt="AI Assistant"
-        width={config.image}
-        height={config.image}
-        className="h-full w-full object-cover"
-      />
+      {error ? (
+        <Bot className="h-1/2 w-1/2 text-muted-foreground" />
+      ) : (
+        <Image
+          src={logoSrc}
+          alt="AI Assistant"
+          width={config.image}
+          height={config.image}
+          className="h-full w-full object-cover"
+          onError={() => setError(true)}
+        />
+      )}
     </div>
   );
 }

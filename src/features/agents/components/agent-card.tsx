@@ -1,6 +1,9 @@
+"use client";
+
 import { Bot, ChevronRight, Layers, Sparkles } from "lucide-react";
 import Image from "next/image";
-import type { Assistant } from "@/gen/types/assistant";
+import { useState } from "react";
+import type { Assistant } from "@/gen-ai/types/assistant";
 import { Badge } from "@/shared/ui/badge";
 import BorderGlow from "@/shared/ui/border-glow";
 import { Button } from "@/shared/ui/button";
@@ -45,6 +48,27 @@ const CHAIN_ICONS: Record<string, string> = {
 function getChainIconPath(chainName: string): string | null {
   const normalized = chainName.toLowerCase().replace(/\s+/g, "");
   return CHAIN_ICONS[normalized] || null;
+}
+
+// Agent icon with error fallback
+function AgentIconImage({ src, name }: { src: string; name: string }) {
+  const [error, setError] = useState(false);
+  if (error) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <Bot className="h-7 w-7 text-muted-foreground" />
+      </div>
+    );
+  }
+  return (
+    <Image
+      src={src}
+      alt={name}
+      fill
+      className="object-cover transition-transform duration-500 group-hover:scale-110"
+      onError={() => setError(true)}
+    />
+  );
 }
 
 // Chain icon component
@@ -117,12 +141,7 @@ export function AgentCard({ assistant, onClick }: AgentCardProps) {
             {/* Agent Icon */}
             <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border border-border/60 bg-muted/30">
               {agentIcon ? (
-                <Image
-                  src={agentIcon}
-                  alt={agentName}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-110"
-                />
+                <AgentIconImage src={agentIcon} name={agentName} />
               ) : (
                 <div className="flex h-full w-full items-center justify-center">
                   <Bot className="h-7 w-7 text-muted-foreground" />

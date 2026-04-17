@@ -15,7 +15,15 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import { Typography } from "@/shared/ui/typography";
 
-const AddressAvatar = ({ address, size = "size-12" }: { address: string; size?: string }) => {
+const AddressAvatar = ({
+  address,
+  size = "size-12",
+  iconSize,
+}: {
+  address: string;
+  size?: string;
+  iconSize?: string;
+}) => {
   const hash = address.split("").reduce((acc, char) => {
     const newAcc = (acc << 5) - acc + char.charCodeAt(0);
     return newAcc & newAcc;
@@ -43,7 +51,7 @@ const AddressAvatar = ({ address, size = "size-12" }: { address: string; size?: 
         gradientClass,
       )}
     >
-      <User className="size-5" />
+      <User className={cn("size-5", iconSize)} />
     </div>
   );
 };

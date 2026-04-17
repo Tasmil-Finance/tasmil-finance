@@ -14,7 +14,7 @@ const path = require("node:path");
 
 // Accept --dir=src/gen-backend to support multiple gen targets
 const dirArg = process.argv.find((a) => a.startsWith("--dir="));
-const GEN_RELATIVE = dirArg ? dirArg.split("=")[1] : "src/gen";
+const GEN_RELATIVE = dirArg ? dirArg.split("=")[1] : "src/gen-ai";
 const GEN_DIR = path.join(__dirname, "../..", GEN_RELATIVE);
 // Derive the TS import alias: src/gen -> @/gen, src/gen-backend -> @/gen-backend
 const GEN_ALIAS = "@/" + GEN_RELATIVE.replace(/^src\//, "");

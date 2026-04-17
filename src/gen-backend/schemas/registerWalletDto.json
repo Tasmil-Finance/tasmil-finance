@@ -1,0 +1,1 @@
+{"type":"object","properties":{"walletAddress":{"type":"string","example":"GBX..."},"walletProvider":{"type":"string","enum":["FREIGHTER","ALBEDO","XBull","OTHER"]},"signedChallenge":{"type":"string"},"referredByCode":{"type":"string"},"source":{"type":"string"}},"required":["walletAddress","walletProvider","signedChallenge"],"x-readme-ref-name":"RegisterWalletDto"}

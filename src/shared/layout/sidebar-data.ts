@@ -92,7 +92,7 @@ export const sidebarData: SidebarData = {
         },
       ],
     },
-    
+
   ],
 };
 

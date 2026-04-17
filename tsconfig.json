@@ -24,6 +24,7 @@
       "@/features/*": ["./src/features/*"],
       "@/shared/*": ["./src/shared/*"],
       "@/entities/*": ["./src/entities/*"],
+      "@/gen-ai/*": ["./src/gen-ai/*"],
       "@/gen-backend/*": ["./src/gen-backend/*"]
     },
     // Enhanced strict mode settings for DeFi development
@@ -54,7 +55,8 @@
     "node_modules",
     "kubb.config.ts",
     "scripts/**/*",
-    "src/gen/**/*",
+    "src/gen-ai/**/*",
+    "src/gen-backend/**/*",
     "e2e/**/*",
     "playwright-report/**/*",
     "test-results/**/*"

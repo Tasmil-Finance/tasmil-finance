@@ -21,9 +21,11 @@ import { useAggregator } from "@/features/bridge/hooks/use-aggregator";
 import { AggregatorTokenPicker } from "@/features/bridge/components/chain-token-selector";
 import { AggregatorRoutePanel, SlippageSettings } from "@/features/bridge/components/aggregator-routes";
 import { AddressPicker } from "@/features/bridge/components/address-picker";
-import { useAddressStore } from "@/features/bridge/stores/use-address-store";
+import { useAddressStore } from "@/store/use-address";
+import { useWalletTokens } from "@/features/profile/hooks/use-wallet-tokens";
 import { BackgroundRippleEffect } from "@/shared/ui/background-ripple-effect";
 import BorderGlow from "@/shared/ui/border-glow";
+import { TokenImage } from "@/shared/components/token-image";
 
 const C = {
   widgetBg: "var(--card)",
@@ -48,6 +50,25 @@ function formatAmount(raw: string, decimals = 7): string {
   if (num === 0) return "0";
   if (num < 0.0001) return "<0.0001";
   return num.toLocaleString(undefined, { maximumFractionDigits: 6 });
+}
+
+function formatUsdCompact(value: number): string {
+  if (value === 0) return "$0";
+  if (value < 0.01) return "<$0.01";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+function formatBalanceShort(value: number): string {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(2)}K`;
+  if (value >= 1) return value.toFixed(4);
+  if (value > 0) return value.toPrecision(4);
+  return "0";
 }
 
 
@@ -130,6 +151,32 @@ export function BridgePage() {
   const aggHasAmount = !!agg.amount && Number.parseFloat(agg.amount) > 0;
   const showRoutePanel = aggHasBothTokens && aggHasAmount;
 
+  // ─── Wallet balances & prices ───────────────────────────────────────────
+  const { data: walletData } = useWalletTokens(stellarAddress);
+  const walletTokens = walletData?.tokens ?? [];
+
+  // Find balance for selected tokenIn
+  const tokenInBalance = agg.tokenIn
+    ? walletTokens.find(
+        (t) => t.assetCode.toUpperCase() === agg.tokenIn!.symbol.toUpperCase(),
+      )
+    : null;
+
+  // Find balance for selected tokenOut
+  const tokenOutBalance = agg.tokenOut
+    ? walletTokens.find(
+        (t) => t.assetCode.toUpperCase() === agg.tokenOut!.symbol.toUpperCase(),
+      )
+    : null;
+
+  // USD values (inputAmount computed here, outputAmount after selectedQuote)
+  const inputAmount = Number.parseFloat(agg.amount || "0") || 0;
+  const inputUsd = tokenInBalance ? inputAmount * tokenInBalance.price : 0;
+
+  // Insufficient balance check
+  const insufficientBalance =
+    aggHasAmount && tokenInBalance != null && inputAmount > tokenInBalance.balance;
+
   // Reset selected protocol when tokens change
   useEffect(() => {
     setSelectedProtocol(null);
@@ -139,6 +186,12 @@ export function BridgePage() {
   const selectedQuote = agg.quotes.find(
     (q) => (q.protocol || q.provider) === selectedProtocol && q.status === "ok"
   ) || agg.bestQuote;
+
+  // Output USD value (must be after selectedQuote)
+  const outputAmount = selectedQuote?.status === "ok"
+    ? Number(selectedQuote.amountOut) / 10 ** (agg.tokenOut?.decimals ?? 7)
+    : 0;
+  const outputUsd = tokenOutBalance ? outputAmount * tokenOutBalance.price : 0;
 
   // Auto-select best route when quotes change
   useEffect(() => {
@@ -314,8 +367,18 @@ export function BridgePage() {
                         className="w-full bg-transparent text-[28px] leading-[34px] font-normal focus:outline-none truncate"
                         style={{ color: C.mainText }}
                       />
-                      <div className="flex items-center gap-1 mt-0.5 h-5">
-                        <span className="text-sm font-medium leading-5" style={{ color: C.mutedText }}>$0</span>
+                      <div className="flex items-center justify-between mt-0.5 h-5">
+                        <span className="text-sm font-medium leading-5" style={{ color: C.mutedText }}>
+                          {inputAmount > 0 && tokenInBalance?.price ? formatUsdCompact(inputUsd) : "$0"}
+                        </span>
+                        {tokenInBalance != null && (
+                          <span
+                            className="text-xs leading-5"
+                            style={{ color: insufficientBalance ? "#ef4444" : C.dimText }}
+                          >
+                            {formatBalanceShort(tokenInBalance.balance)} {agg.tokenIn?.symbol ?? ""}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="justify-self-end self-start">
@@ -385,7 +448,9 @@ export function BridgePage() {
                               ? formatAmount(selectedQuote.amountOut, agg.tokenOut?.decimals ?? 7)
                               : "0"}
                           </p>
-                          <span className="text-sm font-medium leading-5 mt-0.5 block h-5" style={{ color: C.mutedText }}>$0</span>
+                          <span className="text-sm font-medium leading-5 mt-0.5 block h-5" style={{ color: C.mutedText }}>
+                            {outputAmount > 0 && tokenOutBalance?.price ? formatUsdCompact(outputUsd) : "$0"}
+                          </span>
                         </>
                       )}
                     </div>
@@ -476,19 +541,19 @@ export function BridgePage() {
                 ) : (
                   <button
                     type="button"
-                    disabled={!aggHasAmount || !aggHasBothTokens || !selectedProtocol || agg.isExecuting || agg.needsTrustline}
+                    disabled={!aggHasAmount || !aggHasBothTokens || !selectedProtocol || agg.isExecuting || agg.needsTrustline || insufficientBalance}
                     onClick={() => selectedProtocol && agg.executeSwap(selectedProtocol)}
                     className={`w-full rounded-2xl font-bold py-3.5 text-[15px] transition-all flex items-center justify-center gap-2 active:scale-[0.98] relative overflow-hidden ${
-                      aggHasAmount && selectedProtocol && !agg.isExecuting && !agg.needsTrustline
+                      aggHasAmount && selectedProtocol && !agg.isExecuting && !agg.needsTrustline && !insufficientBalance
                         ? "bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] text-black hover:scale-[1.02] hover:from-[#C5F0FF] hover:to-[#1CCFFF] cursor-pointer"
                         : "cursor-not-allowed opacity-50"
                     }`}
-                    style={!(aggHasAmount && selectedProtocol && !agg.needsTrustline) ? { background: C.interactive, color: C.dimText } : undefined}
+                    style={!(aggHasAmount && selectedProtocol && !agg.needsTrustline && !insufficientBalance) ? { background: C.interactive, color: C.dimText } : undefined}
                   >
-                    {(aggHasAmount && selectedProtocol && !agg.isExecuting && !agg.needsTrustline) && (
+                    {(aggHasAmount && selectedProtocol && !agg.isExecuting && !agg.needsTrustline && !insufficientBalance) && (
                       <div className="absolute top-0 left-1/2 -translate-x-1/2 h-4 w-[50%] rounded-full bg-white/80 blur-xl" />
                     )}
-                    {agg.isExecuting ? "Signing..." : agg.needsTrustline ? "Add trustline first" : !aggHasAmount ? "Enter amount" : !aggHasBothTokens ? "Select tokens" : !selectedProtocol ? "Select a route" : "Swap"}
+                    {agg.isExecuting ? "Signing..." : agg.needsTrustline ? "Add trustline first" : !aggHasAmount ? "Enter amount" : !aggHasBothTokens ? "Select tokens" : insufficientBalance ? "Insufficient balance" : !selectedProtocol ? "Select a route" : "Swap"}
                   </button>
                 )}
 
@@ -517,7 +582,9 @@ export function BridgePage() {
                 quotes={agg.quotes}
                 bestQuote={agg.bestQuote}
                 isLoading={agg.isLoadingQuotes}
+                tokenInSymbol={agg.tokenIn?.symbol ?? ""}
                 tokenOutSymbol={agg.tokenOut?.symbol ?? ""}
+                decimalsIn={agg.tokenIn?.decimals ?? 7}
                 decimals={agg.tokenOut?.decimals ?? 7}
                 selectedProtocol={selectedProtocol}
                 onSelectProtocol={setSelectedProtocol}
@@ -571,7 +638,7 @@ function WalletHub({
       >
         {wallets.length > 0 ? (
           wallets.map((w) => (
-            <img key={w.chain} src={w.logo} alt={w.chain} className="h-7 w-7 rounded-full object-contain ring-2 ring-[var(--card)]" />
+            <TokenImage key={w.chain} src={w.logo} alt={w.chain} className="h-7 w-7 rounded-full object-contain ring-2 ring-[var(--card)]" />
           ))
         ) : (
           <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg" style={{ background: "var(--secondary)", color: "var(--muted-foreground)" }}>
@@ -606,7 +673,7 @@ function WalletHub({
                 className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium rounded-xl transition-colors"
                 style={{ background: "var(--secondary)", color: "var(--muted-foreground)" }}
               >
-                <img src="/chains/stellar.png" alt="" className="h-4 w-4 rounded-full" />
+                <TokenImage src="/chains/stellar.png" alt="Stellar" className="h-4 w-4 rounded-full" />
                 {stellarAddress ? "Switch Stellar" : "+ Stellar"}
               </button>
               <button
@@ -615,7 +682,7 @@ function WalletHub({
                 className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium rounded-xl transition-colors"
                 style={{ background: "var(--secondary)", color: "var(--muted-foreground)" }}
               >
-                <img src="/chains/ethereum.png" alt="" className="h-4 w-4 rounded-full" />
+                <TokenImage src="/chains/ethereum.png" alt="Ethereum" className="h-4 w-4 rounded-full" />
                 {evmAddress ? "Switch EVM" : "+ EVM"}
               </button>
             </div>
@@ -628,7 +695,7 @@ function WalletHub({
                   className="flex items-center gap-3 rounded-xl p-3"
                   style={{ background: "var(--secondary)" }}
                 >
-                  <img src={w.logo} alt="" className="h-9 w-9 rounded-full object-contain shrink-0" />
+                  <TokenImage src={w.logo} alt={w.chain} className="h-9 w-9 rounded-full object-contain shrink-0" />
                   <div className="flex flex-col min-w-0 flex-1">
                     <span className="text-sm font-medium truncate" style={{ color: "var(--foreground)" }}>
                       {truncAddr(w.addr)}
@@ -701,7 +768,7 @@ function ExchangeTab({ stellarAddress }: { stellarAddress: string | null }) {
                 color: selectedToken === t ? "var(--primary-foreground)" : "var(--muted-foreground)",
               }}
             >
-              <img
+              <TokenImage
                 src={t === "USDC"
                   ? "https://stellar.expert/explorer/public/asset/USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN/icon"
                   : "https://stellar.expert/explorer/public/asset/native/icon"
@@ -730,7 +797,7 @@ function ExchangeTab({ stellarAddress }: { stellarAddress: string | null }) {
                 color: selectedExchange === ex.id ? "var(--foreground)" : "var(--muted-foreground)",
               }}
             >
-              {ex.logo && <img src={ex.logo} alt="" className="h-5 w-5 rounded-full" />}
+              {ex.logo && <TokenImage src={ex.logo} alt={ex.name} className="h-5 w-5 rounded-full" />}
               <Landmark className={`h-4 w-4 ${ex.logo ? "hidden" : ""}`} />
               {ex.name}
             </button>

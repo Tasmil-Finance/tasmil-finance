@@ -3,9 +3,11 @@
  * - Automatically attaches JWT Bearer token from auth store
  * - Fires auth-token-expired event on 401
  *
- * Usage:
- *   import { backendClient } from "@/lib/kubb-backend";
- *   // or use generated hooks from @/gen-backend/hooks/...
+ * baseURL is the host only (no /api suffix) because OpenAPI paths
+ * from NestJS already include the /api global prefix.
+ *
+ * Used by kubb-backend-client.ts as the transport for all generated
+ * src/gen-backend/ client functions.
  */
 
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
@@ -13,7 +15,7 @@ import { useAuthStore } from "@/store/use-auth";
 
 export const getBackendBaseUrl = () => {
   const url = process.env["NEXT_PUBLIC_BACKEND_URL"] || "http://localhost:6756";
-  return `${url.replace(/\/$/, "")}/api`;
+  return url.replace(/\/$/, "");
 };
 
 const backendAxios = axios.create({

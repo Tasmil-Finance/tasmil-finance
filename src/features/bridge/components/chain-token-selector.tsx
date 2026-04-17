@@ -16,6 +16,7 @@ import {
   getChain,
 } from "@/features/bridge/lib/constants";
 import type { TokenInfo, ChainInfo } from "@/features/bridge/hooks/use-aggregator";
+import { TokenImage } from "@/shared/components/token-image";
 
 /* Colors from globals.css theme */
 const C = {
@@ -99,8 +100,8 @@ export function RoutePicker({
             {hasSelection ? (
               <>
                 <span className="relative inline-flex items-center shrink-0 h-9 w-9">
-                  <img src={tokenLogo} alt={selectedToken} className="h-8 w-8 rounded-full object-contain" />
-                  <img src={chain.logo} alt={chain.name} className="absolute left-[18px] top-[18px] h-[16px] w-[16px] rounded-full object-contain ring-1 ring-white/10" />
+                  <TokenImage src={tokenLogo} alt={selectedToken} className="h-8 w-8 rounded-full object-contain" />
+                  <TokenImage src={chain.logo} alt={chain.name} className="absolute left-[18px] top-[18px] h-[16px] w-[16px] rounded-full object-contain ring-1 ring-white/10" />
                 </span>
                 <span className="flex flex-col text-left min-w-0 flex-1">
                   <span className="text-[15px] font-medium" style={{ color: C.mainText }}>{selectedToken}</span>
@@ -126,8 +127,8 @@ export function RoutePicker({
             {hasSelection ? (
               <>
                 <span className="relative inline-flex items-center shrink-0 h-7 w-7">
-                  <img src={tokenLogo} alt={selectedToken} className="h-6 w-6 rounded-full object-contain" />
-                  <img src={chain.logo} alt={chain.name} className="absolute left-[14px] top-[14px] h-[14px] w-[14px] rounded-full object-contain ring-1 ring-white/10" />
+                  <TokenImage src={tokenLogo} alt={selectedToken} className="h-6 w-6 rounded-full object-contain" />
+                  <TokenImage src={chain.logo} alt={chain.name} className="absolute left-[14px] top-[14px] h-[14px] w-[14px] rounded-full object-contain ring-1 ring-white/10" />
                 </span>
                 <span className="flex flex-col text-left min-w-0">
                   <span className="text-base font-medium leading-5" style={{ color: C.mainText }}>{selectedToken}</span>
@@ -188,14 +189,14 @@ export function RoutePicker({
                   style={{ background: isSelected ? C.hover : "transparent" }}
                 >
                   <span className="relative inline-flex items-center shrink-0 h-11 w-11">
-                    <img src={route.tokenLogo} alt={route.token} className="h-10 w-10 rounded-full object-contain" />
-                    <img src={route.chainLogo} alt={route.chainName} className="absolute left-[24px] top-[24px] rounded-full object-contain ring-1 ring-white/10" style={{ width: 16, height: 16 }} />
+                    <TokenImage src={route.tokenLogo} alt={route.token} className="h-10 w-10 rounded-full object-contain" />
+                    <TokenImage src={route.chainLogo} alt={route.chainName} className="absolute left-[24px] top-[24px] h-4 w-4 rounded-full object-contain ring-1 ring-white/10" />
                   </span>
 
                   <div className="flex flex-col min-w-0 flex-1">
                     <span className="text-[15px] font-semibold" style={{ color: C.mainText }}>{route.token}</span>
                     <span className="flex items-center gap-1 text-xs" style={{ color: C.mutedText }}>
-                      <img src={route.chainLogo} alt="" className="h-3.5 w-3.5 rounded-full" />
+                      <TokenImage src={route.chainLogo} alt={route.chainName} className="h-3.5 w-3.5 rounded-full" />
                       {route.chainName}
                     </span>
                   </div>
@@ -266,9 +267,9 @@ export function AggregatorTokenPicker({
           {selectedToken ? (
             <>
               <span className="relative inline-flex items-center shrink-0" style={{ width: 36, height: 36 }}>
-                <img src={selectedToken.logo || ""} alt={selectedToken.symbol} className="h-8 w-8 rounded-full object-cover" />
+                <TokenImage src={selectedToken.logo || ""} alt={selectedToken.symbol} className="h-8 w-8 rounded-full object-cover" />
                 {chainObj && (
-                  <img src={chainObj.logo} alt={chainObj.name} className="absolute left-[20px] top-[20px] h-[18px] w-[18px] rounded-full object-contain ring-2 ring-[var(--input)]" />
+                  <TokenImage src={chainObj.logo} alt={chainObj.name} className="absolute left-[20px] top-[20px] h-[18px] w-[18px] rounded-full object-contain ring-2 ring-[var(--input)]" />
                 )}
               </span>
               <span className="flex flex-col text-left min-w-0">
@@ -341,7 +342,7 @@ export function AggregatorTokenPicker({
                     color: filterChain === chainId ? C.mainText : C.mutedText,
                   }}
                 >
-                  <img src={ch.logo} alt="" className="h-5 w-5 rounded-full" />
+                  <TokenImage src={ch.logo} alt={ch.name} className="h-5 w-5 rounded-full" />
                   {ch.name}
                 </button>
               );
@@ -366,26 +367,16 @@ export function AggregatorTokenPicker({
                   style={{ background: isSelected ? C.hover : "transparent" }}
                 >
                   <span className="relative inline-flex items-center shrink-0" style={{ width: 52, height: 52 }}>
-                    <img
-                      src={token.logo || ""}
-                      alt={token.symbol}
-                      className="h-[48px] w-[48px] rounded-full object-cover"
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                    />
+                    <TokenImage src={token.logo || ""} alt={token.symbol} className="h-[48px] w-[48px] rounded-full object-cover" />
                     {displayChainObj && (
-                      <img
-                        src={displayChainObj.logo}
-                        alt={displayChainObj.name}
-                        className="absolute left-[32px] top-[32px] rounded-full object-contain ring-2 ring-[var(--card)]"
-                        style={{ width: 22, height: 22 }}
-                      />
+                      <TokenImage src={displayChainObj.logo} alt={displayChainObj.name} className="absolute left-[32px] top-[32px] h-[22px] w-[22px] rounded-full object-contain ring-2 ring-[var(--card)]" />
                     )}
                   </span>
 
                   <div className="flex flex-col min-w-0 flex-1">
                     <span className="text-lg font-bold" style={{ color: C.mainText }}>{token.symbol}</span>
                     <span className="flex items-center gap-1.5 text-sm" style={{ color: C.mutedText }}>
-                      {displayChainObj && <img src={displayChainObj.logo} alt="" className="h-4.5 w-4.5 rounded-full" />}
+                      {displayChainObj && <TokenImage src={displayChainObj.logo} alt={displayChainObj.name} className="h-4 w-4 rounded-full" />}
                       {token.name}
                     </span>
                   </div>

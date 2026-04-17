@@ -21,7 +21,7 @@ import {
   AssistantMessageLoading,
 } from '../components/messages/ai-message';
 import { HumanMessage } from '../components/messages/human-message';
-import { useSearchAssistantsAssistantsSearchPost } from '@/gen/hooks/use-search-assistants-assistants-search-post';
+import { useSearchAssistantsAssistantsSearchPost } from '@/gen-ai/hooks/use-search-assistants-assistants-search-post';
 import { kubbClient } from '@/lib/kubb';
 import {
   DO_NOT_RENDER_ID_PREFIX,

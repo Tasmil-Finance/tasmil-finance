@@ -1,18 +1,20 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Clock, Info, Settings2, RefreshCw } from "lucide-react";
+import { Check, Clock, Info, Settings2, RefreshCw, AlertTriangle } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import type { RouteQuote } from "@/features/bridge/hooks/use-aggregator";
 import BorderGlow from "@/shared/ui/border-glow";
+import { TokenImage } from "@/shared/components/token-image";
 
 // ─── Protocol branding ──────────────────────────────────────────
 
 const PROTOCOL_META: Record<string, { label: string; icon: string; color: string }> = {
   soroswap: { label: "Soroswap", icon: "/protocols/soroswap.svg", color: "#7B61FF" },
   aquarius: { label: "Aquarius", icon: "/protocols/aquarius.svg", color: "#00B4D8" },
-  phoenix: { label: "Phoenix", icon: "/protocols/phoenix.svg", color: "#FF6B35" },
-  templar: { label: "Templar", icon: "/protocols/templar.svg", color: "#10B981" },
+  phoenix:  { label: "Phoenix",  icon: "/protocols/phoenix.svg",  color: "#FF6B35" },
+  sdex:     { label: "SDEX",     icon: "/protocols/sdex.svg",     color: "#00C2FF" },
+  templar:  { label: "Templar",  icon: "/protocols/templar.svg",  color: "#10B981" },
   allbridge: { label: "Allbridge", icon: "/protocols/allbridge.svg", color: "#3B82F6" },
 };
 
@@ -28,24 +30,48 @@ function formatAmount(raw: string, decimals = 7): string {
   return num.toLocaleString(undefined, { maximumFractionDigits: 6 });
 }
 
+/** Compute exchange rate: how many tokenOut per 1 tokenIn */
+function computeRate(amountIn: string, amountOut: string, decimalsIn: number, decimalsOut: number): number {
+  const numIn = Number(amountIn) / 10 ** decimalsIn;
+  const numOut = Number(amountOut) / 10 ** decimalsOut;
+  if (numIn === 0) return 0;
+  return numOut / numIn;
+}
+
+function formatRate(rate: number): string {
+  if (rate === 0) return "0";
+  if (rate < 0.000001) return "<0.000001";
+  if (rate >= 1000) return rate.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  return rate.toLocaleString(undefined, { maximumFractionDigits: 6 });
+}
+
 // ─── Route Card ─────────────────────────────────────────────────
 
 function RouteCard({
   quote,
   isBest,
   isSelected,
+  tokenInSymbol,
   tokenOutSymbol,
-  decimals,
+  decimalsIn,
+  decimalsOut,
+  rateDiffPct,
   onClick,
 }: {
   quote: RouteQuote;
   isBest: boolean;
   isSelected: boolean;
+  tokenInSymbol: string;
   tokenOutSymbol: string;
-  decimals: number;
+  decimalsIn: number;
+  decimalsOut: number;
+  /** How much worse this rate is vs best, as a percentage (0 = best, 50 = 50% worse) */
+  rateDiffPct: number;
   onClick: () => void;
 }) {
   const proto = getProto(quote);
+  const rate = computeRate(quote.amountIn, quote.amountOut, decimalsIn, decimalsOut);
+  const showRateWarning = rateDiffPct > 50;
 
   return (
     <button
@@ -54,16 +80,18 @@ function RouteCard({
       className="w-full text-left rounded-xl p-4 transition-colors relative"
       style={{
         background: isSelected ? "var(--accent)" : "var(--secondary)",
-        border: isBest
-          ? "1px solid rgba(89,224,125,0.5)"
-          : isSelected
-            ? "1px solid var(--primary)"
-            : "1px solid transparent",
+        border: showRateWarning
+          ? "1px solid rgba(234,179,8,0.4)"
+          : isBest
+            ? "1px solid rgba(89,224,125,0.5)"
+            : isSelected
+              ? "1px solid var(--primary)"
+              : "1px solid transparent",
       }}
     >
       <div className="flex items-center justify-between">
         <span className="text-lg font-bold" style={{ color: "var(--foreground)" }}>
-          {formatAmount(quote.amountOut, decimals)} {tokenOutSymbol}
+          {formatAmount(quote.amountOut, decimalsOut)} {tokenOutSymbol}
         </span>
         <div className="flex items-center gap-2">
           {isBest && (
@@ -77,6 +105,20 @@ function RouteCard({
           {isSelected && <Check className="h-5 w-5" style={{ color: "var(--primary)" }} />}
         </div>
       </div>
+      {/* Exchange rate */}
+      <p className="text-xs mt-1" style={{ color: "var(--muted-foreground)", opacity: 0.7 }}>
+        1 {tokenInSymbol} ≈ {formatRate(rate)} {tokenOutSymbol}
+      </p>
+      {/* Rate warning */}
+      {showRateWarning && (
+        <div
+          className="flex items-center gap-1.5 mt-1.5 px-2 py-1 rounded-lg text-[11px] font-medium"
+          style={{ background: "rgba(234,179,8,0.1)", color: "#EAB308" }}
+        >
+          <AlertTriangle className="h-3 w-3 flex-shrink-0" />
+          {rateDiffPct.toFixed(0)}% worse rate than best
+        </div>
+      )}
       <div className="flex items-center justify-between mt-2">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1 text-sm" style={{ color: "var(--muted-foreground)" }}>
@@ -89,7 +131,7 @@ function RouteCard({
           </span>
         </div>
         <span className="flex items-center gap-1.5 text-sm font-medium" style={{ color: "var(--muted-foreground)" }}>
-          <img src={proto.icon} alt={proto.label} className="h-5 w-5 rounded-sm" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+          <TokenImage src={proto.icon} alt={proto.label} className="h-5 w-5 rounded-sm" />
           {proto.label}
         </span>
       </div>
@@ -201,7 +243,7 @@ export function SlippageSettings({
                         opacity: active ? 1 : 0.5,
                       }}
                     >
-                      <img src={icon} alt="" className="h-5 w-5 rounded-sm" style={{ opacity: active ? 1 : 0.4 }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                      <TokenImage src={icon} alt={label} className="h-5 w-5 rounded-sm" />
                       {label}
                     </button>
                   );
@@ -221,7 +263,9 @@ export function AggregatorRoutePanel({
   quotes,
   bestQuote,
   isLoading,
+  tokenInSymbol,
   tokenOutSymbol,
+  decimalsIn,
   decimals,
   selectedProtocol,
   onSelectProtocol,
@@ -230,13 +274,21 @@ export function AggregatorRoutePanel({
   quotes: RouteQuote[];
   bestQuote: RouteQuote | null;
   isLoading: boolean;
+  tokenInSymbol: string;
   tokenOutSymbol: string;
+  decimalsIn: number;
   decimals: number;
   selectedProtocol: string | null;
   onSelectProtocol: (protocol: string) => void;
   onRefresh: () => void;
 }) {
   const okQuotes = quotes.filter((q) => q.status === "ok");
+
+  // Compute best rate for comparison
+  const bestRate = okQuotes.reduce((best, q) => {
+    const r = computeRate(q.amountIn, q.amountOut, decimalsIn, decimals);
+    return r > best ? r : best;
+  }, 0);
 
   const inner = (children: React.ReactNode) => (
     <BorderGlow
@@ -302,14 +354,19 @@ export function AggregatorRoutePanel({
         {okQuotes.map((quote, i) => {
           const id = quote.protocol || quote.provider || `route-${i}`;
           const isBest = bestQuote != null && (quote.protocol || quote.provider) === (bestQuote.protocol || bestQuote.provider);
+          const quoteRate = computeRate(quote.amountIn, quote.amountOut, decimalsIn, decimals);
+          const rateDiffPct = bestRate > 0 ? ((bestRate - quoteRate) / bestRate) * 100 : 0;
           return (
             <RouteCard
               key={id}
               quote={quote}
               isBest={isBest}
               isSelected={selectedProtocol === id}
+              tokenInSymbol={tokenInSymbol}
               tokenOutSymbol={tokenOutSymbol}
-              decimals={decimals}
+              decimalsIn={decimalsIn}
+              decimalsOut={decimals}
+              rateDiffPct={rateDiffPct}
               onClick={() => onSelectProtocol(id)}
             />
           );

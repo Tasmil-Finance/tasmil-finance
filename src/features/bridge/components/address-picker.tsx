@@ -10,7 +10,8 @@ import {
 } from "@/shared/ui/dialog";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { Check, ChevronDown, Pencil, Plus, Unplug, Wallet, X, AlertCircle } from "lucide-react";
-import { useAddressStore, type ChainType, type SavedAddress } from "@/features/bridge/stores/use-address-store";
+import { useAddressStore, type ChainType, type SavedAddress } from "@/store/use-address";
+import { TokenImage } from "@/shared/components/token-image";
 
 function truncAddr(addr: string) {
   if (!addr) return "";
@@ -152,7 +153,7 @@ export function AddressPicker({
             className="flex items-center gap-1.5 rounded-lg py-1 px-2 text-sm transition-colors cursor-pointer"
             style={{ color: "var(--muted-foreground)" }}
           >
-            <img src={logo} alt="" className="h-4 w-4 rounded-full shrink-0" />
+            <TokenImage src={logo} alt={chainType} className="h-4 w-4 rounded-full shrink-0" />
             <span>{truncAddr(selectedAddress)}</span>
             <ChevronDown className="h-3.5 w-3.5 shrink-0" />
           </button>
@@ -221,7 +222,7 @@ export function AddressPicker({
                 className="mt-2 w-full flex items-center gap-2 rounded-xl p-3 text-sm transition-colors"
                 style={{ background: "var(--secondary)", color: "var(--foreground)" }}
               >
-                <img src={logo} alt="" className="h-5 w-5 rounded-full" />
+                <TokenImage src={logo} alt={chainType} className="h-5 w-5 rounded-full" />
                 <span className="font-mono text-xs truncate flex-1">{manualInput}</span>
                 <span className="text-xs font-medium" style={{ color: "var(--primary)" }}>Use this</span>
               </button>
@@ -263,7 +264,7 @@ export function AddressPicker({
                       className="flex items-center gap-3 rounded-xl p-3 text-left transition-colors"
                       style={{ background: isSelected ? "var(--accent)" : "transparent" }}
                     >
-                      <img src={logo} alt="" className="h-9 w-9 rounded-lg object-contain shrink-0" />
+                      <TokenImage src={logo} alt={chainType} className="h-9 w-9 rounded-lg object-contain shrink-0" />
                       <div className="flex flex-col min-w-0 flex-1">
                         <span className="text-sm font-medium truncate" style={{ color: "var(--foreground)" }}>
                           {truncAddr(item.address)}

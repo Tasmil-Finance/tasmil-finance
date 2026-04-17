@@ -8,6 +8,9 @@ import { Button } from "@/shared/ui/button-v2";
 import { useSidebar } from "@/shared/ui/sidebar";
 import { Typography } from "@/shared/ui/typography";
 
+const NETWORK_LABEL =
+  process.env["NEXT_PUBLIC_STELLAR_NETWORK"] === "PUBLIC" ? "MAINNET" : "TESTNET";
+
 export function HeaderSidebar({
   header,
 }: {
@@ -43,7 +46,7 @@ export function HeaderSidebar({
                 className="h-4 rounded-full border-0 bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] px-1.5 py-0 font-bold text-[8px] text-black"
                 variant="outline"
               >
-                TESTNET
+                {NETWORK_LABEL}
               </Badge>
             </div>
             <Typography className="text-sm">{header.tagline}</Typography>

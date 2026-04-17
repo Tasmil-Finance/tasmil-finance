@@ -32,9 +32,11 @@ function PoolInfoCardComponent({ args, result, toolCallId, status, type }: PoolI
   const pools = data?.pools ?? (pool ? null : (data?.poolAddress ? [data] : []));
   const isSingle = !data?.pools && (data?.poolAddress || pool);
 
+  const backstop = data?.backstop ?? null;
+
   const cardTitle = reserve
     ? `Reserve: ${reserve.symbol ?? "Asset"}`
-    : type === "blend_backstop_info" ? "Backstop Info"
+    : backstop || type === "blend_backstop_info" ? "Backstop Info"
     : "Pool Info";
 
   return (
@@ -49,6 +51,8 @@ function PoolInfoCardComponent({ args, result, toolCallId, status, type }: PoolI
     >
       {reserve ? (
         <ReserveInfoView reserve={reserve} />
+      ) : backstop ? (
+        <BackstopInfoView backstop={backstop} />
       ) : isSingle ? (
         <SinglePoolView pool={pool ?? data} protocol={protocol} />
       ) : pools && pools.length > 0 ? (
@@ -107,6 +111,37 @@ function ReserveInfoView({ reserve }: { reserve: any }) {
             <DetailRow label="Borrow Emission" value={<APYDisplay value={reserve.borrowEmissionApy} />} />
           )}
         </div>
+      )}
+    </div>
+  );
+}
+
+function BackstopInfoView({ backstop }: { backstop: any }) {
+  return (
+    <div className="space-y-1.5">
+      {backstop.poolAddress && (
+        <DetailRow label="Pool" value={<span className="font-mono text-xs">{backstop.poolAddress.slice(0, 12)}…</span>} />
+      )}
+      {backstop.totalApr != null && (
+        <DetailRow label="Total APR" value={<APYDisplay value={backstop.totalApr} />} />
+      )}
+      {backstop.interestApr != null && (
+        <DetailRow label="Interest APR" value={<APYDisplay value={backstop.interestApr} />} />
+      )}
+      {backstop.emissionApr != null && (
+        <DetailRow label="Emission APR" value={<APYDisplay value={backstop.emissionApr} />} />
+      )}
+      {backstop.totalDepositedUsd != null && (
+        <DetailRow label="Total Deposited" value={`$${formatNumber(Number(backstop.totalDepositedUsd))}`} />
+      )}
+      {backstop.q4wPct != null && (
+        <DetailRow label="Q4W %" value={`${Number(backstop.q4wPct).toFixed(2)}%`} />
+      )}
+      {backstop.lpTokenPrice != null && backstop.lpTokenPrice > 0 && (
+        <DetailRow label="LP Token Price" value={`$${Number(backstop.lpTokenPrice).toFixed(7)}`} />
+      )}
+      {backstop.shares != null && (
+        <DetailRow label="Total Shares" value={formatNumber(Number(backstop.shares) / 1e7)} />
       )}
     </div>
   );

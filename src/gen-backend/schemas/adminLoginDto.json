@@ -1,0 +1,1 @@
+{"type":"object","properties":{"email":{"type":"string","example":"admin@zyf.ai"},"password":{"type":"string","example":"strongpassword"}},"required":["email","password"],"x-readme-ref-name":"AdminLoginDto"}

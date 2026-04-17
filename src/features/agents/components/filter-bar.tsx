@@ -1,6 +1,7 @@
 "use client";
 
 import { Search, Settings, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface FilterBarProps {
   activeFilter: string;
@@ -40,7 +41,12 @@ export function FilterBar({
   ];
 
   return (
-    <div className="flex flex-col justify-between gap-4 py-8 md:flex-row md:items-center">
+    <motion.div
+      className="flex flex-col justify-between gap-4 py-8 md:flex-row md:items-center"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: 0.3 }}
+    >
       {/* Search Input - On the right in the image but lets keep flexible or match image exactly? 
           Image has filter pills on LEFT and search on RIGHT.
       */}
@@ -77,6 +83,6 @@ export function FilterBar({
           />
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

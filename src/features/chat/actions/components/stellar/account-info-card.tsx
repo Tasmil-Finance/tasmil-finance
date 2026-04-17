@@ -116,6 +116,8 @@ function QueryContent({
       return <NetworkView data={data} />;
     case "blend_user_position":
       return <BlendPositionView data={data} args={args} />;
+    case "blend_backstop_balance":
+      return <BlendBackstopBalanceView data={data} />;
     default:
       return <GenericView data={data} />;
   }
@@ -571,6 +573,46 @@ function BlendPositionView({ data, args }: { data: any; args?: Record<string, an
             </div>
           )}
         </>
+      )}
+    </div>
+  );
+}
+
+function BlendBackstopBalanceView({ data }: { data: any }) {
+  const shares = data?.sharesHuman ?? (data?.shares ? (Number(data.shares) / 1e7).toFixed(7) : null);
+  const queued: any[] = data?.queuedWithdrawals ?? [];
+  return (
+    <div className="space-y-2">
+      {data?.pool && <DetailRow label="Pool" value={truncateAddress(String(data.pool))} mono />}
+      {shares != null && (
+        <DetailRow
+          label="Backstop Shares"
+          value={<span className="font-semibold">{shares}</span>}
+        />
+      )}
+      {data?.hasPosition === false && (
+        <div className="text-muted-foreground text-xs">No backstop position in this pool.</div>
+      )}
+      {queued.length > 0 && (
+        <div className="mt-2 space-y-1 border-t pt-2">
+          <div className="mb-1 text-muted-foreground text-xs">
+            Queued Withdrawals ({queued.length})
+          </div>
+          {queued.map((q: any, i: number) => (
+            <div key={i} className="space-y-1 rounded border p-2 text-xs">
+              <DetailRow
+                label="Amount"
+                value={<span className="font-semibold">{q.amountHuman ?? q.amount}</span>}
+              />
+              {q.expiration != null && (
+                <DetailRow label="Expiration (ledger)" value={String(q.expiration)} />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+      {queued.length === 0 && data?.hasPosition && (
+        <div className="text-muted-foreground text-xs">No queued withdrawals.</div>
       )}
     </div>
   );

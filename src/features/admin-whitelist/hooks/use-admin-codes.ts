@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAdminAuthStore } from "@/features/admin-auth/store/use-admin-auth-store";
+import { useAdminAuthStore } from "@/store/use-admin-auth";
 import { toast } from "sonner";
 
 interface AccessCodeItem {

@@ -3,6 +3,14 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   serverExternalPackages: ["@copilotkit/runtime"],
   reactStrictMode: false,
+  async rewrites() {
+    return [
+      {
+        source: "/api/aquarius/:path*",
+        destination: `https://amm-api${process.env["NEXT_PUBLIC_STELLAR_TESTNET"] === "true" ? "-testnet" : ""}.aqua.network/api/external/v1/:path*`,
+      },
+    ];
+  },
   typescript: {
     ignoreBuildErrors: false,
     tsconfigPath: "./tsconfig.json",

@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, ChevronUp, RefreshCw, SparkleIcon } from "lucide-react";
 import { memo, useCallback, useEffect, useState } from "react";
 import { getAgentConfig, getAgentSuggestions } from "../config";
+import { Button } from "@/shared/ui/button";
 import { Suggestion } from "./suggestion";
 
 type SuggestedActionsProps = {
@@ -43,18 +44,20 @@ function PureSuggestedActions({ agentId, onSendMessage }: SuggestedActionsProps)
         </div>
         <div className="flex items-center gap-2">
           {!isCollapsed && (
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setSuggestedActions(getRandomSuggestions())}
-              className="rounded p-1 text-muted-foreground transition-colors hover:text-foreground"
+              className="h-auto w-auto rounded p-1 text-muted-foreground hover:text-foreground"
               type="button"
               title="Refresh suggestions"
             >
               <RefreshCw className="h-3.5 w-3.5" />
-            </button>
+            </Button>
           )}
-          <button
+          <Button
+            variant="ghost"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="rounded p-1 text-muted-foreground transition-colors hover:text-foreground"
+            className="h-auto w-auto rounded p-1 text-muted-foreground hover:text-foreground"
             type="button"
             title={isCollapsed ? "Show suggestions" : "Hide suggestions"}
           >
@@ -63,7 +66,7 @@ function PureSuggestedActions({ agentId, onSendMessage }: SuggestedActionsProps)
             ) : (
               <ChevronDown className="h-3.5 w-3.5" />
             )}
-          </button>
+          </Button>
         </div>
       </div>
 

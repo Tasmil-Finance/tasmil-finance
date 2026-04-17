@@ -6,6 +6,7 @@ import { checkWalletNetwork, parseSigningError } from "@/lib/stellar-network-che
 
 // ─── Types matching MCP Stellar aggregator API ──────────────────
 
+// Used only for execute/submit/verify/trustline (operations that still go through MCP server)
 const MCP_STELLAR_URL =
   process.env["NEXT_PUBLIC_MCP_STELLAR_URL"] || "http://localhost:3009";
 
@@ -85,8 +86,10 @@ export interface AggregatorState {
 
 // ─── API helpers ────────────────────────────────────────────────
 
+// ── SDK-backed endpoints (Next.js API routes, no MCP server needed) ──
+
 async function fetchRegistry(): Promise<{ chains: ChainInfo[]; tokens: TokenInfo[] }> {
-  const res = await fetch(`${MCP_STELLAR_URL}/api/tokens`);
+  const res = await fetch(`/api/tokens`);
   if (!res.ok) throw new Error(`Registry fetch failed: ${res.status}`);
   return res.json();
 }
@@ -96,7 +99,7 @@ async function fetchFilteredTokens(
   selectedChain: string,
   direction: "in" | "out",
 ): Promise<{ tokens: TokenInfo[]; chains: string[] }> {
-  const res = await fetch(`${MCP_STELLAR_URL}/api/tokens/filter`, {
+  const res = await fetch(`/api/tokens/filter`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ selectedToken, selectedChain, direction }),
@@ -114,7 +117,7 @@ async function fetchQuotes(params: {
   from?: string;
   protocols?: string[];
 }): Promise<{ mode: string; quotes: RouteQuote[]; best: string | null }> {
-  const res = await fetch(`${MCP_STELLAR_URL}/api/aggregator/quote`, {
+  const res = await fetch(`/api/aggregator/quote`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(params),
@@ -148,7 +151,7 @@ async function fetchExecute(params: {
 }
 
 const ALL_PROTOCOLS = new Set([
-  "soroswap", "aquarius", "phoenix", "templar", "allbridge",
+  "soroswap", "sdex", "aquarius", "phoenix", "templar", "allbridge",
 ]);
 
 // ─── Hook ───────────────────────────────────────────────────────

@@ -6,6 +6,8 @@ import Image from "next/image";
 import { ExternalLink, LogOut } from "lucide-react";
 import BorderGlow from "@/shared/ui/border-glow";
 import { BackgroundRippleEffect } from "@/shared/ui/background-ripple-effect";
+import { Button } from "@/shared/ui/button";
+import { Typography } from "@/shared/ui/typography";
 import { toast } from "sonner";
 
 const FRIENDBOT_URL = "https://friendbot.stellar.org";
@@ -43,12 +45,12 @@ export default function FaucetPage() {
 
         {/* Hero text */}
         <div className="space-y-3">
-          <h1 className="text-5xl font-bold leading-tight tracking-tight">
+          <Typography as="h1" variant="h1" weight="bold" className="text-5xl leading-tight tracking-tight text-center">
             Claim test token<br />to your wallet
-          </h1>
-          <p className="text-muted-foreground text-base">
+          </Typography>
+          <Typography variant="p" className="text-muted-foreground text-base text-center">
             Fund your wallet with 10,000 XLM on Stellar testnet
-          </p>
+          </Typography>
         </div>
 
         {/* Wallet card */}
@@ -69,14 +71,15 @@ export default function FaucetPage() {
               </span>
             </div>
             {isConnected && (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={() => disconnect()}
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                className="h-auto gap-1.5 p-0 text-xs text-muted-foreground hover:bg-transparent hover:text-foreground transition-colors"
               >
                 <LogOut className="h-3.5 w-3.5" />
                 Disconnect wallet
-              </button>
+              </Button>
             )}
           </div>
 
@@ -91,11 +94,11 @@ export default function FaucetPage() {
         </BorderGlow>
 
         {/* CTA */}
-        <button
+        <Button
           type="button"
           onClick={handleClaim}
           disabled={!isConnected || loading}
-          className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] px-12 py-4 text-base font-bold text-black transition-all hover:scale-105 hover:from-[#C5F0FF] hover:to-[#1CCFFF] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+          className="relative w-full overflow-hidden rounded-2xl bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] px-12 py-4 text-base font-bold text-black transition-all hover:scale-105 hover:from-[#C5F0FF] hover:to-[#1CCFFF] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
         >
           <div className="absolute top-0 left-1/2 -translate-x-1/2 h-4 w-[50%] rounded-full bg-white/80 blur-xl" />
           {loading ? (
@@ -104,7 +107,7 @@ export default function FaucetPage() {
               Sending...
             </span>
           ) : "Claim 10,000 XLM"}
-        </button>
+        </Button>
 
         {/* Tx status */}
         {(loading || txHash) && (
@@ -134,10 +137,10 @@ export default function FaucetPage() {
         )}
 
         {/* Footer note */}
-        <p className="text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto">
+        <Typography variant="small" className="text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto">
           To ensure a sufficient balance for all users, the Faucet is set to
           dispense 10,000 testnet XLM every 24 hours per address.
-        </p>
+        </Typography>
       </div>
     </div>
   );

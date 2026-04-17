@@ -1,97 +1,61 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useAuthStore } from "@/store/use-auth";
+import { useMutation } from "@tanstack/react-query";
+import {
+  useAccountControllerGetPresets,
+  useAccountControllerGetPosition,
+  useAccountControllerGetActivity,
+} from "@/gen-backend/hooks";
+import { $b, $bLive } from "@/lib/kubb-backend";
+import backendAxios from "@/lib/kubb-backend";
 import type { ActivityItem, PositionData, PresetCardData } from "../types";
 
-const API_BASE = `${process.env["NEXT_PUBLIC_BACKEND_URL"] ?? "http://localhost:6756"}/api`;
-
-function getAuthHeaders(): Record<string, string> {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  const { accessToken, expiresAt } = useAuthStore.getState();
-  if (accessToken && expiresAt && Date.now() < expiresAt) {
-    headers["Authorization"] = `Bearer ${accessToken}`;
-  } else if (accessToken) {
-    // Token expired — trigger re-auth
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("auth-token-expired"));
-    }
-  }
-  return headers;
-}
+// ─── Query hooks (generated + config preset + select to unwrap NestJS envelope) ───
 
 export function usePresets() {
-  return useQuery<PresetCardData[]>({
-    queryKey: ["account", "presets"],
-    queryFn: async () => {
-      const res = await fetch(`${API_BASE}/account/presets`);
-      if (!res.ok) throw new Error(`Failed to fetch presets (${res.status})`);
-      const json = await res.json();
-      return json.data ?? [];
+  return useAccountControllerGetPresets({
+    query: {
+      ...$b.query,
+      refetchInterval: 60_000,
+      select: (res: unknown): PresetCardData[] =>
+        (res as { data?: PresetCardData[] }).data ?? [],
     },
-    refetchInterval: 60_000,
   });
 }
 
 export function usePosition(publicKey: string | undefined) {
-  return useQuery<PositionData | null>({
-    queryKey: ["account", "position", publicKey],
-    queryFn: async () => {
-      const res = await fetch(`${API_BASE}/account/position/${publicKey}`, {
-        headers: getAuthHeaders(),
-      });
-      if (res.status === 401) {
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("auth-token-expired"));
-        }
-        return null;
-      }
-      if (!res.ok) return null;
-      const json = await res.json();
-      return json.data ?? null;
+  return useAccountControllerGetPosition(publicKey!, {
+    query: {
+      ...$bLive.query,
+      enabled: !!publicKey,
+      select: (res: unknown): PositionData | null =>
+        (res as { data?: PositionData }).data ?? null,
     },
-    enabled: !!publicKey,
-    retry: 1,
-    refetchInterval: 30_000,
   });
 }
 
 export function useActivity(publicKey: string | undefined) {
-  return useQuery<ActivityItem[]>({
-    queryKey: ["account", "activity", publicKey],
-    queryFn: async () => {
-      const res = await fetch(`${API_BASE}/account/activity/${publicKey}`, {
-        headers: getAuthHeaders(),
-      });
-      if (res.status === 401) {
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("auth-token-expired"));
-        }
-        return [];
-      }
-      if (!res.ok) return [];
-      const json = await res.json();
-      return json.data ?? [];
+  return useAccountControllerGetActivity(publicKey!, { limit: "50" }, {
+    query: {
+      ...$b.query,
+      enabled: !!publicKey,
+      refetchInterval: 60_000,
+      select: (res: unknown): ActivityItem[] =>
+        (res as { data?: ActivityItem[] }).data ?? [],
     },
-    enabled: !!publicKey,
-    retry: 1,
-    refetchInterval: 60_000,
   });
 }
+
+// ─── Mutation hooks (backendAxios directly — mutations have no `select`) ─────────
 
 export function useDeployAccount() {
   return useMutation({
     mutationFn: async (publicKey: string) => {
-      const res = await fetch(`${API_BASE}/account/deploy`, {
-        method: "POST",
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ publicKey }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.message ?? `Deploy request failed (${res.status})`);
-      }
-      return (await res.json()).data;
+      const { data } = await backendAxios.post<{ data: { xdr: string } }>(
+        "/api/account/deploy",
+        { publicKey }
+      );
+      return data.data;
     },
   });
 }
@@ -99,16 +63,11 @@ export function useDeployAccount() {
 export function useFundAccount() {
   return useMutation({
     mutationFn: async (dto: { publicKey: string; amount: number; token: string }) => {
-      const res = await fetch(`${API_BASE}/account/fund`, {
-        method: "POST",
-        headers: getAuthHeaders(),
-        body: JSON.stringify(dto),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.message ?? `Fund request failed (${res.status})`);
-      }
-      return (await res.json()).data;
+      const { data } = await backendAxios.post<{ data: { xdr: string } }>(
+        "/api/account/fund",
+        dto
+      );
+      return data.data;
     },
   });
 }
@@ -116,19 +75,11 @@ export function useFundAccount() {
 export function useUpdatePreset() {
   return useMutation({
     mutationFn: async ({ publicKey, preset }: { publicKey: string; preset: string }) => {
-      const res = await fetch(`${API_BASE}/account/preset/${publicKey}`, {
-        method: "PUT",
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ preset }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        if (res.status === 401) {
-          throw new Error("Unauthorized: strategy changes are admin-protected");
-        }
-        throw new Error(body.message ?? `Update preset failed (${res.status})`);
-      }
-      return (await res.json()).data;
+      const { data } = await backendAxios.put<{ data: unknown }>(
+        `/api/account/preset/${publicKey}`,
+        { preset }
+      );
+      return data.data;
     },
   });
 }
@@ -136,16 +87,11 @@ export function useUpdatePreset() {
 export function useSetupAccount() {
   return useMutation({
     mutationFn: async (publicKey: string) => {
-      const res = await fetch(`${API_BASE}/account/setup`, {
-        method: "POST",
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ publicKey }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.message ?? `Setup request failed (${res.status})`);
-      }
-      return (await res.json()).data as { setupTxs: string[] };
+      const { data } = await backendAxios.post<{ data: { setupTxs: string[] } }>(
+        "/api/account/setup",
+        { publicKey }
+      );
+      return data.data;
     },
   });
 }
@@ -153,15 +99,10 @@ export function useSetupAccount() {
 export function useResumeAccount() {
   return useMutation({
     mutationFn: async (publicKey: string) => {
-      const res = await fetch(`${API_BASE}/account/resume/${publicKey}`, {
-        method: "POST",
-        headers: getAuthHeaders(),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.message ?? `Resume request failed (${res.status})`);
-      }
-      return (await res.json()).data as { status: string };
+      const { data } = await backendAxios.post<{ data: { status: string } }>(
+        `/api/account/resume/${publicKey}`
+      );
+      return data.data;
     },
   });
 }
@@ -177,16 +118,11 @@ export interface SubmitTxParams {
 export function useSubmitTx() {
   return useMutation({
     mutationFn: async (params: SubmitTxParams) => {
-      const res = await fetch(`${API_BASE}/account/submit`, {
-        method: "POST",
-        headers: getAuthHeaders(),
-        body: JSON.stringify(params),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.message ?? `Submit transaction failed (${res.status})`);
-      }
-      return (await res.json()).data;
+      const { data } = await backendAxios.post<{ data: unknown }>(
+        "/api/account/submit",
+        params
+      );
+      return data.data;
     },
   });
 }
@@ -194,16 +130,10 @@ export function useSubmitTx() {
 export function useWithdraw() {
   return useMutation({
     mutationFn: async (dto: { publicKey: string; amount: number }) => {
-      const res = await fetch(`${API_BASE}/account/withdraw`, {
-        method: "POST",
-        headers: getAuthHeaders(),
-        body: JSON.stringify(dto),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.message ?? `Withdraw request failed (${res.status})`);
-      }
-      return (await res.json()).data;
+      const { data } = await backendAxios.post<{
+        data: { xdr?: string; xdrs?: string[]; signedXdrs?: string[] };
+      }>("/api/account/withdraw", dto);
+      return data.data;
     },
   });
 }
@@ -211,16 +141,11 @@ export function useWithdraw() {
 export function useRevoke() {
   return useMutation({
     mutationFn: async (publicKey: string) => {
-      const res = await fetch(`${API_BASE}/account/revoke`, {
-        method: "POST",
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ publicKey }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.message ?? `Revoke request failed (${res.status})`);
-      }
-      return (await res.json()).data;
+      const { data } = await backendAxios.post<{ data: { xdr: string } }>(
+        "/api/account/revoke",
+        { publicKey }
+      );
+      return data.data;
     },
   });
 }

@@ -53,7 +53,7 @@ const config = defineConfig({
 
     pluginClient({
       output: { path: "./client" },
-      importPath: "@kubb/plugin-client/clients/axios",
+      importPath: "@/lib/kubb-backend-client",
       transformers: {
         name: (name, type) => {
           if (!name) return name;

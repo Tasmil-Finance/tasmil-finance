@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { getAgentConfig } from "@/features/chat/config";
 import { Typography } from "@/shared/ui/typography";
+import { TokenImage } from "@/shared/components/token-image";
 
 type GreetingContent = {
   title: string;
@@ -185,8 +186,7 @@ export const Greeting = ({ agentId }: GreetingProps) => {
         transition={{ delay: 0.06, duration: 0.24, ease: "easeOut" }}
       >
         <div className="relative h-20 w-20 overflow-hidden rounded-full border border-border/60 bg-muted/30 md:h-24 md:w-24">
-          {/* Using regular img for animation compatibility */}
-          <img src={logo} alt={config.name} className="h-full w-full object-cover" />
+          <TokenImage src={logo} alt={config.name} className="h-full w-full object-cover text-4xl" />
         </div>
       </motion.div>
 

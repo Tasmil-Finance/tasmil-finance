@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAdminAuthStore } from "@/features/admin-auth/store/use-admin-auth-store";
+import { useAdminAuthStore } from "@/store/use-admin-auth";
 
 interface LoginResult {
   success: boolean;
