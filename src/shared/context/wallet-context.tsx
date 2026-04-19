@@ -172,12 +172,12 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Mock authentication function (replace with your actual API calls)
   const authenticateWithWallet = useCallback(
-    async (walletAddress: string, forceReauth = false) => {
+    async (walletAddress: string, isForced = false) => {
       if (authInProgressRef.current) {
         return;
       }
 
-      if (!forceReauth) {
+      if (!isForced) {
         if (isAuthValid(walletAddress)) {
           authAttemptedRef.current = walletAddress;
           return;
@@ -229,7 +229,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           .build();
 
         // Step 3: Sign with wallet
-        if (!forceReauth) {
+        if (!isForced) {
           toast.info("Sign to verify your wallet. This is free — no XLM is charged.", {
             duration: 4000,
           });
