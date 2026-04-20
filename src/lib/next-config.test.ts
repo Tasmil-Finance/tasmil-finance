@@ -14,7 +14,7 @@ describe("next.config AI proxy rewrites", () => {
     process.env = ORIGINAL_ENV;
   });
 
-  it("returns the AI proxy rewrites without reintroducing the removed Aquarius proxy", async () => {
+  it("prepends AI proxy rewrites and preserves the Aquarius rewrite", async () => {
     const { default: nextConfig } = await import("../../next.config");
     const rewrites = await nextConfig.rewrites?.();
 
@@ -40,13 +40,9 @@ describe("next.config AI proxy rewrites", () => {
           source: "/ok",
           destination: "http://ai:8001/ok",
         },
-      ]),
-    );
-    expect(rewrites).not.toEqual(
-      expect.arrayContaining([
         {
           source: "/api/aquarius/:path*",
-          destination: expect.any(String),
+          destination: "https://amm-api-testnet.aqua.network/api/external/v1/:path*",
         },
       ]),
     );
