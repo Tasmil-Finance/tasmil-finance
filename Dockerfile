@@ -17,6 +17,9 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
 
 WORKDIR /app/apps/frontend
 
+# Build workspace packages first (needed as dependencies)
+RUN pnpm --filter @tasmil/adapter-sdk run build
+
 ARG NEXT_PUBLIC_AI_URL
 ARG NEXT_PUBLIC_BACKEND_URL
 ENV NEXT_PUBLIC_AI_URL=$NEXT_PUBLIC_AI_URL

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Wifi, WifiOff } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -86,9 +86,9 @@ function ProtocolSidebar({
   );
 }
 
-// ─── Main Page ──────────────────────────────────────────────────
+// ─── Inner page content (uses searchParams) ──────────────────
 
-export default function ProtocolPlaygroundPage() {
+function ProtocolPlaygroundContent() {
   const { address: walletAddress } = useWallet();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -223,5 +223,28 @@ export default function ProtocolPlaygroundPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// ─── Page wrapper with Suspense ──────────────────────────────
+
+function LoadingSkeleton() {
+  return (
+    <div className="min-h-screen p-6 space-y-6">
+      <div className="flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <div className="h-8 w-64 bg-muted rounded animate-pulse mb-2" />
+          <div className="h-4 w-96 bg-muted rounded animate-pulse" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function ProtocolPlaygroundPage() {
+  return (
+    <Suspense fallback={<LoadingSkeleton />}>
+      <ProtocolPlaygroundContent />
+    </Suspense>
   );
 }

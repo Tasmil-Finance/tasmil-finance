@@ -3,15 +3,11 @@
  * No wagmi/viem dependency — uses raw provider requests.
  */
 
-declare global {
-  interface Window {
-    ethereum?: {
-      request: (args: { method: string; params?: unknown[] }) => Promise<any>;
-      on: (event: string, handler: (...args: any[]) => void) => void;
-      removeListener: (event: string, handler: (...args: any[]) => void) => void;
-      isMetaMask?: boolean;
-    };
-  }
+import type { EIP1193Provider } from "viem";
+
+function getEthereum(): EIP1193Provider | undefined {
+  if (typeof window === "undefined") return undefined;
+  return (window as Window & { ethereum?: EIP1193Provider }).ethereum;
 }
 
 // Chain IDs for supported EVM networks
@@ -37,39 +33,41 @@ const EVM_TESTNET_CHAIN_IDS: Record<string, string> = {
 };
 
 export function isEvmWalletAvailable(): boolean {
-  return typeof window !== "undefined" && !!window.ethereum;
+  return !!getEthereum();
 }
 
 export async function connectEvmWallet(): Promise<string | null> {
-  if (!window.ethereum) {
+  const ethereum = getEthereum();
+  if (!ethereum) {
     throw new Error("No EVM wallet found. Please install MetaMask.");
   }
 
-  const accounts: string[] = await window.ethereum.request({
+  const accounts = await ethereum.request({
     method: "eth_requestAccounts",
   });
-  return accounts[0] ?? null;
+  return (accounts as string[])[0] ?? null;
 }
 
 export async function getEvmChainId(): Promise<string> {
-  if (!window.ethereum) throw new Error("No EVM wallet");
-  return window.ethereum.request({ method: "eth_chainId" });
+  const ethereum = getEthereum();
+  if (!ethereum) throw new Error("No EVM wallet");
+  return ethereum.request({ method: "eth_chainId" }) as Promise<string>;
 }
 
 export async function switchEvmChain(chainId: string, isTestnet = false): Promise<void> {
-  if (!window.ethereum) throw new Error("No EVM wallet");
+  const ethereum = getEthereum();
+  if (!ethereum) throw new Error("No EVM wallet");
 
   const chainMap = isTestnet ? EVM_TESTNET_CHAIN_IDS : EVM_CHAIN_IDS;
   const targetChainId = chainMap[chainId];
   if (!targetChainId) return;
 
   try {
-    await window.ethereum.request({
+    await ethereum.request({
       method: "wallet_switchEthereumChain",
       params: [{ chainId: targetChainId }],
     });
   } catch (error: any) {
-    // Chain not added to wallet (error code 4902)
     if (error.code === 4902) {
       console.warn("Chain not added to wallet:", chainId);
     }
@@ -77,25 +75,31 @@ export async function switchEvmChain(chainId: string, isTestnet = false): Promis
   }
 }
 
-export async function sendEvmTransaction(rawTx: any): Promise<string> {
-  if (!window.ethereum) throw new Error("No EVM wallet");
+export async function sendEvmTransaction(rawTx: unknown): Promise<string> {
+  const ethereum = getEthereum();
+  if (!ethereum) throw new Error("No EVM wallet");
 
-  const txHash: string = await window.ethereum.request({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const txHash = (await ethereum.request({
     method: "eth_sendTransaction",
-    params: [rawTx],
-  });
+    params: [rawTx] as any,
+  })) as string;
 
   return txHash;
 }
 
 export function onEvmAccountChanged(handler: (accounts: string[]) => void): () => void {
-  if (!window.ethereum) return () => {};
-  window.ethereum.on("accountsChanged", handler);
-  return () => window.ethereum?.removeListener("accountsChanged", handler);
+  const ethereum = getEthereum();
+  if (!ethereum) return () => {};
+  const handleAccountsChanged = (accounts: unknown[]) => handler(accounts as string[]);
+  ethereum.on("accountsChanged", handleAccountsChanged);
+  return () => ethereum.removeListener("accountsChanged", handleAccountsChanged);
 }
 
 export function onEvmChainChanged(handler: (chainId: string) => void): () => void {
-  if (!window.ethereum) return () => {};
-  window.ethereum.on("chainChanged", handler);
-  return () => window.ethereum?.removeListener("chainChanged", handler);
+  const ethereum = getEthereum();
+  if (!ethereum) return () => {};
+  const handleChainChanged = (chainId: unknown) => handler(chainId as string);
+  ethereum.on("chainChanged", handleChainChanged);
+  return () => ethereum.removeListener("chainChanged", handleChainChanged);
 }
