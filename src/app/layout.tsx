@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { GoogleAnalytics } from "@next/third-parties/google";
-import { Outfit } from "next/font/google";
+import localFont from "next/font/local";
 import { AppProvider } from "@/providers/app-provider";
 import "./globals.css";
 
-const outfit = Outfit({
-  subsets: ["latin"],
-  display: "swap",
+const outfit = localFont({
+  src: "../../public/fonts/PPNeueMontreal.otf",
   variable: "--font-outfit",
+  display: "swap",
 });
 
 const LIGHT_THEME_COLOR = "hsl(0 0% 100%)";

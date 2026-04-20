@@ -1,7 +1,8 @@
 "use client";
 
 import { AlertCircle, ArrowUpRight, CheckCircle } from "lucide-react";
-import { memo } from "react";
+import { memo, useEffect, useRef } from "react";
+import { useWelcomeReward } from "@/features/welcome-reward/hooks/use-welcome-reward";
 import { getExplorerUrl, truncateAddress } from "@/shared/config/stellar";
 import { useResultData } from "../../hooks/use-result-data";
 import { BaseInfoCard } from "../base/info-card";
@@ -17,10 +18,21 @@ interface TxSubmitCardProps {
 
 function TxSubmitCardComponent({ result, status }: TxSubmitCardProps) {
   const { data, isLoading, hasError, errorMessage } = useResultData(result, status);
+  const { reportTransaction } = useWelcomeReward();
+  const reportedTxHashes = useRef(new Set<string>());
 
   const txResult = data?.result ?? data;
   const txHash = txResult?.id ?? txResult?.hash ?? txResult?.transactionHash;
   const isSuccess = data?.success !== false && txHash;
+
+  useEffect(() => {
+    if (!isSuccess || !txHash || reportedTxHashes.current.has(txHash)) {
+      return;
+    }
+
+    reportedTxHashes.current.add(txHash);
+    reportTransaction(txHash);
+  }, [isSuccess, reportTransaction, txHash]);
 
   if (isSuccess) {
     const explorerUrl = getExplorerUrl("tx", txHash);

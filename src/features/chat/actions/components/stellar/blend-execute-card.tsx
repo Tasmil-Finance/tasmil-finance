@@ -2,13 +2,14 @@
 
 import type { LucideIcon } from "lucide-react";
 import { ArrowRightLeft, Coins } from "lucide-react";
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { useStreamContext } from "@/features/chat/hooks";
 import type { SignedTxRecord } from "@/features/chat/types/stream.types";
-import { useWallet } from "@/shared/context/wallet-context";
-import { activeNetwork, truncateAddress } from "@/shared/config/stellar";
+import { useWelcomeReward } from "@/features/welcome-reward/hooks/use-welcome-reward";
 import { checkWalletNetwork, parseSigningError } from "@/lib/stellar-network-check";
+import { activeNetwork, truncateAddress } from "@/shared/config/stellar";
+import { useWallet } from "@/shared/context/wallet-context";
 import { DetailRow } from "../base/indicators";
 import { BaseOperationCard } from "../base/operation-card";
 
@@ -136,10 +137,11 @@ export function BlendExecuteCard({
 }: BlendExecuteCardProps) {
   const stream = useStreamContext();
   const { address: walletAddress } = useWallet();
+  const { reportTransaction } = useWelcomeReward();
 
   // Persisted state from LangGraph thread (PostgreSQL checkpointer) — survives page refresh
   const persistedTx = toolCallId
-    ? (stream.values as any)?.signed_txs?.[toolCallId] as SignedTxRecord | undefined
+    ? ((stream.values as any)?.signed_txs?.[toolCallId] as SignedTxRecord | undefined)
     : undefined;
 
   // Local state — initialised from module-level session cache so it survives remounts.
@@ -189,13 +191,12 @@ export function BlendExecuteCard({
     }
   }
 
-  const xdr = execResult?.xdr ?? args?.["xdr"];
-  const estimatedFee = execResult?.estimatedFee ?? args?.["estimatedFee"];
-  const action = args?.["action"];
+  const xdr = execResult?.xdr ?? args?.xdr;
+  const estimatedFee = execResult?.estimatedFee ?? args?.estimatedFee;
+  const action = args?.action;
 
   // Effective result: local (just signed) > persisted (from DB) > null
-  const effectiveResult =
-    localTxResult ?? (persistedTx ? toCardResult(persistedTx) : null);
+  const effectiveResult = localTxResult ?? (persistedTx ? toCardResult(persistedTx) : null);
 
   // Status derived from effective result; fall back to initialStatus while waiting
   const cardStatus = effectiveResult
@@ -237,10 +238,7 @@ export function BlendExecuteCard({
         const { getSorobanClient } = await import("@/lib/stellar-client");
 
         const soroban = getSorobanClient();
-        const signedTx = TransactionBuilder.fromXDR(
-          signedTxXdr,
-          activeNetwork.networkPassphrase
-        );
+        const signedTx = TransactionBuilder.fromXDR(signedTxXdr, activeNetwork.networkPassphrase);
         const response = await soroban.sendTransaction(signedTx as any);
 
         if (response.status === "PENDING") {
@@ -249,6 +247,7 @@ export function BlendExecuteCard({
 
           const cardResult = { success: true, hash, message: "Transaction successful!" };
           cacheTxResult(cardResult);
+          reportTransaction(hash);
 
           toast.success("Transaction submitted successfully!", {
             description: (
@@ -302,7 +301,9 @@ export function BlendExecuteCard({
       } catch (error) {
         const msg = parseSigningError(error);
         const isRejection =
-          msg.toLowerCase().includes("rejected") || msg.toLowerCase().includes("denied") || msg.toLowerCase().includes("cancel");
+          msg.toLowerCase().includes("rejected") ||
+          msg.toLowerCase().includes("denied") ||
+          msg.toLowerCase().includes("cancel");
 
         const cardResult = {
           success: false,
@@ -353,7 +354,7 @@ export function BlendExecuteCard({
         return { success: false, error: cardResult.message };
       }
     },
-    [xdr, stream, operation, toolCallId, respond, cacheTxResult]
+    [xdr, stream, operation, toolCallId, respond, cacheTxResult, reportTransaction, walletAddress]
   );
 
   const renderDetails = () => (
@@ -365,16 +366,12 @@ export function BlendExecuteCard({
         />
       )}
       {estimatedFee && <DetailRow label="Est. Fee" value={estimatedFee} />}
-      {args?.["amount"] && <DetailRow label="Amount" value={args["amount"] as string} />}
-      {args?.["from"] && (
-        <DetailRow label="From" value={truncateAddress(String(args["from"]))} mono />
+      {args?.amount && <DetailRow label="Amount" value={args.amount as string} />}
+      {args?.from && <DetailRow label="From" value={truncateAddress(String(args.from))} mono />}
+      {args?.poolAddress && (
+        <DetailRow label="Pool" value={truncateAddress(String(args.poolAddress))} mono />
       )}
-      {args?.["poolAddress"] && (
-        <DetailRow label="Pool" value={truncateAddress(String(args["poolAddress"]))} mono />
-      )}
-      {args?.["asset"] && (
-        <DetailRow label="Asset" value={truncateAddress(String(args["asset"]))} mono />
-      )}
+      {args?.asset && <DetailRow label="Asset" value={truncateAddress(String(args.asset))} mono />}
       {xdr && (
         <div className="mt-2 border-t pt-2">
           <div className="mb-1 text-muted-foreground text-xs">Transaction XDR</div>

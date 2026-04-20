@@ -1,45 +1,33 @@
 "use client";
 
-import type { Checkpoint, Message } from '@langchain/langgraph-sdk';
-import { AnimatePresence } from 'framer-motion';
-import {
-  ArrowDown,
-  ArrowLeft,
-  Clock,
-  Paperclip,
-  Send,
-  Square,
-  Wrench,
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { type FormEvent, useEffect, useRef, useState, useMemo } from 'react';
-import { toast } from 'sonner';
-import { v4 as uuidv4 } from 'uuid';
-import { ContentBlocksPreview } from '../thread/components/content-blocks-preview';
-import {
-  AssistantMessage,
-  AssistantMessageLoading,
-} from '../components/messages/ai-message';
-import { HumanMessage } from '../components/messages/human-message';
-import { useSearchAssistantsAssistantsSearchPost } from '@/gen-ai/hooks/use-search-assistants-assistants-search-post';
-import { kubbClient } from '@/lib/kubb';
-import {
-  DO_NOT_RENDER_ID_PREFIX,
-  ensureToolCallsHaveResponses,
-} from '@/lib/ensure-tool-responses';
-import { cn } from '@/lib/utils';
-import { useChatState, useStreamContext } from '../hooks';
-import { useWallet } from '@/shared/context/wallet-context';
-import { useWalletStore } from '@/store/use-wallet';
-import { useFileUpload } from '@/shared/hooks/use-file-upload';
-import { useIsMobile } from '@/shared/hooks/use-mobile';
-import { Button } from '@/shared/ui/button-v2';
-import { useMultiSidebar } from '@/shared/ui/multi-sidebar';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
+import type { Checkpoint, Message } from "@langchain/langgraph-sdk";
+import { AnimatePresence } from "framer-motion";
+import { ArrowDown, ArrowLeft, Clock, Paperclip, Send, Square, Wrench } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
+import { v4 as uuidv4 } from "uuid";
+import { WelcomeRewardCard } from "@/features/welcome-reward/components/welcome-reward-card";
+import { useWelcomeReward } from "@/features/welcome-reward/hooks/use-welcome-reward";
+import { useSearchAssistantsAssistantsSearchPost } from "@/gen-ai/hooks/use-search-assistants-assistants-search-post";
+import { DO_NOT_RENDER_ID_PREFIX, ensureToolCallsHaveResponses } from "@/lib/ensure-tool-responses";
+import { kubbClient } from "@/lib/kubb";
+import { cn } from "@/lib/utils";
+import { useWallet } from "@/shared/context/wallet-context";
+import { useFileUpload } from "@/shared/hooks/use-file-upload";
+import { useIsMobile } from "@/shared/hooks/use-mobile";
+import { Button } from "@/shared/ui/button-v2";
+import { useMultiSidebar } from "@/shared/ui/multi-sidebar";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
+import { useWalletStore } from "@/store/use-wallet";
+import { AssistantMessage, AssistantMessageLoading } from "../components/messages/ai-message";
+import { HumanMessage } from "../components/messages/human-message";
+import { useChatState, useStreamContext } from "../hooks";
+import { ContentBlocksPreview } from "../thread/components/content-blocks-preview";
+import { mergeMessagesWithCache, shouldFilterMessage } from "./chat-client-helpers";
 // import { BackgroundRippleEffect } from '@/shared/ui/background-ripple-effect';
-import { Greeting } from './greeting';
-import { SuggestedActions } from './suggested-actions';
-import { mergeMessagesWithCache, shouldFilterMessage } from './chat-client-helpers';
+import { Greeting } from "./greeting";
+import { SuggestedActions } from "./suggested-actions";
 
 // Mapping from short agent IDs to API graph_ids
 const AGENT_TO_GRAPH_ID: Record<string, string> = {
@@ -108,35 +96,36 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
 
   // Stream context from provider
   const stream = useStreamContext();
+  type StreamSubmitOptions = Parameters<typeof stream.submit>[1];
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isLoading = stream.isLoading || isSubmitting;
-  
+
   // Cache messages to prevent content loss during streaming
   const messagesCache = useRef<Message[]>([]);
   // Cache UI to prevent UI loss during streaming
   const uiCache = useRef<any[]>([]);
   // Force re-render trigger for instant user message display
   const [, forceUpdate] = useState({});
-  
+
   const messages = useMemo(() => {
     const incoming = stream.messages || [];
     const merged = mergeMessagesWithCache(messagesCache.current, incoming);
     messagesCache.current = merged;
     return merged;
   }, [stream.messages, forceUpdate]);
-  
+
   const uiComponents = useMemo(() => {
-    const incoming = (stream.values?.['ui'] as any[] | undefined) || [];
-    
+    const incoming = (stream.values?.["ui"] as any[] | undefined) || [];
+
     // If incoming is empty and we have cache, keep cache
     if (incoming.length === 0 && uiCache.current.length > 0) {
       return uiCache.current;
     }
-    
+
     // Merge incoming with cache - keep UI from both
     if (incoming.length > 0) {
       const merged = [...uiCache.current];
-      
+
       incoming.forEach((newUI: any) => {
         const existingIndex = merged.findIndex((ui: any) => ui.id === newUI.id);
         if (existingIndex >= 0) {
@@ -145,11 +134,11 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
           merged.push(newUI);
         }
       });
-      
+
       uiCache.current = merged;
       return merged;
     }
-    
+
     return uiCache.current;
   }, [stream.values]);
 
@@ -159,13 +148,14 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
       setIsSubmitting(false);
     }
   }, [stream.isLoading]);
-  
+
   const { hideToolCalls, setHideToolCalls, setAssistantInfo } = useChatState();
   const { address: walletAddress } = useWallet();
   // Fallback: Zustand persists wallet address synchronously from previous session.
   // The React state from useWallet() starts null on page load and is set after async kit init.
   // Using the store as fallback ensures wallet_address is always included even before kit ready.
   const effectiveWalletAddress = walletAddress ?? useWalletStore.getState().account;
+  const { status: welcomeRewardStatus, openRewardPage } = useWelcomeReward();
 
   // Fetch assistant info for avatar
   const { mutate: searchAssistants } = useSearchAssistantsAssistantsSearchPost({
@@ -220,6 +210,8 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
   // Show suggestions when: new chat OR agent finished responding
   // Use isAiResponseComplete as a faster indicator that AI is done
   const showSuggestions = isNewChat || (!effectiveIsLoading && messages.length > 0);
+  const showWelcomeRewardCard =
+    Boolean(welcomeRewardStatus?.reserved) && !welcomeRewardStatus?.welcomeCardSeen;
 
   // Error handling
   const lastError = useRef<string | undefined>(undefined);
@@ -366,10 +358,10 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
     };
 
     const toolMessages = ensureToolCallsHaveResponses(stream.messages);
-    
+
     // Add user message to cache immediately for instant display
     messagesCache.current = [...messagesCache.current, newHumanMessage];
-    
+
     // Force re-render to show user message immediately
     forceUpdate({});
 
@@ -379,16 +371,14 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
         ...(effectiveWalletAddress && { wallet_address: effectiveWalletAddress }),
       },
       {
-        // @ts-ignore
-        streamMode: ['values', 'custom'],
+        streamMode: ["values", "custom"],
         streamSubgraphs: false,
         streamResumable: true,
-        // @ts-ignore
         optimisticValues: (prev: any) => ({
           ...prev,
           messages: [...(prev?.messages ?? []), ...toolMessages, newHumanMessage],
         }),
-      }
+      } as StreamSubmitOptions
     );
 
     setInput("");
@@ -426,21 +416,18 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
     stream.submit(
       { messages: [newHumanMessage] },
       {
-        // @ts-ignore
         // Use parentCheckpoint directly (not ?? null). The SDK treats null as "no checkpoint"
         // (same as undefined), but a valid checkpoint object triggers a branch fork.
         // After onFinish fires and history.data is refreshed, getMessagesMetadata returns
         // a valid parent_checkpoint for the fork to work correctly.
         checkpoint: parentCheckpoint ?? undefined,
-        // @ts-ignore
-        streamMode: ['values', 'custom'],
+        streamMode: ["values", "custom"],
         streamSubgraphs: false,
         streamResumable: true,
-        // @ts-ignore
         optimisticValues: () => ({
           messages: [...safeMessagesBeforeCurrent, newHumanMessage],
         }),
-      }
+      } as StreamSubmitOptions
     );
   };
 
@@ -458,13 +445,10 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
     setIsSubmitting(true);
 
     stream.submit(undefined, {
-      // @ts-ignore - checkpoint may not be in type definition
       checkpoint: parentCheckpoint || null,
-      // @ts-ignore - streamMode may not be in type definition
-      streamMode: ['values', 'custom'],
+      streamMode: ["values", "custom"],
       streamSubgraphs: true,
       streamResumable: true,
-      // @ts-ignore - optimisticValues may not be in type definition
       optimisticValues: (prev: any) => {
         // Return parent state to immediately remove AI message from UI
         if (parentValues) {
@@ -472,7 +456,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
         }
         return prev;
       },
-    });
+    } as StreamSubmitOptions);
   };
 
   const handleSendSuggestion = (text: string) => {
@@ -487,10 +471,10 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
     };
 
     const toolMessages = ensureToolCallsHaveResponses(stream.messages);
-    
+
     // Add user message to cache immediately for instant display
     messagesCache.current = [...messagesCache.current, newHumanMessage];
-    
+
     // Force re-render to show user message immediately
     forceUpdate({});
 
@@ -501,16 +485,14 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
         ...(effectiveWalletAddress && { wallet_address: effectiveWalletAddress }),
       },
       {
-        // @ts-ignore - streamMode may not be in type definition
-        streamMode: ['values', 'custom'],
+        streamMode: ["values", "custom"],
         streamSubgraphs: false,
         streamResumable: true,
-        // @ts-ignore - optimisticValues may not be in type definition
         optimisticValues: (prev: any) => ({
           ...prev,
           messages: [...(prev?.messages ?? []), ...toolMessages, newHumanMessage],
         }),
-      }
+      } as StreamSubmitOptions
     );
     setUserScrolledUp(false); // Reset scroll state
   };
@@ -548,19 +530,29 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
             {showGreeting && <Greeting agentId={agentId} />}
           </AnimatePresence>
 
+          {showWelcomeRewardCard && welcomeRewardStatus && (
+            <div className="pointer-events-auto">
+              <WelcomeRewardCard
+                status={welcomeRewardStatus}
+                onOpen={() => void openRewardPage()}
+              />
+            </div>
+          )}
+
           <div className="pointer-events-auto flex flex-col gap-4">
             {(() => {
               // First pass: remove hidden/tool/system messages for rendering
               const visible = messages
                 .filter((m) => !m.id?.startsWith(DO_NOT_RENDER_ID_PREFIX))
-                .filter((m) => !m.id?.startsWith('__hidden__'))
-                .filter((m) => m.type !== 'tool' && m.type !== 'system');
+                .filter((m) => !m.id?.startsWith("__hidden__"))
+                .filter((m) => m.type !== "tool" && m.type !== "system");
               // Second pass: filter intermediate AI messages.
               // Pass full `messages` (not `visible`) so shouldFilterMessage
               // can find tool result messages when deciding whether to keep
               // AI messages that have tool_calls.
-              const filtered = visible
-                .filter((m, index, arr) => !shouldFilterMessage(m, index, arr, uiComponents, messages));
+              const filtered = visible.filter(
+                (m, index, arr) => !shouldFilterMessage(m, index, arr, uiComponents, messages)
+              );
 
               return filtered.map((message, index, arr) => {
                 const prevMessage = index > 0 ? arr[index - 1] : undefined;
@@ -579,7 +571,9 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
                     : false;
                 const isConsecutiveAi =
                   !hasHiddenHumanBetween &&
-                  message.type !== "human" && prevMessage?.type !== "human" && !!prevMessage;
+                  message.type !== "human" &&
+                  prevMessage?.type !== "human" &&
+                  !!prevMessage;
 
                 return message.type === "human" ? (
                   <HumanMessage
@@ -614,26 +608,28 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
               />
             )}
 
-            {effectiveIsLoading && !firstTokenReceived && (() => {
-              // Check if there are any tool-status UI messages
-              // If yes, don't show "Thinking..." - the tool status UI is already showing
-              const hasToolStatusUI = (stream.values?.['ui'] as any[] | undefined)?.some(
-                (ui: any) => ui.name?.includes('-tool-status')
-              );
-              
-              if (hasToolStatusUI) {
-                return null;
-              }
-              
-              // Check if there's already an AI message being rendered
-              // If yes, don't show separate "Thinking..." - it's already in the AI message
-              const hasAIMessage = messages.some((m) => m.type === 'ai');
-              if (hasAIMessage) {
-                return null;
-              }
-              
-              return <AssistantMessageLoading />;
-            })()}
+            {effectiveIsLoading &&
+              !firstTokenReceived &&
+              (() => {
+                // Check if there are any tool-status UI messages
+                // If yes, don't show "Thinking..." - the tool status UI is already showing
+                const hasToolStatusUI = (stream.values?.["ui"] as any[] | undefined)?.some(
+                  (ui: any) => ui.name?.includes("-tool-status")
+                );
+
+                if (hasToolStatusUI) {
+                  return null;
+                }
+
+                // Check if there's already an AI message being rendered
+                // If yes, don't show separate "Thinking..." - it's already in the AI message
+                const hasAIMessage = messages.some((m) => m.type === "ai");
+                if (hasAIMessage) {
+                  return null;
+                }
+
+                return <AssistantMessageLoading />;
+              })()}
           </div>
 
           <div ref={messagesEndRef} />

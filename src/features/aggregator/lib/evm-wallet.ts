@@ -3,15 +3,21 @@
  * No wagmi/viem dependency — uses raw provider requests.
  */
 
-declare global {
-  interface Window {
-    ethereum?: {
-      request: (args: { method: string; params?: unknown[] }) => Promise<any>;
-      on: (event: string, handler: (...args: any[]) => void) => void;
-      removeListener: (event: string, handler: (...args: any[]) => void) => void;
-      isMetaMask?: boolean;
-    };
-  }
+type EvmRequestArgs = {
+  method: string;
+  params?: unknown[];
+};
+
+type EvmProvider = Record<string, unknown> & {
+  request: (args: EvmRequestArgs) => Promise<unknown>;
+  on: (event: string, handler: (...args: unknown[]) => void) => void;
+  removeListener: (event: string, handler: (...args: unknown[]) => void) => void;
+  isMetaMask?: boolean;
+};
+
+function getEvmProvider(): EvmProvider | undefined {
+  if (typeof window === "undefined") return undefined;
+  return window.ethereum as EvmProvider | undefined;
 }
 
 // Chain IDs for supported EVM networks
@@ -37,34 +43,37 @@ const EVM_TESTNET_CHAIN_IDS: Record<string, string> = {
 };
 
 export function isEvmWalletAvailable(): boolean {
-  return typeof window !== "undefined" && !!window.ethereum;
+  return !!getEvmProvider();
 }
 
 export async function connectEvmWallet(): Promise<string | null> {
-  if (!window.ethereum) {
+  const provider = getEvmProvider();
+  if (!provider) {
     throw new Error("No EVM wallet found. Please install MetaMask.");
   }
 
-  const accounts: string[] = await window.ethereum.request({
+  const accounts = (await provider.request({
     method: "eth_requestAccounts",
-  });
+  })) as string[];
   return accounts[0] ?? null;
 }
 
 export async function getEvmChainId(): Promise<string> {
-  if (!window.ethereum) throw new Error("No EVM wallet");
-  return window.ethereum.request({ method: "eth_chainId" });
+  const provider = getEvmProvider();
+  if (!provider) throw new Error("No EVM wallet");
+  return (await provider.request({ method: "eth_chainId" })) as string;
 }
 
 export async function switchEvmChain(chainId: string, isTestnet = false): Promise<void> {
-  if (!window.ethereum) throw new Error("No EVM wallet");
+  const provider = getEvmProvider();
+  if (!provider) throw new Error("No EVM wallet");
 
   const chainMap = isTestnet ? EVM_TESTNET_CHAIN_IDS : EVM_CHAIN_IDS;
   const targetChainId = chainMap[chainId];
   if (!targetChainId) return;
 
   try {
-    await window.ethereum.request({
+    await provider.request({
       method: "wallet_switchEthereumChain",
       params: [{ chainId: targetChainId }],
     });
@@ -78,24 +87,27 @@ export async function switchEvmChain(chainId: string, isTestnet = false): Promis
 }
 
 export async function sendEvmTransaction(rawTx: any): Promise<string> {
-  if (!window.ethereum) throw new Error("No EVM wallet");
+  const provider = getEvmProvider();
+  if (!provider) throw new Error("No EVM wallet");
 
-  const txHash: string = await window.ethereum.request({
+  const txHash = (await provider.request({
     method: "eth_sendTransaction",
     params: [rawTx],
-  });
+  })) as string;
 
   return txHash;
 }
 
 export function onEvmAccountChanged(handler: (accounts: string[]) => void): () => void {
-  if (!window.ethereum) return () => {};
-  window.ethereum.on("accountsChanged", handler);
-  return () => window.ethereum?.removeListener("accountsChanged", handler);
+  const provider = getEvmProvider();
+  if (!provider) return () => {};
+  provider.on("accountsChanged", handler as (...args: unknown[]) => void);
+  return () => provider.removeListener("accountsChanged", handler as (...args: unknown[]) => void);
 }
 
 export function onEvmChainChanged(handler: (chainId: string) => void): () => void {
-  if (!window.ethereum) return () => {};
-  window.ethereum.on("chainChanged", handler);
-  return () => window.ethereum?.removeListener("chainChanged", handler);
+  const provider = getEvmProvider();
+  if (!provider) return () => {};
+  provider.on("chainChanged", handler as (...args: unknown[]) => void);
+  return () => provider.removeListener("chainChanged", handler as (...args: unknown[]) => void);
 }

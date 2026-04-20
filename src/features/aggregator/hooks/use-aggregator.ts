@@ -1,14 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useWallet } from "@/shared/context/wallet-context";
+import { useWelcomeReward } from "@/features/welcome-reward/hooks/use-welcome-reward";
 import { checkWalletNetwork, parseSigningError } from "@/lib/stellar-network-check";
+import { useWallet } from "@/shared/context/wallet-context";
 
 // ─── Types matching MCP Stellar aggregator API ──────────────────
 
 // Used only for execute/submit/verify/trustline (operations that still go through MCP server)
-const MCP_STELLAR_URL =
-  process.env["NEXT_PUBLIC_MCP_STELLAR_URL"] || "http://localhost:3009";
+const MCP_STELLAR_URL = process.env.NEXT_PUBLIC_MCP_STELLAR_URL || "http://localhost:3009";
 
 export interface ChainInfo {
   id: string;
@@ -97,7 +97,7 @@ async function fetchRegistry(): Promise<{ chains: ChainInfo[]; tokens: TokenInfo
 async function fetchFilteredTokens(
   selectedToken: string,
   selectedChain: string,
-  direction: "in" | "out",
+  direction: "in" | "out"
 ): Promise<{ tokens: TokenInfo[]; chains: string[] }> {
   const res = await fetch(`/api/tokens/filter`, {
     method: "POST",
@@ -150,14 +150,13 @@ async function fetchExecute(params: {
   return res.json();
 }
 
-const ALL_PROTOCOLS = new Set([
-  "soroswap", "sdex", "aquarius", "phoenix", "templar", "allbridge",
-]);
+const ALL_PROTOCOLS = new Set(["soroswap", "sdex", "aquarius", "phoenix", "templar", "allbridge"]);
 
 // ─── Hook ───────────────────────────────────────────────────────
 
 export function useAggregator(): AggregatorState {
   const { address: stellarAddress, signTransaction } = useWallet();
+  const { reportTransaction } = useWelcomeReward();
 
   const [chains, setChains] = useState<ChainInfo[]>([]);
   const [tokens, setTokens] = useState<TokenInfo[]>([]);
@@ -210,7 +209,9 @@ export function useAggregator(): AggregatorState {
         if (!cancelled) setIsLoadingRegistry(false);
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // ─── Filter tokens when tokenIn changes ─────────────────────
@@ -241,13 +242,37 @@ export function useAggregator(): AggregatorState {
   // Use refs to avoid stale closures in setInterval
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const fetchParamsRef = useRef({ tokenIn, tokenOut, amount, chainIn, chainOut, enabledProtocols, stellarAddress });
+  const fetchParamsRef = useRef({
+    tokenIn,
+    tokenOut,
+    amount,
+    chainIn,
+    chainOut,
+    enabledProtocols,
+    stellarAddress,
+  });
 
   // Keep ref in sync with latest state
-  fetchParamsRef.current = { tokenIn, tokenOut, amount, chainIn, chainOut, enabledProtocols, stellarAddress };
+  fetchParamsRef.current = {
+    tokenIn,
+    tokenOut,
+    amount,
+    chainIn,
+    chainOut,
+    enabledProtocols,
+    stellarAddress,
+  };
 
   const doFetchQuotes = useCallback(async (showLoader = false) => {
-    const { tokenIn: tIn, tokenOut: tOut, amount: amt, chainIn: cIn, chainOut: cOut, enabledProtocols: ep, stellarAddress: sa } = fetchParamsRef.current;
+    const {
+      tokenIn: tIn,
+      tokenOut: tOut,
+      amount: amt,
+      chainIn: cIn,
+      chainOut: cOut,
+      enabledProtocols: ep,
+      stellarAddress: sa,
+    } = fetchParamsRef.current;
     const numAmount = Number.parseFloat(amt);
     if (!tIn || !tOut || !amt || Number.isNaN(numAmount) || numAmount <= 0) return;
 
@@ -294,7 +319,10 @@ export function useAggregator(): AggregatorState {
     }
 
     function stopInterval() {
-      if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     }
 
     function onVisibilityChange() {
@@ -320,7 +348,16 @@ export function useAggregator(): AggregatorState {
       stopInterval();
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [tokenIn, tokenOut, amount, chainIn, chainOut, enabledProtocols, stellarAddress, doFetchQuotes]);
+  }, [
+    tokenIn,
+    tokenOut,
+    amount,
+    chainIn,
+    chainOut,
+    enabledProtocols,
+    stellarAddress,
+    doFetchQuotes,
+  ]);
 
   // Manual refresh
   const refreshQuotes = useCallback(() => {
@@ -332,7 +369,9 @@ export function useAggregator(): AggregatorState {
   const bestQuote = useMemo(() => {
     const ok = quotes.filter((q) => q.status === "ok");
     if (ok.length === 0) return null;
-    return ok.reduce((best, q) => (parseFloat(q.amountOut) > parseFloat(best.amountOut) ? q : best));
+    return ok.reduce((best, q) =>
+      parseFloat(q.amountOut) > parseFloat(best.amountOut) ? q : best
+    );
   }, [quotes]);
 
   // ─── Actions ────────────────────────────────────────────────
@@ -342,11 +381,14 @@ export function useAggregator(): AggregatorState {
     setChainIn(chain);
   }, []);
 
-  const setTokenOut = useCallback((token: TokenInfo, chain: string) => {
-    setTokenOutState(token);
-    if (chain !== chainOut) setDestAddress(""); // clear dest when chain changes
-    setChainOut(chain);
-  }, [chainOut]);
+  const setTokenOut = useCallback(
+    (token: TokenInfo, chain: string) => {
+      setTokenOutState(token);
+      if (chain !== chainOut) setDestAddress(""); // clear dest when chain changes
+      setChainOut(chain);
+    },
+    [chainOut]
+  );
 
   const toggleProtocol = useCallback((protocol: string) => {
     setEnabledProtocols((prev) => {
@@ -382,12 +424,23 @@ export function useAggregator(): AggregatorState {
     setIsAddingTrustline(false);
     setSigningTrustline(null);
 
-    if (!stellarAddress) { setMissingTrustlines([]); setNeedsTrustline(false); return; }
+    if (!stellarAddress) {
+      setMissingTrustlines([]);
+      setNeedsTrustline(false);
+      return;
+    }
 
     // Check trustline for both tokenIn (need it to hold/send) and tokenOut (need it to receive)
     const tokensToCheck: string[] = [];
-    if (tokenIn && chainIn === "stellar" && tokenIn.symbol !== "XLM") tokensToCheck.push(tokenIn.symbol);
-    if (tokenOut && chainOut === "stellar" && tokenOut.symbol !== "XLM" && tokenOut.symbol !== tokenIn?.symbol) tokensToCheck.push(tokenOut.symbol);
+    if (tokenIn && chainIn === "stellar" && tokenIn.symbol !== "XLM")
+      tokensToCheck.push(tokenIn.symbol);
+    if (
+      tokenOut &&
+      chainOut === "stellar" &&
+      tokenOut.symbol !== "XLM" &&
+      tokenOut.symbol !== tokenIn?.symbol
+    )
+      tokensToCheck.push(tokenOut.symbol);
 
     if (tokensToCheck.length === 0) {
       setMissingTrustlines([]);
@@ -415,46 +468,53 @@ export function useAggregator(): AggregatorState {
     });
   }, [tokenIn, tokenOut, chainIn, chainOut, stellarAddress]);
 
-  const addTrustlineFor = useCallback(async (sym: string) => {
-    if (!sym || !stellarAddress) return;
-    setIsAddingTrustline(true);
-    setSigningTrustline(sym);
-    try {
-      const res = await fetch(`${MCP_STELLAR_URL}/api/trustline/add`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address: stellarAddress, assetCode: sym }),
-      });
-      const data = await res.json();
-      if (!data.xdr) throw new Error(data.error || "Failed to build trustline tx");
+  const addTrustlineFor = useCallback(
+    async (sym: string) => {
+      if (!sym || !stellarAddress) return;
+      setIsAddingTrustline(true);
+      setSigningTrustline(sym);
+      try {
+        const res = await fetch(`${MCP_STELLAR_URL}/api/trustline/add`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ address: stellarAddress, assetCode: sym }),
+        });
+        const data = await res.json();
+        if (!data.xdr) throw new Error(data.error || "Failed to build trustline tx");
 
-      await checkWalletNetwork();
-      const signedXdr = await signTransaction(data.xdr);
+        await checkWalletNetwork();
+        const signedXdr = await signTransaction(data.xdr);
 
-      const submitRes = await fetch(`${MCP_STELLAR_URL}/api/aggregator/submit`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ signedXdr, protocol: "trustline" }),
-      });
-      const submitData = await submitRes.json();
-      if (!submitData.success) throw new Error(submitData.error || "Trustline tx failed");
+        const submitRes = await fetch(`${MCP_STELLAR_URL}/api/aggregator/submit`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ signedXdr, protocol: "trustline" }),
+        });
+        const submitData = await submitRes.json();
+        if (!submitData.success) throw new Error(submitData.error || "Trustline tx failed");
 
-      // Remove from missing list
-      const remaining = missingTrustlines.filter((s) => s !== sym);
-      setMissingTrustlines(remaining);
-      setNeedsTrustline(remaining.length > 0);
-      setTrustlineToken(remaining[0] ?? null);
-    } catch (err) {
-      const msg = parseSigningError(err);
-      // Don't show error for user rejection
-      if (!msg.toLowerCase().includes("cancel") && !msg.toLowerCase().includes("reject") && !msg.toLowerCase().includes("denied")) {
-        setExecuteError(msg);
+        // Remove from missing list
+        const remaining = missingTrustlines.filter((s) => s !== sym);
+        setMissingTrustlines(remaining);
+        setNeedsTrustline(remaining.length > 0);
+        setTrustlineToken(remaining[0] ?? null);
+      } catch (err) {
+        const msg = parseSigningError(err);
+        // Don't show error for user rejection
+        if (
+          !msg.toLowerCase().includes("cancel") &&
+          !msg.toLowerCase().includes("reject") &&
+          !msg.toLowerCase().includes("denied")
+        ) {
+          setExecuteError(msg);
+        }
+      } finally {
+        setIsAddingTrustline(false);
+        setSigningTrustline(null);
       }
-    } finally {
-      setIsAddingTrustline(false);
-      setSigningTrustline(null);
-    }
-  }, [missingTrustlines, stellarAddress, signTransaction]);
+    },
+    [missingTrustlines, stellarAddress, signTransaction]
+  );
 
   const addTrustline = useCallback(() => {
     const sym = missingTrustlines[0];
@@ -468,98 +528,151 @@ export function useAggregator(): AggregatorState {
   const [executeError, setExecuteError] = useState<string | null>(null);
   const [executeSuccess, setExecuteSuccess] = useState<string | null>(null);
 
-  const executeSwap = useCallback(async (protocol: string) => {
-    if (!tokenIn || !tokenOut || !amount || !stellarAddress) return;
+  const executeSwap = useCallback(
+    async (protocol: string) => {
+      if (!tokenIn || !tokenOut || !amount || !stellarAddress) return;
 
-    setIsExecuting(true);
-    setExecuteError(null);
-    setExecuteSuccess(null);
+      setIsExecuting(true);
+      setExecuteError(null);
+      setExecuteSuccess(null);
 
-    try {
-      const numAmount = Number.parseFloat(amount);
-      const rawAmount = String(Math.floor(numAmount * 10 ** tokenIn.decimals));
+      try {
+        const numAmount = Number.parseFloat(amount);
+        const rawAmount = String(Math.floor(numAmount * 10 ** tokenIn.decimals));
 
-      // 1. Get unsigned XDR from aggregator
-      const result = await fetchExecute({
-        mode: mode || "swap",
-        protocol,
-        tokenIn: tokenIn.symbol,
-        tokenOut: tokenOut.symbol,
-        amount: rawAmount,
-        from: stellarAddress,
-        to: destAddress || stellarAddress,
-        fromChain: chainIn,
-        toChain: chainOut,
-        slippageBps,
-      });
-
-      if (!result.success) {
-        throw new Error(result.error || "Execute failed");
-      }
-
-      if (result.xdr) {
-        // 2. Sign XDR with Stellar wallet (triggers wallet popup)
-        await checkWalletNetwork();
-        const signedXdr = await signTransaction(result.xdr);
-
-        // 3. Submit signed transaction via Soroswap send API (handles Soroban submission)
-        const MCP_URL = process.env["NEXT_PUBLIC_MCP_STELLAR_URL"] || "http://localhost:3009";
-        const submitRes = await fetch(`${MCP_URL}/api/aggregator/submit`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ signedXdr, protocol }),
+        // 1. Get unsigned XDR from aggregator
+        const result = await fetchExecute({
+          mode: mode || "swap",
+          protocol,
+          tokenIn: tokenIn.symbol,
+          tokenOut: tokenOut.symbol,
+          amount: rawAmount,
+          from: stellarAddress,
+          to: destAddress || stellarAddress,
+          fromChain: chainIn,
+          toChain: chainOut,
+          slippageBps,
         });
-        const submitData = await submitRes.json();
 
-        if (!submitData.success) {
-          throw new Error(submitData.detail || submitData.error || "Transaction submission failed");
+        if (!result.success) {
+          throw new Error(result.error || "Execute failed");
         }
 
-        // Verify TX actually succeeded on-chain (submitted != successful)
-        if (submitData.hash) {
-          const MCP2 = process.env["NEXT_PUBLIC_MCP_STELLAR_URL"] || "http://localhost:3009";
-          try {
-            const verifyRes = await fetch(`${MCP2}/api/aggregator/verify?hash=${submitData.hash}`);
-            const verifyData = await verifyRes.json();
-            if (verifyData.successful === false) {
-              throw new Error(verifyData.error || "Transaction failed on-chain");
-            }
-          } catch (verifyErr) {
-            // If verify fails but TX was submitted, show hash anyway with warning
-            if (verifyErr instanceof Error && verifyErr.message.includes("on-chain")) {
-              throw verifyErr;
+        if (result.xdr) {
+          // 2. Sign XDR with Stellar wallet (triggers wallet popup)
+          await checkWalletNetwork();
+          const signedXdr = await signTransaction(result.xdr);
+
+          // 3. Submit signed transaction via Soroswap send API (handles Soroban submission)
+          const MCP_URL = process.env.NEXT_PUBLIC_MCP_STELLAR_URL || "http://localhost:3009";
+          const submitRes = await fetch(`${MCP_URL}/api/aggregator/submit`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ signedXdr, protocol }),
+          });
+          const submitData = await submitRes.json();
+
+          if (!submitData.success) {
+            throw new Error(
+              submitData.detail || submitData.error || "Transaction submission failed"
+            );
+          }
+
+          // Verify TX actually succeeded on-chain (submitted != successful)
+          if (submitData.hash) {
+            const MCP2 = process.env.NEXT_PUBLIC_MCP_STELLAR_URL || "http://localhost:3009";
+            try {
+              const verifyRes = await fetch(
+                `${MCP2}/api/aggregator/verify?hash=${submitData.hash}`
+              );
+              const verifyData = await verifyRes.json();
+              if (verifyData.successful === false) {
+                throw new Error(verifyData.error || "Transaction failed on-chain");
+              }
+            } catch (verifyErr) {
+              // If verify fails but TX was submitted, show hash anyway with warning
+              if (verifyErr instanceof Error && verifyErr.message.includes("on-chain")) {
+                throw verifyErr;
+              }
             }
           }
-        }
 
-        // Clear form after success
-        setAmount("");
-        setQuotes([]);
-        setMode(null);
-        setExecuteSuccess(submitData.hash);
-      } else if (result.depositAddress) {
-        // Bridge flow — show deposit instructions
-        setExecuteSuccess(`Send funds to: ${result.depositAddress}`);
+          // Clear form after success
+          setAmount("");
+          setQuotes([]);
+          setMode(null);
+          reportTransaction(submitData.hash);
+          setExecuteSuccess(submitData.hash);
+        } else if (result.depositAddress) {
+          // Bridge flow — show deposit instructions
+          setExecuteSuccess(`Send funds to: ${result.depositAddress}`);
+        }
+      } catch (err) {
+        const msg = parseSigningError(err);
+        if (
+          !msg.toLowerCase().includes("cancel") &&
+          !msg.toLowerCase().includes("reject") &&
+          !msg.toLowerCase().includes("denied")
+        ) {
+          setExecuteError(msg);
+        }
+      } finally {
+        setIsExecuting(false);
       }
-    } catch (err) {
-      const msg = parseSigningError(err);
-      if (!msg.toLowerCase().includes("cancel") && !msg.toLowerCase().includes("reject") && !msg.toLowerCase().includes("denied")) {
-        setExecuteError(msg);
-      }
-    } finally {
-      setIsExecuting(false);
-    }
-  }, [tokenIn, tokenOut, amount, stellarAddress, mode, chainIn, chainOut, slippageBps, signTransaction]);
+    },
+    [
+      tokenIn,
+      tokenOut,
+      amount,
+      stellarAddress,
+      mode,
+      chainIn,
+      chainOut,
+      destAddress,
+      slippageBps,
+      signTransaction,
+      reportTransaction,
+    ]
+  );
 
   return {
-    chains, tokens, isLoadingRegistry,
-    tokenIn, tokenOut, chainIn, chainOut, amount,
-    filteredTokensOut, filteredChainsOut, filteredTokensIn, filteredChainsIn,
-    quotes, bestQuote, isLoadingQuotes, mode,
-    slippageBps, enabledProtocols,
-    setTokenIn, setTokenOut, setAmount, setSlippageBps, toggleProtocol, swapDirection, refreshQuotes,
-    executeSwap, isExecuting, executeError, executeSuccess,
-    destAddress, setDestAddress,
-    needsTrustline, trustlineToken, missingTrustlines, addTrustline, addTrustlineFor, isAddingTrustline, signingTrustline,
+    chains,
+    tokens,
+    isLoadingRegistry,
+    tokenIn,
+    tokenOut,
+    chainIn,
+    chainOut,
+    amount,
+    filteredTokensOut,
+    filteredChainsOut,
+    filteredTokensIn,
+    filteredChainsIn,
+    quotes,
+    bestQuote,
+    isLoadingQuotes,
+    mode,
+    slippageBps,
+    enabledProtocols,
+    setTokenIn,
+    setTokenOut,
+    setAmount,
+    setSlippageBps,
+    toggleProtocol,
+    swapDirection,
+    refreshQuotes,
+    executeSwap,
+    isExecuting,
+    executeError,
+    executeSuccess,
+    destAddress,
+    setDestAddress,
+    needsTrustline,
+    trustlineToken,
+    missingTrustlines,
+    addTrustline,
+    addTrustlineFor,
+    isAddingTrustline,
+    signingTrustline,
   };
 }
