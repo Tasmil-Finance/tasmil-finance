@@ -7,7 +7,8 @@ import { useWallet } from "@/shared/context/wallet-context";
 
 // ─── Types matching MCP Stellar aggregator API ──────────────────
 
-// All aggregator operations go through local Next.js API routes (no MCP dependency)
+// Used only for execute/submit/verify/trustline (operations that still go through MCP server)
+const MCP_STELLAR_URL = process.env.NEXT_PUBLIC_MCP_STELLAR_URL || "http://localhost:3009";
 
 export interface ChainInfo {
   id: string;
@@ -35,10 +36,6 @@ export interface RouteQuote {
   amountOut: string;
   fee: string;
   feePercent: string;
-  /** Gas fee on destination chain, paid in native token of source chain */
-  gasFee?: string;
-  /** Symbol of native token used for gas fee (e.g. "XLM") */
-  gasFeeToken?: string;
   estimatedTime: string;
   route?: string[];
   poolAddress?: string;
@@ -72,7 +69,7 @@ export interface AggregatorState {
   toggleProtocol: (protocol: string) => void;
   swapDirection: () => void;
   refreshQuotes: () => void;
-  executeSwap: (protocol: string, opts?: { sourceAddress?: string; signSolana?: (tx: unknown) => Promise<string>; signEvm?: (tx: { to: string; data: string; value?: string }) => Promise<string>; allbridgeExecute?: (params: { fromChain: string; toChain: string; tokenIn: string; tokenOut: string; amount: string; from: string; to: string; signSolana?: (tx: unknown) => Promise<string>; signEvm?: (tx: { to: string; data: string; value?: string }) => Promise<string>; signStellar?: (xdr: string) => Promise<string> }) => Promise<string> }) => Promise<void>;
+  executeSwap: (protocol: string) => Promise<void>;
   isExecuting: boolean;
   executeError: string | null;
   executeSuccess: string | null;
@@ -141,7 +138,7 @@ async function fetchExecute(params: {
   toChain?: string;
   slippageBps?: number;
 }): Promise<{ success: boolean; xdr?: string; depositAddress?: string; error?: string }> {
-  const res = await fetch(`/api/aggregator/execute`, {
+  const res = await fetch(`${MCP_STELLAR_URL}/api/aggregator/execute`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(params),
@@ -181,27 +178,8 @@ export function useAggregator(): AggregatorState {
   const [mode, setMode] = useState<"swap" | "bridge" | null>(null);
   const [isLoadingQuotes, setIsLoadingQuotes] = useState(false);
 
-  const [slippageBps, setSlippageBpsState] = useState(() => {
-    if (typeof window === "undefined") return 100;
-    const saved = localStorage.getItem("aggregator-slippage");
-    return saved ? Number(saved) : 100;
-  });
-  const setSlippageBps = useCallback((bps: number) => {
-    setSlippageBpsState(bps);
-    localStorage.setItem("aggregator-slippage", String(bps));
-  }, []);
-
-  const [enabledProtocols, setEnabledProtocols] = useState<Set<string>>(() => {
-    if (typeof window === "undefined") return new Set(ALL_PROTOCOLS);
-    const saved = localStorage.getItem("aggregator-protocols");
-    if (saved) {
-      try {
-        const arr = JSON.parse(saved) as string[];
-        return new Set(arr.filter((p) => ALL_PROTOCOLS.has(p)));
-      } catch { /* ignore */ }
-    }
-    return new Set(ALL_PROTOCOLS);
-  });
+  const [slippageBps, setSlippageBps] = useState(100);
+  const [enabledProtocols, setEnabledProtocols] = useState<Set<string>>(new Set(ALL_PROTOCOLS));
 
   const quoteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -420,7 +398,6 @@ export function useAggregator(): AggregatorState {
       } else {
         next.add(protocol);
       }
-      localStorage.setItem("aggregator-protocols", JSON.stringify([...next]));
       return next;
     });
   }, []);
@@ -474,7 +451,7 @@ export function useAggregator(): AggregatorState {
 
     Promise.all(
       tokensToCheck.map((sym) =>
-        fetch(`/api/trustline/check`, {
+        fetch(`${MCP_STELLAR_URL}/api/trustline/check`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ address: stellarAddress, assetCode: sym }),
@@ -497,7 +474,7 @@ export function useAggregator(): AggregatorState {
       setIsAddingTrustline(true);
       setSigningTrustline(sym);
       try {
-        const res = await fetch(`/api/trustline/add`, {
+        const res = await fetch(`${MCP_STELLAR_URL}/api/trustline/add`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ address: stellarAddress, assetCode: sym }),
@@ -508,7 +485,7 @@ export function useAggregator(): AggregatorState {
         await checkWalletNetwork();
         const signedXdr = await signTransaction(data.xdr);
 
-        const submitRes = await fetch(`/api/aggregator/submit`, {
+        const submitRes = await fetch(`${MCP_STELLAR_URL}/api/aggregator/submit`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ signedXdr, protocol: "trustline" }),
@@ -552,12 +529,8 @@ export function useAggregator(): AggregatorState {
   const [executeSuccess, setExecuteSuccess] = useState<string | null>(null);
 
   const executeSwap = useCallback(
-    async (protocol: string, opts?: { sourceAddress?: string; signSolana?: (tx: unknown) => Promise<string>; signEvm?: (tx: { to: string; data: string; value?: string }) => Promise<string>; allbridgeExecute?: (params: { fromChain: string; toChain: string; tokenIn: string; tokenOut: string; amount: string; from: string; to: string; signSolana?: (tx: unknown) => Promise<string>; signEvm?: (tx: { to: string; data: string; value?: string }) => Promise<string>; signStellar?: (xdr: string) => Promise<string> }) => Promise<string> }) => {
-      if (!tokenIn || !tokenOut || !amount) return;
-
-      // For Stellar protocols, stellarAddress is required
-      const fromAddr = opts?.sourceAddress || stellarAddress;
-      if (!fromAddr) return;
+    async (protocol: string) => {
+      if (!tokenIn || !tokenOut || !amount || !stellarAddress) return;
 
       setIsExecuting(true);
       setExecuteError(null);
@@ -567,47 +540,15 @@ export function useAggregator(): AggregatorState {
         const numAmount = Number.parseFloat(amount);
         const rawAmount = String(Math.floor(numAmount * 10 ** tokenIn.decimals));
 
-        // ── Allbridge cross-chain bridge (client-side via Tasmil SDK) ──
-        if (protocol === "allbridge" && opts?.allbridgeExecute) {
-          const txHash = await opts.allbridgeExecute({
-            fromChain: chainIn,
-            toChain: chainOut,
-            tokenIn: tokenIn.symbol,
-            tokenOut: tokenOut.symbol,
-            amount: amount,
-            from: fromAddr,
-            to: destAddress || stellarAddress || fromAddr,
-            signSolana: opts.signSolana,
-            signEvm: opts.signEvm,
-            signStellar: async (xdr: string) => {
-              await checkWalletNetwork();
-              const signed = await signTransaction(xdr);
-              const submitRes = await fetch(`/api/aggregator/submit`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ signedXdr: signed, protocol: "trustline" }),
-              });
-              const submitData = await submitRes.json();
-              if (!submitData.success) throw new Error(submitData.error || "Submit failed");
-              return submitData.hash;
-            },
-          });
-          setAmount("");
-          setQuotes([]);
-          setMode(null);
-          setExecuteSuccess(txHash);
-          return;
-        }
-
-        // ── Standard Stellar protocol execute (soroswap, aquarius, etc.) ──
+        // 1. Get unsigned XDR from aggregator
         const result = await fetchExecute({
           mode: mode || "swap",
           protocol,
           tokenIn: tokenIn.symbol,
           tokenOut: tokenOut.symbol,
           amount: rawAmount,
-          from: stellarAddress || fromAddr,
-          to: destAddress || stellarAddress || fromAddr,
+          from: stellarAddress,
+          to: destAddress || stellarAddress,
           fromChain: chainIn,
           toChain: chainOut,
           slippageBps,
@@ -618,13 +559,16 @@ export function useAggregator(): AggregatorState {
         }
 
         if (result.xdr) {
+          // 2. Sign XDR with Stellar wallet (triggers wallet popup)
           await checkWalletNetwork();
           const signedXdr = await signTransaction(result.xdr);
 
-          const submitRes = await fetch(`/api/aggregator/submit`, {
+          // 3. Submit signed transaction via Soroswap send API (handles Soroban submission)
+          const MCP_URL = process.env.NEXT_PUBLIC_MCP_STELLAR_URL || "http://localhost:3009";
+          const submitRes = await fetch(`${MCP_URL}/api/aggregator/submit`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ signedXdr }),
+            body: JSON.stringify({ signedXdr, protocol }),
           });
           const submitData = await submitRes.json();
 
@@ -634,28 +578,33 @@ export function useAggregator(): AggregatorState {
             );
           }
 
+          // Verify TX actually succeeded on-chain (submitted != successful)
           if (submitData.hash) {
+            const MCP2 = process.env.NEXT_PUBLIC_MCP_STELLAR_URL || "http://localhost:3009";
             try {
               const verifyRes = await fetch(
-                `/api/aggregator/verify?hash=${submitData.hash}`
+                `${MCP2}/api/aggregator/verify?hash=${submitData.hash}`
               );
               const verifyData = await verifyRes.json();
               if (verifyData.successful === false) {
                 throw new Error(verifyData.error || "Transaction failed on-chain");
               }
             } catch (verifyErr) {
+              // If verify fails but TX was submitted, show hash anyway with warning
               if (verifyErr instanceof Error && verifyErr.message.includes("on-chain")) {
                 throw verifyErr;
               }
             }
           }
 
+          // Clear form after success
           setAmount("");
           setQuotes([]);
           setMode(null);
           reportTransaction(submitData.hash);
           setExecuteSuccess(submitData.hash);
         } else if (result.depositAddress) {
+          // Bridge flow — show deposit instructions
           setExecuteSuccess(`Send funds to: ${result.depositAddress}`);
         }
       } catch (err) {

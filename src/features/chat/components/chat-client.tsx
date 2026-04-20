@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
-import { WelcomeRewardDialog } from "@/features/welcome-reward/components/welcome-reward-dialog";
+import { WelcomeRewardCard } from "@/features/welcome-reward/components/welcome-reward-card";
 import { useWelcomeReward } from "@/features/welcome-reward/hooks/use-welcome-reward";
 import { useSearchAssistantsAssistantsSearchPost } from "@/gen-ai/hooks/use-search-assistants-assistants-search-post";
 import { DO_NOT_RENDER_ID_PREFIX, ensureToolCallsHaveResponses } from "@/lib/ensure-tool-responses";
@@ -23,7 +23,6 @@ import { useWalletStore } from "@/store/use-wallet";
 import { AssistantMessage, AssistantMessageLoading } from "../components/messages/ai-message";
 import { HumanMessage } from "../components/messages/human-message";
 import { useChatState, useStreamContext } from "../hooks";
-import { classifyChatProductError, type ChatProductError } from "../lib/chat-product-error";
 import { ContentBlocksPreview } from "../thread/components/content-blocks-preview";
 import { mergeMessagesWithCache, shouldFilterMessage } from "./chat-client-helpers";
 // import { BackgroundRippleEffect } from '@/shared/ui/background-ripple-effect';
@@ -151,12 +150,12 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
   }, [stream.isLoading]);
 
   const { hideToolCalls, setHideToolCalls, setAssistantInfo } = useChatState();
-  const { address: walletAddress, forceReauth } = useWallet();
+  const { address: walletAddress } = useWallet();
   // Fallback: Zustand persists wallet address synchronously from previous session.
   // The React state from useWallet() starts null on page load and is set after async kit init.
   // Using the store as fallback ensures wallet_address is always included even before kit ready.
   const effectiveWalletAddress = walletAddress ?? useWalletStore.getState().account;
-  const { status: welcomeRewardStatus, openRewardPage, markSeen } = useWelcomeReward();
+  const { status: welcomeRewardStatus, openRewardPage } = useWelcomeReward();
 
   // Fetch assistant info for avatar
   const { mutate: searchAssistants } = useSearchAssistantsAssistantsSearchPost({
@@ -211,55 +210,33 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
   // Show suggestions when: new chat OR agent finished responding
   // Use isAiResponseComplete as a faster indicator that AI is done
   const showSuggestions = isNewChat || (!effectiveIsLoading && messages.length > 0);
-  const showWelcomeRewardDialog =
-    isNewChat &&
-    Boolean(welcomeRewardStatus?.reserved) &&
-    !welcomeRewardStatus?.welcomeCardSeen;
-  const [productError, setProductError] = useState<ChatProductError | null>(null);
+  const showWelcomeRewardCard =
+    Boolean(welcomeRewardStatus?.reserved) && !welcomeRewardStatus?.welcomeCardSeen;
 
   // Error handling
   const lastError = useRef<string | undefined>(undefined);
   useEffect(() => {
     if (!stream.error) {
-      setProductError(null);
       lastError.current = undefined;
       return;
     }
-
-    const kind = classifyChatProductError(stream.error);
-    setProductError(kind);
-
-    if (kind === "SESSION_INVALID") {
-      toast.error("Wallet session expired.", {
-        description: "Reconnect your wallet to continue chatting.",
-        action: {
-          label: "Reconnect",
-          onClick: () => {
-            void forceReauth();
-          },
-        },
+    try {
+      const message = stream.error && (stream.error as any).message;
+      if (!message || lastError.current === message) return;
+      lastError.current = message;
+      toast.error("An error occurred. Please try again.", {
+        description: (
+          <p>
+            <strong>Error:</strong> <code>{message}</code>
+          </p>
+        ),
+        richColors: true,
+        closeButton: true,
       });
-      return;
+    } catch {
+      // no-op
     }
-
-    if (kind === "CHAT_USAGE_LIMIT_REACHED") {
-      toast.error("You have reached the current 20-response limit.");
-      return;
-    }
-
-    const message = (stream.error as any)?.message ?? "Unknown AI error";
-    if (lastError.current === message) return;
-    lastError.current = message;
-    toast.error("An error occurred. Please try again.", {
-      description: (
-        <p>
-          <strong>Error:</strong> <code>{message}</code>
-        </p>
-      ),
-      richColors: true,
-      closeButton: true,
-    });
-  }, [forceReauth, stream.error]);
+  }, [stream.error]);
 
   // Track first token received for CURRENT response
   const prevMessageLength = useRef(0);
@@ -360,9 +337,6 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
     };
   }, []);
 
-  const composerBlocked =
-    productError === "SESSION_INVALID" || productError === "CHAT_USAGE_LIMIT_REACHED";
-
   const scrollToBottom = () => {
     setUserScrolledUp(false);
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -370,7 +344,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if ((input.trim().length === 0 && contentBlocks.length === 0) || composerBlocked || effectiveIsLoading) return;
+    if ((input.trim().length === 0 && contentBlocks.length === 0) || effectiveIsLoading) return;
     setFirstTokenReceived(false);
     setIsSubmitting(true);
 
@@ -440,10 +414,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
     forceUpdate({});
 
     stream.submit(
-      {
-        messages: [newHumanMessage],
-        ...(effectiveWalletAddress && { wallet_address: effectiveWalletAddress }),
-      },
+      { messages: [newHumanMessage] },
       {
         // Use parentCheckpoint directly (not ?? null). The SDK treats null as "no checkpoint"
         // (same as undefined), but a valid checkpoint object triggers a branch fork.
@@ -489,7 +460,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
   };
 
   const handleSendSuggestion = (text: string) => {
-    if (!text.trim() || composerBlocked || effectiveIsLoading) return;
+    if (!text.trim() || effectiveIsLoading) return;
     setFirstTokenReceived(false);
     setIsSubmitting(true);
 
@@ -559,16 +530,16 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
             {showGreeting && <Greeting agentId={agentId} />}
           </AnimatePresence>
 
-          {showWelcomeRewardDialog && welcomeRewardStatus && (
-            <WelcomeRewardDialog
-              open
-              status={welcomeRewardStatus}
-              onDismiss={() => void markSeen()}
-              onOpen={() => void openRewardPage()}
-            />
+          {showWelcomeRewardCard && welcomeRewardStatus && (
+            <div className="pointer-events-auto">
+              <WelcomeRewardCard
+                status={welcomeRewardStatus}
+                onOpen={() => void openRewardPage()}
+              />
+            </div>
           )}
 
-          <div className="pointer-events-auto flex flex-col gap-2">
+          <div className="pointer-events-auto flex flex-col gap-4">
             {(() => {
               // First pass: remove hidden/tool/system messages for rendering
               const visible = messages
@@ -585,8 +556,8 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
 
               return filtered.map((message, index, arr) => {
                 const prevMessage = index > 0 ? arr[index - 1] : undefined;
-                // Check if there's a hidden human message between prev and current
-                // in the unfiltered thread. If so, treat as new turn → show avatar.
+                // Check if there's a hidden human message (e.g. __hidden__tx-success-*) between
+                // prevMessage and message in the unfiltered thread. If so, treat as new turn → show avatar.
                 const hasHiddenHumanBetween =
                   prevMessage && message
                     ? (() => {
@@ -693,26 +664,6 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
             </div>
           )}
 
-          {productError === "SESSION_INVALID" ? (
-            <div className="mb-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
-              Your wallet session is no longer valid for chat.
-              <button
-                type="button"
-                onClick={() => void forceReauth()}
-                className="ml-3 font-semibold text-primary"
-              >
-                Reconnect wallet
-              </button>
-            </div>
-          ) : null}
-
-          {productError === "CHAT_USAGE_LIMIT_REACHED" ? (
-            <div className="mb-4 rounded-2xl border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
-              You have used all 20 AI responses available in this phase. Additional unlock flow
-              stays out of scope for this iteration.
-            </div>
-          ) : null}
-
           {/* Input Form */}
           <div
             ref={dropRef}
@@ -742,7 +693,6 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
                     form?.requestSubmit();
                   }
                 }}
-                disabled={composerBlocked}
                 placeholder="Send a message..."
                 className="max-h-[200px] min-h-[44px] w-full resize-none border-none bg-transparent px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:outline-none"
                 rows={1}
@@ -814,7 +764,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
                 ) : (
                   <Button
                     type="submit"
-                    disabled={composerBlocked || effectiveIsLoading || (!input.trim() && contentBlocks.length === 0)}
+                    disabled={effectiveIsLoading || (!input.trim() && contentBlocks.length === 0)}
                     className="h-8 w-8 rounded-full bg-primary p-0 text-primary-foreground hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground"
                   >
                     <Send className="h-4 w-4" />

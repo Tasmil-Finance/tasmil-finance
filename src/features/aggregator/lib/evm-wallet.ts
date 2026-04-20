@@ -78,6 +78,7 @@ export async function switchEvmChain(chainId: string, isTestnet = false): Promis
       params: [{ chainId: targetChainId }],
     });
   } catch (error: any) {
+    // Chain not added to wallet (error code 4902)
     if (error.code === 4902) {
       console.warn("Chain not added to wallet:", chainId);
     }

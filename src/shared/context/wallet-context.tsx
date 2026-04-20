@@ -81,7 +81,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           "border": "#27272a",
           "shadow": "0 10px 15px -3px rgba(0,0,0,0.5), 0 4px 6px -4px rgba(0,0,0,0.4)",
           "border-radius": "0.5rem",
-          "font-family": "Outfit, sans-serif",
+          "font-family": "var(--font-outfit), sans-serif",
         };
 
         const lightTheme = {
@@ -101,7 +101,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           "border": "hsl(214.3, 31.8%, 91.4%)",
           "shadow": "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.06)",
           "border-radius": "0.5rem",
-          "font-family": "Outfit, sans-serif",
+          "font-family": "var(--font-outfit), sans-serif",
         };
 
         StellarWalletsKit.init({
