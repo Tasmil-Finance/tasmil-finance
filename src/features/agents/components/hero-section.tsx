@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Bot } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import { AGENTS } from "@/features/chat/config/agents.config";
+
 
 function AgentIcon({
   src,
@@ -44,13 +44,11 @@ function AgentIcon({
 
 interface HeroSectionProps {
   agentCount: number;
+  agents: { name: string; icon: string }[];
 }
 
-export function HeroSection({ agentCount }: HeroSectionProps) {
-  const allAgents = Object.values(AGENTS).map((agent) => ({
-    name: agent.name,
-    icon: agent.icon || "/agents/supervisor-agent.svg",
-  }));
+export function HeroSection({ agentCount, agents }: HeroSectionProps) {
+  const allAgents = agents;
   const visibleAgents = allAgents.slice(0, 4);
 
   return (

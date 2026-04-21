@@ -227,7 +227,13 @@ export default function AgentsPage() {
   return (
     <main className="h-full bg-background">
       <div className="container mx-auto px-4 md:px-6">
-        <HeroSection agentCount={validAgents.length} />
+        <HeroSection
+          agentCount={validAgents.length}
+          agents={validAgents.map((a) => ({
+            name: (a.metadata as AssistantMetadata)?.name || a.name || a.graph_id || "",
+            icon: (a.metadata as AssistantMetadata)?.icon || "/agents/supervisor-agent.svg",
+          }))}
+        />
 
         <FilterBar
           activeFilter={activeFilter}
