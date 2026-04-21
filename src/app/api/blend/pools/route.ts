@@ -19,6 +19,7 @@ export async function GET() {
         backstopAddress: registry.backstopAddress,
         cometLp: registry.cometLpToken,
         blndToken: registry.blndToken,
+        usdcToken: registry.usdcToken,
         pools: registry.pools.map((p) => ({
           name: p.name,
           address: p.address,

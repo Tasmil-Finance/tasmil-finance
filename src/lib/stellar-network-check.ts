@@ -1,6 +1,6 @@
 /**
  * Utility to detect Stellar network mismatch between the app config and the
- * connected wallet (Freighter, xBull, etc.) before attempting to sign.
+ * connected wallet (Freighter, Lobstr, etc.) before attempting to sign.
  *
  * Freighter throws an opaque error when networks don't match. This utility
  * proactively catches the mismatch and surfaces a clear, actionable message.

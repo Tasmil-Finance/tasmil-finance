@@ -106,7 +106,9 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
         StellarWalletsKit.init({
           network,
-          modules: defaultModules(),
+          modules: defaultModules({
+            filterBy: (mod) => mod.productId !== "xbull",
+          }),
           theme: isDark ? darkTheme : lightTheme,
         });
 

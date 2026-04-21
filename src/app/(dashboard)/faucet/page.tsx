@@ -9,11 +9,16 @@ import { BackgroundRippleEffect } from "@/shared/ui/background-ripple-effect";
 import { Button } from "@/shared/ui/button";
 import { Typography } from "@/shared/ui/typography";
 import { toast } from "sonner";
+import { redirect } from "next/navigation";
 
+const isTestnet = process.env["NEXT_PUBLIC_STELLAR_TESTNET"] === "true";
 const FRIENDBOT_URL = "https://friendbot.stellar.org";
 const STELLAR_EXPERT = "https://stellar.expert/explorer";
 
 export default function FaucetPage() {
+  if (!isTestnet) {
+    redirect("/agents");
+  }
   const { address, isConnected, displayAddress, disconnect } = useWallet();
   const [loading, setLoading] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);

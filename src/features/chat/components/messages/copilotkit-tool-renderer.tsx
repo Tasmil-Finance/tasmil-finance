@@ -1,12 +1,17 @@
 "use client";
 
 import type { Message } from "@langchain/langgraph-sdk";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
+import { toast } from "sonner";
+import { v4 as uuidv4 } from "uuid";
 import { ToolStatusDispatcher } from "@/shared/components/tool-status-dispatcher";
 import { SupervisorAgentCallCard } from "@/features/chat/actions/components/stellar/supervisor-agent-call-card";
+import { useStreamContext } from "@/features/chat/hooks";
 import {
   INFO_TOOL_RENDERERS,
   OPERATION_TOOL_RENDERERS,
+  BLEND_SHARED_INFO,
+  BLEND_SHARED_OPERATIONS,
   SUPERVISOR_AGENTS,
 } from "@/features/chat/hooks/use-defi-tool-renderers";
 
@@ -16,12 +21,35 @@ interface ToolCallData {
   args: Record<string, unknown>;
 }
 
-function getCardRenderer(toolName: string) {
+type SharedRenderProps = {
+  status: "inProgress" | "executing" | "complete";
+  args: Record<string, unknown>;
+  result: unknown;
+  respond?: (result: Record<string, unknown>) => void;
+};
+
+type CardRendererResult =
+  | { kind: "info"; component: React.ComponentType<any>; label: string }
+  | { kind: "operation"; component: React.ComponentType<any>; label: string }
+  | { kind: "shared"; render: (props: SharedRenderProps) => React.ReactElement }
+  | { kind: "shared-op"; render: (props: SharedRenderProps) => React.ReactElement }
+  | null;
+
+function getCardRenderer(toolName: string): CardRendererResult {
+  // Check shared Blend cards first (they have custom render functions with normalizers)
+  const sharedInfo = BLEND_SHARED_INFO.find((r) => r.toolName === toolName);
+  if (sharedInfo) return { kind: "shared", render: sharedInfo.render };
+
+  // Blend operations — tagged as "shared-op" so we can inject respond callback
+  const sharedOp = BLEND_SHARED_OPERATIONS.find((r) => r.toolName === toolName);
+  if (sharedOp) return { kind: "shared-op", render: sharedOp.render };
+
+  // Generic info/operation cards
   const info = INFO_TOOL_RENDERERS.find((r) => r.toolName === toolName);
-  if (info) return { component: info.component, label: info.type, kind: "info" as const };
+  if (info) return { component: info.component, label: info.type, kind: "info" };
 
   const op = OPERATION_TOOL_RENDERERS.find((r) => r.toolName === toolName);
-  if (op) return { component: op.component, label: op.operation, kind: "operation" as const };
+  if (op) return { component: op.component, label: op.operation, kind: "operation" };
 
   return null;
 }
@@ -46,6 +74,64 @@ function parseResult(content: string | unknown): unknown {
   } catch {
     return content;
   }
+}
+
+/**
+ * Wrapper that injects a stream-based `respond` callback into shared Blend
+ * operation cards. When the user cancels (or signs), this resumes the
+ * LangGraph HITL interrupt so the AI can respond.
+ */
+function BlendOpWithRespond({
+  toolCallId,
+  toolName,
+  renderProps,
+  renderFn,
+}: {
+  toolCallId: string;
+  toolName: string;
+  renderProps: SharedRenderProps;
+  renderFn: (props: SharedRenderProps) => React.ReactElement;
+}) {
+  const stream = useStreamContext();
+
+  const respond = useCallback(
+    async (result: Record<string, unknown>) => {
+      const success = Boolean(result.success);
+      try {
+        await stream.submit(
+          {},
+          {
+            command: {
+              update: {
+                messages: [
+                  {
+                    type: "tool",
+                    tool_call_id: toolCallId,
+                    id: `__do_not_render__${uuidv4()}`,
+                    name: toolName,
+                    content: JSON.stringify(result),
+                  },
+                ],
+              },
+              resume: {
+                decisions: [{ type: success ? "approve" : "reject" }],
+              },
+            },
+          },
+        );
+
+        if (!success) {
+          toast.info("Transaction cancelled");
+        }
+      } catch (error) {
+        console.error("[BlendOpWithRespond] Error resuming graph:", error);
+      }
+    },
+    [stream, toolCallId, toolName],
+  );
+
+  // Pass respond through renderProps so the card receives it
+  return renderFn({ ...renderProps, respond });
 }
 
 export function CopilotKitToolCallRenderer({
@@ -118,15 +204,38 @@ export function CopilotKitToolCallRenderer({
 
             {/* Data card when tool call is complete */}
             {isComplete && cardRenderer && (
-              <cardRenderer.component
-                type={cardRenderer.kind === "info" ? cardRenderer.label : undefined}
-                operation={cardRenderer.kind === "operation" ? cardRenderer.label : undefined}
-                toolName={tc.name}
-                args={tc.args}
-                result={result?.content}
-                status="complete"
-                toolCallId={tc.id}
-              />
+              cardRenderer.kind === "shared-op" ? (
+                <div className="max-w-[360px]">
+                  <BlendOpWithRespond
+                    toolCallId={tc.id}
+                    toolName={tc.name}
+                    renderProps={{
+                      status: "complete",
+                      args: tc.args as Record<string, unknown>,
+                      result: result?.content,
+                    }}
+                    renderFn={cardRenderer.render}
+                  />
+                </div>
+              ) : cardRenderer.kind === "shared" ? (
+                <div className="max-w-[360px]">
+                  {cardRenderer.render({
+                    status: "complete",
+                    args: tc.args as Record<string, unknown>,
+                    result: result?.content,
+                  })}
+                </div>
+              ) : (
+                <cardRenderer.component
+                  type={cardRenderer.kind === "info" ? cardRenderer.label : undefined}
+                  operation={cardRenderer.kind === "operation" ? cardRenderer.label : undefined}
+                  toolName={tc.name}
+                  args={tc.args}
+                  result={result?.content}
+                  status="complete"
+                  toolCallId={tc.id}
+                />
+              )
             )}
           </div>
         );

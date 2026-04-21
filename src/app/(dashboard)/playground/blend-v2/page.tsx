@@ -6,15 +6,17 @@
  * Direct HTTP playground for all Blend v2 operations and queries.
  * Calls mcp-stellar REST endpoints (/blend-v2/query/... and /blend-v2/op/...)
  * and renders results using the SAME card components as the AI chat —
- * StellarInfoDispatcher for queries, StellarOperationDispatcher for operations.
+ * Shared protocol cards for queries, BlendTxCard for operations.
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Loader2, RefreshCw, Zap, ChevronDown } from "lucide-react";
-import { StellarInfoDispatcher } from "@/features/chat/actions/components/stellar/stellar-info-dispatcher";
+import { Loader2, RefreshCw, Zap, ChevronDown, AlertCircle } from "lucide-react";
 import { StreamContext, type StreamContextType } from "@/features/chat/providers/stream-provider";
-import { BlendPoolsCard, BlendPoolDetailCard, BlendReserveCard, BlendPositionsCard } from "@/features/dev-playground/components/blend-cards";
-import { BlendTxCard } from "@/features/dev-playground/components/blend-tx-card";
+// Shared protocol cards (single source of truth for both playground and chat)
+import { BlendPoolsCard, BlendPoolDetailCard, BlendReserveCard, BlendPositionsCard, BlendTxCard, BlendBackstopInfoCard, BlendBackstopBalanceCard } from "@/features/protocols/cards/blend";
+import { normalizePoolsFromSdk, normalizePoolFromSdk, normalizeReserveFromSdk, normalizePositionsFromSdk, normalizeBackstopFromSdk, normalizeBackstopBalanceFromSdk } from "@/features/protocols/adapters/from-sdk";
+import { resolveSymbol } from "@/features/protocols/lib/formatting";
+import { useTrustlineCheck } from "@/features/protocols/hooks/use-trustline-check";
 import { useWallet } from "@/shared/context/wallet-context";
 import { Button } from "@/shared/ui/button";
 import { Typography } from "@/shared/ui/typography";
@@ -32,8 +34,9 @@ const MOCK_STREAM = {
 } as unknown as StreamContextType;
 
 const MCP_URL = process.env["NEXT_PUBLIC_MCP_STELLAR_URL"] ?? "http://localhost:3009";
-// SDK-backed query routes (no MCP server needed)
+// SDK-backed routes (no MCP server needed)
 const SDK_QUERY_URL = "/api/blend";
+const SDK_OP_URL = "/api/blend/op";
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 const inputCls =
@@ -45,7 +48,7 @@ const panelCls =
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface PoolReserve { symbol: string; asset: string }
 interface KnownPool { name: string; address: string; reserves?: PoolReserve[] }
-interface Field { key: string; label: string; placeholder?: string }
+interface Field { key: string; label: string; placeholder?: string; /** If true, user enters human amount (e.g. 1.5) and it's converted to stroops (7 decimals) before sending to API */ isAmount?: boolean }
 
 // ── QueryPanel ────────────────────────────────────────────────────────────────
 // Thin form wrapper: collects params, fetches, passes result to StellarInfoDispatcher.
@@ -57,13 +60,15 @@ interface QueryPanelProps {
   defaults?: Record<string, string>;
   /** Base URL for query — defaults to SDK route (/api/blend), falls back to MCP for unsupported endpoints */
   baseUrl?: string;
+  /** Extra CSS classes for the panel container (e.g. col-span for grid) */
+  className?: string;
   /** Auto-fetch on mount (no manual click needed) */
   autoFetch?: boolean;
   /** Custom renderer — replaces StellarInfoDispatcher for portfolio-style cards */
   renderResult?: (data: any) => React.ReactNode;
 }
 
-function QueryPanel({ title, endpoint, infoType: _infoType, fields, defaults = {}, baseUrl = SDK_QUERY_URL, autoFetch = false, renderResult }: QueryPanelProps) {
+function QueryPanel({ title, endpoint, infoType: _infoType, fields, defaults = {}, baseUrl = SDK_QUERY_URL, className, autoFetch = false, renderResult }: QueryPanelProps) {
   const [form, setForm] = useState<Record<string, string>>(defaults);
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -110,7 +115,7 @@ function QueryPanel({ title, endpoint, infoType: _infoType, fields, defaults = {
   }, [autoFetch, form]);
 
   return (
-    <div className={panelCls}>
+    <div className={`${panelCls} ${className ?? ""}`}>
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-semibold text-cyan-400 uppercase tracking-wider">{title}</span>
         <span className="text-[10px] text-muted-foreground/60 font-mono">{isSdk ? "SDK" : "MCP"} GET /{endpoint}</span>
@@ -158,10 +163,13 @@ function QueryPanel({ title, endpoint, infoType: _infoType, fields, defaults = {
 // ── OpPanel ───────────────────────────────────────────────────────────────────
 // Thin form wrapper: collects params, posts to op endpoint, passes result to
 // StellarOperationDispatcher — same as when the AI builds the TX.
+/** Operations that receive a new asset and may need a trustline */
+const TRUSTLINE_OPS = new Set(["borrow"]);
+
 interface OpPanelProps {
   title: string;
   endpoint: string;
-  operation: string;             // passed to StellarOperationDispatcher as `operation`
+  operation: string;
   fields: Field[];
   defaults?: Record<string, string>;
 }
@@ -169,6 +177,15 @@ interface OpPanelProps {
 function OpPanel({ title, endpoint, operation, fields, defaults = {} }: OpPanelProps) {
   const { address } = useWallet();
   const [form, setForm] = useState<Record<string, string>>({ ...defaults, from: address ?? "" });
+
+  // Trustline check for borrow operations
+  const needsTrustlineOp = TRUSTLINE_OPS.has(endpoint);
+  const trustline = useTrustlineCheck(
+    needsTrustlineOp ? (form.from || address || undefined) : undefined,
+    needsTrustlineOp ? (form.asset || undefined) : undefined,
+    needsTrustlineOp ? resolveSymbol(form.asset ?? "") : undefined,
+  );
+  const trustlineMissing = needsTrustlineOp && trustline.needsTrustline && !trustline.hasTrustline && !trustline.checking;
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -195,15 +212,29 @@ function OpPanel({ title, endpoint, operation, fields, defaults = {} }: OpPanelP
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(defaults), address]);
 
+  /** Convert human-readable amounts to stroops (7 decimals) before sending to API */
+  const toStroops = (v: string): string => {
+    const n = Number.parseFloat(v);
+    if (!Number.isFinite(n)) return v;
+    return Math.round(n * 1e7).toString();
+  };
+
   const build = useCallback(async () => {
     setLoading(true);
     setError(null);
     setResult(null);
     try {
-      const r = await fetch(`${MCP_URL}/blend-v2/op/${endpoint}`, {
+      // Convert amount fields from human-readable to stroops
+      const amountKeys = new Set(fields.filter((f) => f.isAmount).map((f) => f.key));
+      const payload = { ...form };
+      for (const key of amountKeys) {
+        if (payload[key]) payload[key] = toStroops(payload[key]);
+      }
+
+      const r = await fetch(`${SDK_OP_URL}/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       const d = await r.json();
       if (!d.success) setError(d.error ?? "Simulation failed");
@@ -213,7 +244,7 @@ function OpPanel({ title, endpoint, operation, fields, defaults = {} }: OpPanelP
     } finally {
       setLoading(false);
     }
-  }, [form, endpoint]);
+  }, [form, endpoint, fields]);
 
   return (
     <div className={panelCls}>
@@ -234,15 +265,42 @@ function OpPanel({ title, endpoint, operation, fields, defaults = {} }: OpPanelP
         </div>
       ))}
 
+      {/* Trustline warning */}
+      {trustlineMissing && (
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
+            <span className="text-xs font-medium text-amber-400">Trustline missing</span>
+          </div>
+          <div className="flex items-center justify-between pl-6">
+            <div>
+              <p className="text-xs text-foreground font-medium">{resolveSymbol(form.asset ?? "")}</p>
+              <p className="text-[10px] text-muted-foreground">Trustline required to receive</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => trustline.addTrustline()}
+              disabled={trustline.adding}
+              className="rounded-lg px-3 py-1.5 text-xs font-semibold bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] text-black hover:from-[#C5F0FF] hover:to-[#1CCFFF] transition-all active:scale-[0.98] disabled:opacity-40 flex items-center gap-1"
+            >
+              {trustline.adding ? <><Loader2 className="h-3 w-3 animate-spin" /> Adding...</> : "Add +"}
+            </button>
+          </div>
+        </div>
+      )}
+
       <Button
         variant="ghost"
         size="sm"
-        className="border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 gap-1.5"
+        className={`border gap-1.5 ${trustlineMissing
+          ? "border-border bg-muted text-muted-foreground cursor-not-allowed"
+          : "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
+        }`}
         onClick={build}
-        disabled={loading}
+        disabled={loading || trustlineMissing}
       >
         {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
-        Build TX
+        {trustlineMissing ? "Add trustline first" : "Build TX"}
       </Button>
 
       {error && <Typography variant="small" className="text-red-400 text-xs bg-red-500/10 rounded p-2">{error}</Typography>}
@@ -251,9 +309,18 @@ function OpPanel({ title, endpoint, operation, fields, defaults = {} }: OpPanelP
       {result?.xdr && (
         <div className="mt-1">
           <BlendTxCard
-            operation={String(result.operation ?? operation)}
-            result={result as Record<string, unknown>}
-            form={form}
+            tx={{
+              operation: String(result.operation ?? operation),
+              xdr: String(result.xdr ?? ""),
+              estimatedFee: result.estimatedFee ? String(result.estimatedFee) : undefined,
+              asset: form.asset ?? (result.asset ? String(result.asset) : undefined),
+              symbol: form.asset ? resolveSymbol(form.asset) : undefined,
+              amount: result.amount ? String(result.amount) : (result.lpAmount ? String(result.lpAmount) : undefined),
+              pool: form.pool ?? (result.pool ? String(result.pool) : undefined),
+              from: form.from ?? (result.from ? String(result.from) : undefined),
+              context: result.context,
+            }}
+            mode="playground"
           />
         </div>
       )}
@@ -300,6 +367,9 @@ export default function BlendV2PlaygroundPage() {
   const [pools, setPools] = useState<KnownPool[]>([]);
   const [selectedPool, setSelectedPool] = useState("");
   const [networkInfo, setNetworkInfo] = useState<string>("");
+  // Comet LP pool tokens — separate from lending pool reserves (testnet uses different USDC)
+  const [cometUsdc, setCometUsdc] = useState("");
+  const [_cometBlnd, setCometBlnd] = useState("");
 
   useEffect(() => {
     fetch(`${SDK_QUERY_URL}/pools`)
@@ -314,6 +384,9 @@ export default function BlendV2PlaygroundPage() {
           setPools(mapped);
           setSelectedPool(mapped[0]!.address);
           setNetworkInfo(d.network ?? "");
+          // Comet LP pool uses Blend-config USDC/BLND (different from lending pool reserves on testnet)
+          if (d.usdcToken) setCometUsdc(String(d.usdcToken));
+          if (d.blndToken) setCometBlnd(String(d.blndToken));
         }
       })
       .catch(() => {
@@ -398,7 +471,7 @@ export default function BlendV2PlaygroundPage() {
               infoType="blend_pool_info"
               fields={[]}
               autoFetch
-              renderResult={(d) => <BlendPoolsCard data={d} />}
+              renderResult={(d) => <BlendPoolsCard pools={normalizePoolsFromSdk(d)} mode="playground" />}
             />
 
             {/* 2. Pool Info */}
@@ -409,7 +482,10 @@ export default function BlendV2PlaygroundPage() {
               fields={[{ key: "pool", label: "Pool Address", placeholder: "C..." }]}
               defaults={poolDefaults}
               autoFetch
-              renderResult={(d) => <BlendPoolDetailCard data={d} />}
+              renderResult={(d) => {
+                const pool = normalizePoolFromSdk(d);
+                return pool ? <BlendPoolDetailCard pool={pool} mode="playground" /> : null;
+              }}
             />
 
             {/* 3. Assets List */}
@@ -420,7 +496,10 @@ export default function BlendV2PlaygroundPage() {
               fields={[{ key: "pool", label: "Pool Address", placeholder: "C..." }]}
               defaults={poolDefaults}
               autoFetch
-              renderResult={(d) => <BlendPoolDetailCard data={d} />}
+              renderResult={(d) => {
+                const pool = normalizePoolFromSdk(d);
+                return pool ? <BlendPoolDetailCard pool={pool} mode="playground" /> : null;
+              }}
             />
 
             {/* 4. Reserve Detail */}
@@ -434,7 +513,7 @@ export default function BlendV2PlaygroundPage() {
               ]}
               defaults={{ ...poolDefaults, asset: XLM_SAC }}
               autoFetch
-              renderResult={(d) => <BlendReserveCard data={d} />}
+              renderResult={(d) => <BlendReserveCard reserve={normalizeReserveFromSdk(d)} mode="playground" />}
             />
 
             {/* 5. User Positions */}
@@ -448,10 +527,13 @@ export default function BlendV2PlaygroundPage() {
               ]}
               defaults={userDefaults}
               autoFetch
-              renderResult={(d) => <BlendPositionsCard data={d} />}
+              renderResult={(d) => {
+                const data = normalizePositionsFromSdk(d);
+                return data ? <BlendPositionsCard data={data} mode="playground" /> : null;
+              }}
             />
 
-            {/* 6. Backstop — blend_backstop_info → PoolInfoCard → BackstopInfoView (MCP only) */}
+            {/* 6. Backstop Details (MCP only) */}
             <QueryPanel
               title="Backstop Details"
               endpoint="backstop"
@@ -460,9 +542,14 @@ export default function BlendV2PlaygroundPage() {
               defaults={poolDefaults}
               baseUrl={MCP_URL}
               autoFetch
-              renderResult={(d) => (
-                <StellarInfoDispatcher type="blend_backstop_info" result={d} args={{ protocol: "blend" }} />
-              )}
+              renderResult={(d) => {
+                const backstop = normalizeBackstopFromSdk(d.data ?? d);
+                if (!backstop) return null;
+                // Enrich with pool name from known pools
+                const poolName = pools.find((p) => p.address === backstop.poolAddress)?.name;
+                if (poolName) backstop.poolName = poolName;
+                return <BlendBackstopInfoCard backstop={backstop} mode="playground" />;
+              }}
             />
 
             {/* 7. Q4W Balance (MCP only) */}
@@ -477,9 +564,13 @@ export default function BlendV2PlaygroundPage() {
               defaults={userDefaults}
               baseUrl={MCP_URL}
               autoFetch
-              renderResult={(d) => (
-                <StellarInfoDispatcher type="blend_backstop_balance" result={d} args={{ protocol: "blend" }} />
-              )}
+              renderResult={(d) => {
+                const balance = normalizeBackstopBalanceFromSdk(d.data ?? d);
+                if (!balance) return null;
+                const poolName = pools.find((p) => p.address === balance.pool)?.name;
+                if (poolName) balance.poolName = poolName;
+                return <BlendBackstopBalanceCard data={balance} mode="playground" />;
+              }}
             />
           </div>
         )}
@@ -498,10 +589,10 @@ export default function BlendV2PlaygroundPage() {
               fields={[
                 { key: "pool",   label: "Pool Address",  placeholder: "C..." },
                 { key: "asset",  label: "Asset Contract", placeholder: "C..." },
-                { key: "amount", label: "Amount (stroops)", placeholder: "10000000 = 1 XLM" },
+                { key: "amount", label: "Amount", placeholder: "1.0", isAmount: true },
                 { key: "from",   label: "From Address",  placeholder: "G..." },
               ]}
-              defaults={{ ...fromDefaults, asset: XLM_SAC, amount: "10000000" }}
+              defaults={{ ...fromDefaults, asset: XLM_SAC, amount: "1" }}
             />
 
             {/* 2. Withdraw → blend_withdraw → BlendExecuteCard */}
@@ -512,10 +603,10 @@ export default function BlendV2PlaygroundPage() {
               fields={[
                 { key: "pool",   label: "Pool Address",  placeholder: "C..." },
                 { key: "asset",  label: "Asset Contract", placeholder: "C..." },
-                { key: "amount", label: "Amount (stroops)", placeholder: "5000000" },
+                { key: "amount", label: "Amount", placeholder: "0.5", isAmount: true },
                 { key: "from",   label: "From Address",  placeholder: "G..." },
               ]}
-              defaults={{ ...fromDefaults, asset: XLM_SAC, amount: "5000000" }}
+              defaults={{ ...fromDefaults, asset: XLM_SAC, amount: "0.5" }}
             />
 
             {/* 3. Borrow → blend_borrow → BlendExecuteCard */}
@@ -526,10 +617,10 @@ export default function BlendV2PlaygroundPage() {
               fields={[
                 { key: "pool",   label: "Pool Address",  placeholder: "C..." },
                 { key: "asset",  label: "Asset Contract", placeholder: "C..." },
-                { key: "amount", label: "Amount (stroops)", placeholder: "1000000 = 0.1 USDC" },
+                { key: "amount", label: "Amount", placeholder: "0.1", isAmount: true },
                 { key: "from",   label: "From Address",  placeholder: "G..." },
               ]}
-              defaults={{ ...fromDefaults, asset: BLEND_USDC, amount: "1000000" }}
+              defaults={{ ...fromDefaults, asset: BLEND_USDC, amount: "0.1" }}
             />
 
             {/* 4. Repay → blend_repay → BlendExecuteCard */}
@@ -540,39 +631,39 @@ export default function BlendV2PlaygroundPage() {
               fields={[
                 { key: "pool",   label: "Pool Address",  placeholder: "C..." },
                 { key: "asset",  label: "Asset Contract", placeholder: "C..." },
-                { key: "amount", label: "Amount (stroops)", placeholder: "500000" },
+                { key: "amount", label: "Amount", placeholder: "0.05", isAmount: true },
                 { key: "from",   label: "From Address",  placeholder: "G..." },
               ]}
-              defaults={{ ...fromDefaults, asset: BLEND_USDC, amount: "500000" }}
+              defaults={{ ...fromDefaults, asset: BLEND_USDC, amount: "0.05" }}
             />
 
             {/* 5. Enable/Disable Collateral → blend_toggle_collateral → BlendExecuteCard */}
             <OpPanel
               title="Toggle Collateral"
-              endpoint="enable-collateral"
+              endpoint="toggle-collateral"
               operation="blend_toggle_collateral"
               fields={[
                 { key: "pool",   label: "Pool Address",  placeholder: "C..." },
                 { key: "asset",  label: "Asset Contract", placeholder: "C..." },
-                { key: "amount", label: "Amount (stroops)", placeholder: "5000000" },
+                { key: "amount", label: "Amount", placeholder: "0.5", isAmount: true },
                 { key: "from",   label: "From Address",  placeholder: "G..." },
                 { key: "enable", label: "Enable? (true/false)", placeholder: "true" },
               ]}
-              defaults={{ ...fromDefaults, asset: XLM_SAC, amount: "5000000", enable: "true" }}
+              defaults={{ ...fromDefaults, asset: XLM_SAC, amount: "0.5", enable: "true" }}
             />
 
-            {/* 6. Join Pool (Comet LP) → backstop_deposit → BlendExecuteCard */}
+            {/* 6. Join Pool (Comet LP) — uses Blend-config USDC/BLND (different from lending pool reserves on testnet) */}
             <OpPanel
               title="Join Pool (Comet LP)"
               endpoint="join-pool"
               operation="backstop_deposit"
               fields={[
-                { key: "asset",    label: "Token In (USDC or BLND)", placeholder: "C..." },
-                { key: "amount",   label: "Amount (stroops)", placeholder: "10000000" },
-                { key: "minLpOut", label: "Min LP Out (0 = no slippage check)", placeholder: "0" },
+                { key: "asset",    label: `Token In (USDC or BLND)`, placeholder: "C..." },
+                { key: "amount",   label: "Amount", placeholder: "1.0", isAmount: true },
+                { key: "minLpOut", label: "Min LP Out (0 = no slippage)", placeholder: "0", isAmount: true },
                 { key: "from",     label: "From Address",  placeholder: "G..." },
               ]}
-              defaults={{ asset: BLEND_USDC, amount: "10000000", minLpOut: "0", from: walletAddress ?? "" }}
+              defaults={{ asset: cometUsdc || BLEND_USDC, amount: "1", minLpOut: "0", from: walletAddress ?? "" }}
             />
 
             {/* 7. Exit Pool (Comet LP) → backstop_withdraw → BlendExecuteCard */}
@@ -581,12 +672,12 @@ export default function BlendV2PlaygroundPage() {
               endpoint="exit-pool"
               operation="backstop_withdraw"
               fields={[
-                { key: "lpAmount",   label: "LP Amount (stroops)", placeholder: "1000000" },
-                { key: "minBlndOut", label: "Min BLND Out", placeholder: "0" },
-                { key: "minUsdcOut", label: "Min USDC Out", placeholder: "0" },
+                { key: "lpAmount",   label: "LP Amount", placeholder: "0.1", isAmount: true },
+                { key: "minBlndOut", label: "Min BLND Out (0 = no slippage)", placeholder: "0", isAmount: true },
+                { key: "minUsdcOut", label: "Min USDC Out (0 = no slippage)", placeholder: "0", isAmount: true },
                 { key: "from",       label: "From Address", placeholder: "G..." },
               ]}
-              defaults={{ lpAmount: "1000000", minBlndOut: "0", minUsdcOut: "0", from: walletAddress ?? "" }}
+              defaults={{ lpAmount: "0.1", minBlndOut: "0", minUsdcOut: "0", from: walletAddress ?? "" }}
             />
 
             {/* 8. Backstop Deposit → backstop_deposit → BlendExecuteCard */}
@@ -596,10 +687,10 @@ export default function BlendV2PlaygroundPage() {
               operation="backstop_deposit"
               fields={[
                 { key: "pool",   label: "Pool Address",  placeholder: "C..." },
-                { key: "amount", label: "LP Amount (stroops)", placeholder: "1000000" },
+                { key: "amount", label: "LP Amount", placeholder: "0.1", isAmount: true },
                 { key: "from",   label: "From Address",  placeholder: "G..." },
               ]}
-              defaults={{ ...fromDefaults, amount: "1000000" }}
+              defaults={{ ...fromDefaults, amount: "0.1" }}
             />
 
             {/* 9. Queue Withdrawal → backstop_queue → BlendExecuteCard */}
@@ -609,10 +700,10 @@ export default function BlendV2PlaygroundPage() {
               operation="backstop_queue"
               fields={[
                 { key: "pool",   label: "Pool Address",  placeholder: "C..." },
-                { key: "amount", label: "Shares (stroops)", placeholder: "500000" },
+                { key: "amount", label: "Shares", placeholder: "0.05", isAmount: true },
                 { key: "from",   label: "From Address",  placeholder: "G..." },
               ]}
-              defaults={{ ...fromDefaults, amount: "500000" }}
+              defaults={{ ...fromDefaults, amount: "0.05" }}
             />
 
             {/* 10. Dequeue Withdrawal → backstop_dequeue → BlendExecuteCard */}
@@ -622,10 +713,10 @@ export default function BlendV2PlaygroundPage() {
               operation="backstop_dequeue"
               fields={[
                 { key: "pool",   label: "Pool Address",  placeholder: "C..." },
-                { key: "amount", label: "Shares (stroops)", placeholder: "500000" },
+                { key: "amount", label: "Shares", placeholder: "0.05", isAmount: true },
                 { key: "from",   label: "From Address",  placeholder: "G..." },
               ]}
-              defaults={{ ...fromDefaults, amount: "500000" }}
+              defaults={{ ...fromDefaults, amount: "0.05" }}
             />
           </div>
         )}

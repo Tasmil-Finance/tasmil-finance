@@ -5,6 +5,7 @@ export interface NavItem {
   url: string;
   icon?: any;
   badge?: string;
+  testnetOnly?: boolean;
 }
 
 export interface NavGroup {
@@ -26,7 +27,18 @@ export interface SidebarData {
   navGroups: NavGroup[];
 }
 
-export const sidebarData: SidebarData = {
+const isTestnet = process.env["NEXT_PUBLIC_STELLAR_TESTNET"] === "true";
+
+function filterNavGroups(groups: NavGroup[]): NavGroup[] {
+  return groups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => !item.testnetOnly || isTestnet),
+    }))
+    .filter((group) => group.items.length > 0);
+}
+
+const _sidebarData: SidebarData = {
   user: {
     name: "User",
     email: "user@tasmil.finance",
@@ -53,6 +65,7 @@ export const sidebarData: SidebarData = {
           title: "Faucet",
           url: "/faucet",
           icon: Droplets,
+          testnetOnly: true,
         },
       ],
     },
@@ -94,6 +107,11 @@ export const sidebarData: SidebarData = {
     },
 
   ],
+};
+
+export const sidebarData: SidebarData = {
+  ..._sidebarData,
+  navGroups: filterNavGroups(_sidebarData.navGroups),
 };
 
 export const adminSidebarData: SidebarData = {

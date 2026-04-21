@@ -57,7 +57,7 @@ const faqs: FAQItem[] = [
     id: "008",
     question: "How do I get started with Tasmil Finance on Stellar?",
     answer:
-      "Simply connect your Stellar-compatible wallet (Freighter, xBull, Lobstr, etc.) or create a new one through our platform. Start chatting with our AI agents to explore available Stellar strategies, or browse our agent marketplace to find Stellar strategies created by other users. Your first interactions help our AI learn your Stellar DeFi preferences and risk tolerance.",
+      "Simply connect your Stellar-compatible wallet (Freighter, Lobstr, etc.) or create a new one through our platform. Start chatting with our AI agents to explore available Stellar strategies, or browse our agent marketplace to find Stellar strategies created by other users. Your first interactions help our AI learn your Stellar DeFi preferences and risk tolerance.",
   },
   {
     id: "009",

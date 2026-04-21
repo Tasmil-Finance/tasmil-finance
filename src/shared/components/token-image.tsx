@@ -34,6 +34,7 @@ const TOKEN_IMAGES: Record<string, string> = {
   WETH:   "/token/eth.png",
   WBTC:   "/token/btc.png",
   PHO:    "/token/plasma.svg",
+  BLNDUSDCLP: "/token/blndusdclp.svg",
 };
 
 // Local chain logos in /public/chains/

@@ -3,14 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   serverExternalPackages: ["@copilotkit/runtime", "@blend-capital/blend-sdk", "@stellar/stellar-sdk"],
   reactStrictMode: false,
-  async rewrites() {
-    return [
-      {
-        source: "/api/aquarius/:path*",
-        destination: `https://amm-api${process.env["NEXT_PUBLIC_STELLAR_TESTNET"] === "true" ? "-testnet" : ""}.aqua.network/api/external/v1/:path*`,
-      },
-    ];
-  },
+  // Aquarius proxy rewrite removed — using dedicated API routes at /api/aquarius/* instead.
   typescript: {
     ignoreBuildErrors: false,
     tsconfigPath: "./tsconfig.json",

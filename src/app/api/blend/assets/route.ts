@@ -36,6 +36,8 @@ export async function GET(req: NextRequest) {
       pool: {
         poolAddress: pool,
         address: pool,
+        name: info.name,
+        status: info.status,
         reserveCount: reserves.length,
         reserves,
       },

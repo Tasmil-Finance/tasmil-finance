@@ -3,7 +3,6 @@
 import { useRenderToolCall } from "@copilotkit/react-core";
 import { AccountInfoCard } from "@/features/chat/actions/components/stellar/account-info-card";
 import { ActionSearchCard } from "@/features/chat/actions/components/stellar/action-search-card";
-import { BlendExecuteCard } from "@/features/chat/actions/components/stellar/blend-execute-card";
 import { BridgeDiscoveryCard } from "@/features/chat/actions/components/stellar/bridge-discovery-card";
 import { EarnDiscoveryCard } from "@/features/chat/actions/components/stellar/earn-discovery-card";
 import { StellarExecuteCard } from "@/features/chat/actions/components/stellar/execute-card";
@@ -12,6 +11,9 @@ import { SwapQuoteCard } from "@/features/chat/actions/components/stellar/swap-q
 import { TxSubmitCard } from "@/features/chat/actions/components/stellar/tx-submit-card";
 import { TrustlineExecuteCard } from "@/features/chat/actions/components/stellar/trustline-execute-card";
 import { SupervisorAgentCallCard } from "@/features/chat/actions/components/stellar/supervisor-agent-call-card";
+// Shared protocol cards
+import { BlendPoolsCard, BlendPoolDetailCard, BlendReserveCard, BlendPositionsCard, BlendTxCard, BlendBackstopInfoCard, BlendBackstopBalanceCard } from "@/features/protocols/cards/blend";
+import { normalizePoolsFromMcp, normalizePoolFromMcp, normalizeReserveFromMcp, normalizePositionsFromMcp, normalizeTxFromMcp, normalizeBackstopFromMcp, normalizeBackstopBalanceFromMcp } from "@/features/protocols/adapters/from-mcp";
 
 /**
  * Registers CopilotKit tool renderers for all MCP tools.
@@ -44,7 +46,6 @@ export const INFO_TOOL_RENDERERS: Array<{
   // Shared tools
   { toolName: "get_account", type: "account_info", component: AccountInfoCard },
   { toolName: "search_actions", type: "action_search", component: ActionSearchCard },
-  { toolName: "resolve_pool", type: "pool_discovery", component: PoolInfoCard },
 
   // Soroswap
   { toolName: "swap_get_quote", type: "swap_quote", component: SwapQuoteCard },
@@ -56,12 +57,7 @@ export const INFO_TOOL_RENDERERS: Array<{
   { toolName: "sdex_find_paths", type: "sdex_paths", component: AccountInfoCard },
   { toolName: "sdex_orderbook", type: "sdex_orderbook", component: AccountInfoCard },
 
-  // Blend
-  { toolName: "blend_get_pool_info", type: "blend_pool_info", component: PoolInfoCard },
-  { toolName: "blend_get_user_position", type: "blend_user_position", component: AccountInfoCard },
-  { toolName: "blend_get_reserve_info", type: "blend_reserve_info", component: PoolInfoCard },
-  { toolName: "blend_backstop_get_pool_data", type: "blend_backstop_info", component: PoolInfoCard },
-  { toolName: "blend_backstop_get_user_balance", type: "blend_backstop_balance", component: AccountInfoCard },
+  // Blend — all info tools now use shared protocol cards (see BLEND_SHARED_INFO below)
 
   // Phoenix
   { toolName: "phoenix_query_pools", type: "pool_list", component: PoolInfoCard },
@@ -120,17 +116,7 @@ export const OPERATION_TOOL_RENDERERS: Array<{
   { toolName: "swap_remove_liquidity", operation: "remove_liquidity", component: StellarExecuteCard },
   { toolName: "sdex_swap", operation: "sdex_swap_execute", component: StellarExecuteCard },
 
-  // Blend (no HITL — auto-submit via BlendExecuteCard)
-  { toolName: "blend_deposit", operation: "blend_supply", component: BlendExecuteCard },
-  { toolName: "blend_borrow", operation: "blend_borrow", component: BlendExecuteCard },
-  { toolName: "blend_repay", operation: "blend_repay", component: BlendExecuteCard },
-  { toolName: "blend_withdraw", operation: "blend_withdraw", component: BlendExecuteCard },
-  { toolName: "blend_toggle_collateral", operation: "blend_toggle_collateral", component: BlendExecuteCard },
-  { toolName: "blend_claim_emissions", operation: "blend_claim", component: BlendExecuteCard },
-  { toolName: "blend_backstop_deposit", operation: "backstop_deposit", component: BlendExecuteCard },
-  { toolName: "blend_backstop_queue_withdrawal", operation: "backstop_queue", component: BlendExecuteCard },
-  { toolName: "blend_backstop_dequeue_withdrawal", operation: "backstop_dequeue", component: BlendExecuteCard },
-  { toolName: "blend_backstop_withdraw", operation: "backstop_withdraw", component: BlendExecuteCard },
+  // Blend operations — now use shared BlendTxCard (see BLEND_SHARED_OPERATIONS below)
 
   // Phoenix
   { toolName: "phoenix_swap", operation: "phoenix_swap_execute", component: StellarExecuteCard },
@@ -173,11 +159,107 @@ export const SUPERVISOR_AGENTS = [
 ];
 
 // ---------------------------------------------------------------------------
+// Shared Blend info card registrations (tool name → shared component + adapter)
+// ---------------------------------------------------------------------------
+
+export const BLEND_SHARED_INFO: Array<{
+  toolName: string;
+  type: string;
+  render: (props: RenderProps) => React.ReactElement;
+}> = [
+  {
+    toolName: "resolve_pool",
+    type: "pool_discovery",
+    render: (props) => {
+      const pools = normalizePoolsFromMcp(props.result);
+      if (pools.length > 0) return <BlendPoolsCard pools={pools} mode="playground" />;
+      return <PoolInfoCard type="pool_discovery" result={props.result} status={props.status} />;
+    },
+  },
+  {
+    toolName: "blend_get_pool_info",
+    type: "blend_pool_info",
+    render: (props) => {
+      const pool = normalizePoolFromMcp(props.result);
+      if (!pool) return <PoolInfoCard type="blend_pool_info" result={props.result} status={props.status} />;
+      return <BlendPoolDetailCard pool={pool} mode="playground" />;
+    },
+  },
+  {
+    toolName: "blend_get_reserve_info",
+    type: "blend_reserve_info",
+    render: (props) => {
+      const reserve = normalizeReserveFromMcp(props.result);
+      if (!reserve) return <PoolInfoCard type="blend_reserve_info" result={props.result} status={props.status} />;
+      return <BlendReserveCard reserve={reserve} mode="playground" />;
+    },
+  },
+  {
+    toolName: "blend_get_user_position",
+    type: "blend_user_position",
+    render: (props) => {
+      const data = normalizePositionsFromMcp(props.result);
+      if (!data) return <AccountInfoCard type="blend_user_position" result={props.result} status={props.status} />;
+      return <BlendPositionsCard data={data} mode="playground" />;
+    },
+  },
+  {
+    toolName: "blend_backstop_get_pool_data",
+    type: "blend_backstop_info",
+    render: (props) => {
+      const backstop = normalizeBackstopFromMcp(props.result);
+      if (!backstop) return <PoolInfoCard type="blend_backstop_info" result={props.result} status={props.status} />;
+      return <BlendBackstopInfoCard backstop={backstop} mode="playground" />;
+    },
+  },
+  {
+    toolName: "blend_backstop_get_user_balance",
+    type: "blend_backstop_balance",
+    render: (props) => {
+      const data = normalizeBackstopBalanceFromMcp(props.result);
+      if (!data) return <AccountInfoCard type="blend_backstop_balance" result={props.result} status={props.status} />;
+      return <BlendBackstopBalanceCard data={data} mode="playground" />;
+    },
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Shared Blend operation card registrations
+// ---------------------------------------------------------------------------
+
+function makeBlendOpRenderer(operation: string) {
+  return (props: RenderProps & { respond?: (result: Record<string, unknown>) => void }) => {
+    const tx = normalizeTxFromMcp(props.result, props.args);
+    if (!tx) return <div className="text-xs text-muted-foreground">Failed to parse transaction data</div>;
+    const txWithOp = { ...tx, operation: tx.operation || operation };
+    return <BlendTxCard tx={txWithOp} mode="playground" respond={props.respond} />;
+  };
+}
+
+const BLEND_OPS_RAW = [
+  { toolName: "blend_deposit", operation: "blend_supply" },
+  { toolName: "blend_borrow", operation: "blend_borrow" },
+  { toolName: "blend_repay", operation: "blend_repay" },
+  { toolName: "blend_withdraw", operation: "blend_withdraw" },
+  { toolName: "blend_toggle_collateral", operation: "blend_toggle_collateral" },
+  { toolName: "blend_claim_emissions", operation: "blend_claim" },
+  { toolName: "blend_backstop_deposit", operation: "backstop_deposit" },
+  { toolName: "blend_backstop_queue_withdrawal", operation: "backstop_queue" },
+  { toolName: "blend_backstop_dequeue_withdrawal", operation: "backstop_dequeue" },
+  { toolName: "blend_backstop_withdraw", operation: "backstop_withdraw" },
+] as const;
+
+export const BLEND_SHARED_OPERATIONS = BLEND_OPS_RAW.map((op) => ({
+  ...op,
+  render: makeBlendOpRenderer(op.operation),
+}));
+
+// ---------------------------------------------------------------------------
 // Component that registers all renderers
 // ---------------------------------------------------------------------------
 
 export function DefiToolRenderers() {
-  // Info tools
+  // Info tools (non-Blend)
   for (const { toolName, type, component: Component } of INFO_TOOL_RENDERERS) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useRenderToolCall({
@@ -195,7 +277,17 @@ export function DefiToolRenderers() {
     });
   }
 
-  // Operation tools
+  // Blend shared info cards (using protocol card components)
+  for (const { toolName, type, render: sharedRender } of BLEND_SHARED_INFO) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useRenderToolCall({
+      name: toolName,
+      description: `Render ${type} info card (shared)`,
+      render: (props: RenderProps) => <div className="max-w-[360px]">{sharedRender(props)}</div>,
+    });
+  }
+
+  // Operation tools (non-Blend)
   for (const { toolName, operation, component: Component } of OPERATION_TOOL_RENDERERS) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useRenderToolCall({
@@ -210,6 +302,23 @@ export function DefiToolRenderers() {
           status={props.status}
         />
       ),
+    });
+  }
+
+  // Blend shared operation cards (using shared BlendTxCard)
+  for (const { toolName, operation } of BLEND_SHARED_OPERATIONS) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useRenderToolCall({
+      name: toolName,
+      description: `Render ${operation} operation card (shared)`,
+      render: (props: RenderProps & { respond?: (result: Record<string, unknown>) => void }) => {
+        const tx = normalizeTxFromMcp(props.result, props.args);
+        if (!tx) {
+          return <div className="text-xs text-muted-foreground">Failed to parse transaction data</div>;
+        }
+        const txWithOp = { ...tx, operation: tx.operation || operation };
+        return <div className="max-w-[360px]"><BlendTxCard tx={txWithOp} mode="playground" respond={props.respond} /></div>;
+      },
     });
   }
 
