@@ -57,10 +57,8 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const { defaultModules } = await import("@creit.tech/stellar-wallets-kit/modules/utils");
         const { Networks, KitEventType } = await import("@creit.tech/stellar-wallets-kit/types");
 
-        const network =
-          (process.env["NEXT_PUBLIC_STELLAR_NETWORK"] as string) === "PUBLIC"
-            ? Networks.PUBLIC
-            : Networks.TESTNET;
+        const isMainnet = (process.env["NEXT_PUBLIC_STELLAR_NETWORK"] ?? "").toLowerCase() === "mainnet";
+        const network = isMainnet ? Networks.PUBLIC : Networks.TESTNET;
 
         const isDark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
 
@@ -215,10 +213,8 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const { TransactionBuilder, Operation, Account, Networks } = await import(
           "@stellar/stellar-sdk"
         );
-        const network =
-          (process.env["NEXT_PUBLIC_STELLAR_NETWORK"] as string) === "PUBLIC"
-            ? Networks.PUBLIC
-            : Networks.TESTNET;
+        const isMainnet = (process.env["NEXT_PUBLIC_STELLAR_NETWORK"] ?? "").toLowerCase() === "mainnet";
+        const network = isMainnet ? Networks.PUBLIC : Networks.TESTNET;
         const account = new Account(walletAddress, "0");
         const tx = new TransactionBuilder(account, {
           fee: "100",
