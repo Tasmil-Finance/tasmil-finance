@@ -1,26 +1,14 @@
 import { createTasmilClient, type TasmilClient } from "@tasmil/adapter-sdk";
-
-function getNetwork(): "mainnet" | "testnet" {
-  const raw =
-    process.env["NEXT_PUBLIC_STELLAR_NETWORK"] ??
-    process.env["STELLAR_NETWORK"] ??
-    "mainnet";
-  return raw.toLowerCase().includes("test") ? "testnet" : "mainnet";
-}
+import { STELLAR_NETWORK } from "@/shared/config/stellar-server";
 
 let _cached: TasmilClient | null = null;
-let _cachedNetwork: string | null = null;
 
 export function getClient(): TasmilClient {
-  const network = getNetwork();
-  if (_cached && _cachedNetwork === network) return _cached;
+  if (_cached) return _cached;
   _cached = createTasmilClient({
-    network,
-    rpcUrl: process.env["STELLAR_RPC_URL"],
-    horizonUrl: process.env["STELLAR_HORIZON_URL"],
+    network: STELLAR_NETWORK,
     soroswapApiKeys: process.env["SOROSWAP_API_KEYS"] ?? process.env["SOROSWAP_API_KEY"],
   });
-  _cachedNetwork = network;
   return _cached;
 }
 
@@ -34,8 +22,7 @@ export function isValidProtocol(p: string): p is ProtocolId {
 }
 
 export function getExplorerUrl(contract: string): string {
-  const network = getNetwork();
-  const base = network === "testnet"
+  const base = STELLAR_NETWORK === "testnet"
     ? "https://stellar.expert/explorer/testnet/contract"
     : "https://stellar.expert/explorer/public/contract";
   return `${base}/${contract}`;
@@ -45,4 +32,4 @@ export function jsonError(msg: string, status = 400) {
   return Response.json({ success: false, error: msg }, { status });
 }
 
-export { getNetwork };
+export function getNetwork() { return STELLAR_NETWORK; }

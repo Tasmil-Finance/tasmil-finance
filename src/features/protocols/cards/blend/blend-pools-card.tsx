@@ -90,23 +90,19 @@ export function BlendPoolsCard({ pools, mode = "playground" }: BlendPoolsCardPro
 function ReserveList({ reserves }: { reserves: PoolCardProps["reserves"] }) {
   return (
     <div className="pb-2 px-4 space-y-1">
+      <div className="grid grid-cols-[120px_1fr_1fr] items-center gap-2 py-1 pl-5 text-[10px] text-muted-foreground/50">
+        <span>Asset</span>
+        <span>Supply APY</span>
+        <span>Borrow APY</span>
+      </div>
       {reserves.map((r, j) => (
-        <div key={r.assetAddress || j} className="flex items-center gap-2.5 py-1.5 pl-5">
-          <TokenImage src={null} alt={r.symbol} className="h-5 w-5 rounded-full" />
-          <span className="text-xs font-medium text-foreground w-12">{r.symbol}</span>
-          <div className="flex-1 grid grid-cols-3 gap-1 text-[11px]">
-            <span className="text-muted-foreground">
-              <span className="text-muted-foreground/50">S </span>
-              <span className="text-foreground tabular-nums text-xs">{formatPercent(r.supplyApy)}</span>
-            </span>
-            <span className="text-muted-foreground">
-              <span className="text-muted-foreground/50">B </span>
-              <span className="text-foreground tabular-nums text-xs">{formatPercent(r.borrowApy)}</span>
-            </span>
-            <span className="text-muted-foreground tabular-nums">
-              {fmt(r.totalSupplied)}
-            </span>
+        <div key={r.assetAddress || j} className="grid grid-cols-[120px_1fr_1fr] items-center gap-2 py-1.5 pl-5">
+          <div className="flex items-center gap-1.5">
+            <TokenImage src={null} alt={r.symbol} className="h-5 w-5 rounded-full shrink-0" />
+            <span className="text-xs font-medium text-foreground">{r.symbol}</span>
           </div>
+          <span className="text-[11px] text-muted-foreground"><Apy value={r.supplyApy} /></span>
+          <span className="text-[11px] text-muted-foreground"><Apy value={r.borrowApy} /></span>
         </div>
       ))}
     </div>

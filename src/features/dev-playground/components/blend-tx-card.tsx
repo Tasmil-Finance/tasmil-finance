@@ -9,7 +9,25 @@ import { checkWalletNetwork } from "@/lib/stellar-network-check";
 // ─── Symbol resolution from contract address ────────────────────
 
 const KNOWN_SYMBOLS: Record<string, string> = {
+  // ── Mainnet ──────────────────────────────────────────────────
+  CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA: "XLM",
   CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC: "XLM",
+  CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75: "USDC",
+  CCPRPXYHNKFMZFVNM5F3GYPAR6TFJWCGV6D72BM3MVCIRU7GOOS3FI52: "USDT",
+  CD25MNVTZDL4Y3XBCPCJXGXATV5WUHHOWMYFF4YBEGU5FCPGMYTVG5JY: "BLND",
+  CAUIKL3IYGMERDRUN6YSCLWVAKIFG5Q4YJHUKM4S4NJZQIA3BAS6OJPK: "AQUA",
+  CDTKPWPLOURQA2SGTKTUQOWRCBZEORB4BWBOMJ3D3ZTQQSGE5F6JBQLV: "EURC",
+  CAL6ER2TI6CTRAY6BFXWNWA7WTYXUXTQCHUBCIBU5O6KM3HJFG6Z6VXV: "CETES",
+  CBLV4ATSIWU67CFSQU2NVRKINQIKUZ2ODSZBUJTJ43VJVRSBTZYOPNUR: "USTRY",
+  CD6M4R2322BYCY2LNWM74PEBQAQ63SA3DUJLI3L4225U4ZVCLMSCBCIS: "TESOURO",
+  CDIKURWHYS4FFTR5KOQK6MBFZA2K3E26WGBQI6PXBYWZ4XIOPJHDFJKP: "USDx",
+  CBN3NCJSMOQTC6SPEYK3A44NU4VS3IPKTARJLI3Y77OH27EWBY36TP7U:  "EURx",
+  CBCO65UOWXY2GR66GOCMCN6IU3Y45TXCPBY3FLUNL4AOUMOCKVIVV6JC: "GBPx",
+  CBZPEXQLJCGUYTAQRQ4FGCXUV5O4TZER5WSOMCGNDNIIO4EJ4FU5GQNZ: "oUSD",
+  CB226ZOEYXTBPD3QEGABTJYSKZVBP2PASEISLG3SBMTN5CE4QZUVZ3CE: "USDGLO",
+  CCCRWH6Q3FNP3I2I57BDLM5AFAT7O6OF6GKQOC6SSJNDAVRZ57SPHGU2: "PYUSD",
+  CBZ7M5B3Y4WWBZ5XK5UZCAFOEZ23KSSZXYECYX3IXM6E2JOLQC52DK32: "PHO",
+  // ── Testnet ──────────────────────────────────────────────────
   CAQCFVLOBK5GIULPNZRGATJJMIZL5BSP7X5YJVMGCPTUEPFM4AVSRCJU: "USDC",
   CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA: "USDC",
   CAZRY5GSFBFXD7H6GAFBA5YGYQTDXU4QKWKMYFWBAZFUCURN3WKX6LF5: "USDC",
@@ -104,14 +122,13 @@ export function BlendTxCard({ operation, result, form }: BlendTxCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
 
   const cfg = OP_CONFIG[operation] ?? { label: operation, verb: "", action: "Sign", cancel: true, sign: true };
-  const symbol = resolveSymbol(String(form.asset ?? result.asset ?? ""));
+  const asset = String(form.asset ?? result.asset ?? "");
+  const symbol = (result.context as any)?.symbol || resolveSymbol(asset);
   const amount = String(form.amount ?? result.amount ?? "0");
   const fee = String(result.estimatedFee ?? "0");
   const xdr = String(result.xdr ?? "");
   const pool = String(form.pool ?? result.pool ?? "");
   const from = String(form.from ?? result.from ?? "");
-
-  const asset = String(form.asset ?? result.asset ?? "");
 
   // Fetch current positions to show before/after
   useEffect(() => {

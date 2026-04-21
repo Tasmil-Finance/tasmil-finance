@@ -1,11 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-
-const HORIZON_URL =
-  process.env["NEXT_PUBLIC_STELLAR_NETWORK"] === "MAINNET"
-    ? "https://horizon.stellar.org"
-    : "https://horizon-testnet.stellar.org";
+import { activeNetwork } from "@/shared/config/stellar";
 
 /** Known testnet USDC issuer (SDF test anchor / Circle faucet). */
 const USDC_ASSET_CODE = "USDC";
@@ -18,7 +14,7 @@ export interface StellarBalances {
 }
 
 async function fetchBalances(publicKey: string): Promise<StellarBalances> {
-  const res = await fetch(`${HORIZON_URL}/accounts/${publicKey}`);
+  const res = await fetch(`${activeNetwork.horizonUrl}/accounts/${publicKey}`);
   if (!res.ok) return { xlm: 0, usdc: 0 };
 
   const data = await res.json();

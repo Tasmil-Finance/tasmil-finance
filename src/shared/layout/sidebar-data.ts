@@ -27,7 +27,7 @@ export interface SidebarData {
   navGroups: NavGroup[];
 }
 
-const isTestnet = process.env["NEXT_PUBLIC_STELLAR_TESTNET"] === "true";
+const isTestnet = process.env["NEXT_PUBLIC_STELLAR_NETWORK"] !== "mainnet";
 
 function filterNavGroups(groups: NavGroup[]): NavGroup[] {
   return groups

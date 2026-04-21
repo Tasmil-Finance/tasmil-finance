@@ -57,13 +57,11 @@ const AddressAvatar = ({
 };
 
 const networkLabel =
-  (process.env["NEXT_PUBLIC_STELLAR_NETWORK"] as string) === "PUBLIC" ? "Mainnet" : "Testnet";
+  "Testnet";
 
 function explorerUrl(address: string): string {
   const base =
-    (process.env["NEXT_PUBLIC_STELLAR_NETWORK"] as string) === "PUBLIC"
-      ? "https://stellar.expert/explorer/public/account"
-      : "https://stellar.expert/explorer/testnet/account";
+    "https://stellar.expert/explorer/testnet/account";
   return `${base}/${address}`;
 }
 

@@ -1,4 +1,5 @@
 "use client";
+import { activeNetwork } from "@/shared/config/stellar";
 
 import { AlertCircle, CheckCircle, Loader2, Wallet } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -63,7 +64,7 @@ export function OnboardingPage() {
   const getStellarKit = async () => {
     const { StellarWalletsKit } = await import("@creit.tech/stellar-wallets-kit/sdk");
     const passphrase =
-      process.env["NEXT_PUBLIC_STELLAR_PASSPHRASE"] ?? "Test SDF Network ; September 2015";
+      activeNetwork.networkPassphrase;
     return { StellarWalletsKit, passphrase };
   };
 

@@ -47,11 +47,8 @@ function Bar({ value }: { value: unknown }) {
   const n = Number(value);
   const p = isFinite(n) ? (n < 1 ? n * 100 : n) : 0;
   return (
-    <div className="flex items-center gap-1.5 w-full">
-      <div className="h-1 flex-1 rounded-full bg-border overflow-hidden">
-        <div className="h-full rounded-full bg-primary/60" style={{ width: `${Math.min(p, 100)}%` }} />
-      </div>
-      <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">{p.toFixed(0)}%</span>
+    <div className="h-1 w-full rounded-full bg-border overflow-hidden">
+      <div className="h-full rounded-full bg-primary/60" style={{ width: `${Math.min(p, 100)}%` }} />
     </div>
   );
 }

@@ -11,7 +11,7 @@ import { Typography } from "@/shared/ui/typography";
 import { toast } from "sonner";
 import { redirect } from "next/navigation";
 
-const isTestnet = process.env["NEXT_PUBLIC_STELLAR_TESTNET"] === "true";
+const isTestnet = process.env["NEXT_PUBLIC_STELLAR_NETWORK"] !== "mainnet";
 const FRIENDBOT_URL = "https://friendbot.stellar.org";
 const STELLAR_EXPERT = "https://stellar.expert/explorer";
 
@@ -41,7 +41,7 @@ export default function FaucetPage() {
     }
   }
 
-  const network = process.env["NEXT_PUBLIC_STELLAR_NETWORK"] === "PUBLIC" ? "public" : "testnet";
+  const network = process.env["NEXT_PUBLIC_STELLAR_NETWORK"] === "mainnet" ? "public" : "testnet";
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-[calc(100vh-56px)] w-full px-4 py-16 text-center overflow-hidden">

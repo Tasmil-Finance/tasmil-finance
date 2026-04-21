@@ -105,7 +105,6 @@ export function BlendBackstopInfoCard({ backstop, mode = "playground" }: BlendBa
           <div>
             <div className="flex justify-between text-[10px] mb-1">
               <span className="text-muted-foreground">Q4W %</span>
-              <span className="text-foreground tabular-nums">{Number(backstop.q4wPct).toFixed(2)}%</span>
             </div>
             <Bar value={backstop.q4wPct} />
           </div>

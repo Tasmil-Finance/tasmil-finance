@@ -83,7 +83,7 @@ function formatBalanceShort(value: number): string {
   return "0";
 }
 
-const isTestnet = process.env.NEXT_PUBLIC_STELLAR_TESTNET === "true";
+const isTestnet = process.env["NEXT_PUBLIC_STELLAR_NETWORK"] !== "mainnet";
 
 export function AggregatorPage() {
   usePageTour(TOUR_NAMES.aggregator);
@@ -118,7 +118,7 @@ export function AggregatorPage() {
   const hasUserInteracted = useRef(false);
 
   // Toast notifications for swap result
-  const network = process.env["NEXT_PUBLIC_STELLAR_NETWORK"] === "PUBLIC" ? "public" : "testnet";
+  const network = process.env["NEXT_PUBLIC_STELLAR_NETWORK"] === "mainnet" ? "public" : "testnet";
   useEffect(() => {
     if (agg.executeSuccess) {
       toast.success("Swap successful!", {

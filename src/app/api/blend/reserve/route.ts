@@ -12,6 +12,13 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  if (pool === asset) {
+    return NextResponse.json(
+      { success: false, error: "asset must be a reserve contract address, not the pool address" },
+      { status: 400 },
+    );
+  }
+
   const network = getNetwork();
   const MCP_URL = process.env["NEXT_PUBLIC_MCP_STELLAR_URL"] ?? "http://localhost:3009";
 

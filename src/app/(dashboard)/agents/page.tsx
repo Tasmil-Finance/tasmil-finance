@@ -115,7 +115,7 @@ const ALL_AGENT_IDS = [
   "yield_agent",
 ];
 
-const isTestnet = process.env["NEXT_PUBLIC_STELLAR_TESTNET"] === "true";
+const isTestnet = process.env["NEXT_PUBLIC_STELLAR_NETWORK"] !== "mainnet";
 
 // When on testnet, only show agents that support testnet
 const VALID_AGENT_IDS = isTestnet

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { type AuthUser, useAuthStore } from "@/store/use-auth";
 import { useWalletStore } from "@/store/use-wallet";
 import { checkWalletNetwork, parseSigningError } from "@/lib/stellar-network-check";
+import { activeNetwork } from "@/shared/config/stellar";
 
 interface WalletContextType {
   isConnected: boolean;
@@ -57,8 +58,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const { defaultModules } = await import("@creit.tech/stellar-wallets-kit/modules/utils");
         const { Networks, KitEventType } = await import("@creit.tech/stellar-wallets-kit/types");
 
-        const isMainnet = (process.env["NEXT_PUBLIC_STELLAR_NETWORK"] ?? "").toLowerCase() === "mainnet";
-        const network = isMainnet ? Networks.PUBLIC : Networks.TESTNET;
+        const network = activeNetwork.networkPassphrase as typeof Networks[keyof typeof Networks];
 
         const isDark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
 
@@ -213,8 +213,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const { TransactionBuilder, Operation, Account, Networks } = await import(
           "@stellar/stellar-sdk"
         );
-        const isMainnet = (process.env["NEXT_PUBLIC_STELLAR_NETWORK"] ?? "").toLowerCase() === "mainnet";
-        const network = isMainnet ? Networks.PUBLIC : Networks.TESTNET;
+        const network = activeNetwork.networkPassphrase;
         const account = new Account(walletAddress, "0");
         const tx = new TransactionBuilder(account, {
           fee: "100",
@@ -371,8 +370,10 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     async (xdr: string): Promise<string> => {
       if (!address) throw new Error("Wallet not connected");
       const { StellarWalletsKit } = await import("@creit.tech/stellar-wallets-kit/sdk");
+      const { activeNetwork } = await import("@/shared/config/stellar");
       const { signedTxXdr } = await StellarWalletsKit.signTransaction(xdr, {
         address,
+        networkPassphrase: activeNetwork.networkPassphrase,
       });
       return signedTxXdr;
     },

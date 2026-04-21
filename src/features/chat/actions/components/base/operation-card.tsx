@@ -20,6 +20,8 @@ export interface OperationCardProps {
   respond?: (result: Record<string, unknown>) => void;
   /** Called when user clicks the execute button. Should return { success, hash?, error? } */
   onExecute: (address: string) => Promise<{ success: boolean; hash?: string; error?: string }>;
+  /** Called when user clicks the cancel button. */
+  onCancel?: () => void;
   /** Render operation details before execution. */
   renderDetails?: () => React.ReactNode;
   className?: string;
@@ -36,6 +38,7 @@ export function BaseOperationCard({
   result,
   respond,
   onExecute,
+  onCancel,
   renderDetails,
   className,
 }: OperationCardProps) {
@@ -205,21 +208,33 @@ export function BaseOperationCard({
         </div>
       )}
 
-      <Button
-        onClick={handleExecute}
-        disabled={!isConnected || isExecuting}
-        className="mt-3 h-10 w-full rounded-lg"
-        variant="default"
-      >
-        {isExecuting ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Signing...
-          </>
-        ) : (
-          buttonText
+      <div className={`mt-3 flex gap-2`}>
+        {onCancel && (
+          <Button
+            onClick={onCancel}
+            disabled={isExecuting}
+            className="h-10 flex-1 rounded-lg"
+            variant="outline"
+          >
+            Cancel
+          </Button>
         )}
-      </Button>
+        <Button
+          onClick={handleExecute}
+          disabled={!isConnected || isExecuting}
+          className={`h-10 rounded-lg ${onCancel ? "flex-1" : "w-full"}`}
+          variant="default"
+        >
+          {isExecuting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Signing...
+            </>
+          ) : (
+            buttonText
+          )}
+        </Button>
+      </div>
     </div>
   );
 }

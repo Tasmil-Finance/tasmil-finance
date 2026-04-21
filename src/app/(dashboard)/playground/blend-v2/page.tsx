@@ -4,9 +4,8 @@
  * Blend v2 Playground — /dev/blend-v2
  *
  * Direct HTTP playground for all Blend v2 operations and queries.
- * Calls mcp-stellar REST endpoints (/blend-v2/query/... and /blend-v2/op/...)
- * and renders results using the SAME card components as the AI chat —
- * Shared protocol cards for queries, BlendTxCard for operations.
+ * Uses SDK-backed routes (/api/blend/...) for queries and operations.
+ * Renders results using the SAME card components as the AI chat.
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -33,8 +32,6 @@ const MOCK_STREAM = {
   getMessagesMetadata: () => undefined,
 } as unknown as StreamContextType;
 
-const MCP_URL = process.env["NEXT_PUBLIC_MCP_STELLAR_URL"] ?? "http://localhost:3009";
-// SDK-backed routes (no MCP server needed)
 const SDK_QUERY_URL = "/api/blend";
 const SDK_OP_URL = "/api/blend/op";
 
@@ -314,7 +311,7 @@ function OpPanel({ title, endpoint, operation, fields, defaults = {} }: OpPanelP
               xdr: String(result.xdr ?? ""),
               estimatedFee: result.estimatedFee ? String(result.estimatedFee) : undefined,
               asset: form.asset ?? (result.asset ? String(result.asset) : undefined),
-              symbol: form.asset ? resolveSymbol(form.asset) : undefined,
+              symbol: result.context?.symbol,
               amount: result.amount ? String(result.amount) : (result.lpAmount ? String(result.lpAmount) : undefined),
               pool: form.pool ?? (result.pool ? String(result.pool) : undefined),
               from: form.from ?? (result.from ? String(result.from) : undefined),
@@ -453,7 +450,7 @@ export default function BlendV2PlaygroundPage() {
                 tab === t ? "bg-accent text-foreground shadow hover:bg-accent" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {t === "queries" ? "Queries (7)" : "Operations (10)"}
+              {t === "queries" ? "Queries (7)" : "Operations (11)"}
             </Button>
           ))}
         </div>
@@ -533,26 +530,24 @@ export default function BlendV2PlaygroundPage() {
               }}
             />
 
-            {/* 6. Backstop Details (MCP only) */}
+            {/* 6. Backstop Details */}
             <QueryPanel
               title="Backstop Details"
               endpoint="backstop"
               infoType="blend_backstop_info"
               fields={[{ key: "pool", label: "Pool Address", placeholder: "C..." }]}
               defaults={poolDefaults}
-              baseUrl={MCP_URL}
               autoFetch
               renderResult={(d) => {
                 const backstop = normalizeBackstopFromSdk(d.data ?? d);
                 if (!backstop) return null;
-                // Enrich with pool name from known pools
                 const poolName = pools.find((p) => p.address === backstop.poolAddress)?.name;
                 if (poolName) backstop.poolName = poolName;
                 return <BlendBackstopInfoCard backstop={backstop} mode="playground" />;
               }}
             />
 
-            {/* 7. Q4W Balance (MCP only) */}
+            {/* 7. Q4W Balance */}
             <QueryPanel
               title="Q4W Balance"
               endpoint="q4w"
@@ -562,7 +557,6 @@ export default function BlendV2PlaygroundPage() {
                 { key: "user", label: "User Address", placeholder: "G..." },
               ]}
               defaults={userDefaults}
-              baseUrl={MCP_URL}
               autoFetch
               renderResult={(d) => {
                 const balance = normalizeBackstopBalanceFromSdk(d.data ?? d);
@@ -718,15 +712,26 @@ export default function BlendV2PlaygroundPage() {
               ]}
               defaults={{ ...fromDefaults, amount: "0.05" }}
             />
+
+            {/* 11. Backstop Withdraw (after 21-day lockup) → backstop_withdraw → BlendExecuteCard */}
+            <OpPanel
+              title="Backstop Withdraw (After Lockup)"
+              endpoint="backstop-withdraw"
+              operation="backstop_withdraw"
+              fields={[
+                { key: "pool",   label: "Pool Address",  placeholder: "C..." },
+                { key: "amount", label: "Shares", placeholder: "0.05", isAmount: true },
+                { key: "from",   label: "From Address",  placeholder: "G..." },
+              ]}
+              defaults={{ ...fromDefaults, amount: "0.05" }}
+            />
           </div>
         )}
 
         {/* ── Footer ── */}
         <div className="border-t border-border pt-4 text-center">
           <Typography variant="small" className="text-muted-foreground/40 text-xs">
-            Blend v2 Playground · mcp-stellar{" "}
-            <span className="font-mono text-muted-foreground/60">{MCP_URL}</span>
-            {" · "}Operations build XDR only — wallet signing required to submit on-chain
+            Blend v2 Playground · SDK{" · "}Operations build XDR only — wallet signing required to submit on-chain
           </Typography>
         </div>
       </div>

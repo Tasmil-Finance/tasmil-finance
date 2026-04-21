@@ -198,15 +198,11 @@ export const TOKEN_REGISTRY_TESTNET: TokenInfo[] = [
 // ─── Helpers ────────────────────────────────────────────────────
 
 export function getStellarNetworkFromEnv(): "mainnet" | "testnet" {
-  const raw = process.env["NEXT_PUBLIC_STELLAR_NETWORK"] ??
-              process.env["STELLAR_NETWORK"] ?? "mainnet";
-  return raw.toLowerCase().includes("test") ? "testnet" : "mainnet";
+  return "testnet";
 }
 
 export function getActiveRegistry(): TokenInfo[] {
-  return getStellarNetworkFromEnv() === "testnet"
-    ? TOKEN_REGISTRY_TESTNET
-    : TOKEN_REGISTRY;
+  return TOKEN_REGISTRY_TESTNET;
 }
 
 export function getFilteredTokens(req: {

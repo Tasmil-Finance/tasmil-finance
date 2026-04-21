@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createTasmilClient } from "@tasmil/adapter-sdk";
-import { getStellarNetworkFromEnv } from "../_registry";
+import { STELLAR_NETWORK } from "@/shared/config/stellar-server";
 
 function getClient() {
-  return createTasmilClient({
-    network: getStellarNetworkFromEnv(),
-    rpcUrl:     process.env["STELLAR_RPC_URL"],
-    horizonUrl: process.env["STELLAR_HORIZON_URL"],
-  });
+  return createTasmilClient({ network: STELLAR_NETWORK });
 }
 
 export async function POST(req: NextRequest) {

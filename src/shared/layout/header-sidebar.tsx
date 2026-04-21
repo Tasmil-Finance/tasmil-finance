@@ -8,8 +8,7 @@ import { Button } from "@/shared/ui/button-v2";
 import { useSidebar } from "@/shared/ui/sidebar";
 import { Typography } from "@/shared/ui/typography";
 
-const NETWORK_LABEL =
-  process.env["NEXT_PUBLIC_STELLAR_NETWORK"] === "PUBLIC" ? "MAINNET" : "TESTNET";
+const NETWORK_LABEL = process.env["NEXT_PUBLIC_STELLAR_NETWORK"] === "mainnet" ? "MAINNET" : "TESTNET";
 
 export function HeaderSidebar({
   header,

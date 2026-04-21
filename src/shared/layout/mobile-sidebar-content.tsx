@@ -78,7 +78,7 @@ export function MobileSidebarContent({ onClose }: { onClose?: () => void }) {
                 className="h-4 rounded-full border-0 bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] px-1.5 py-0 font-bold text-[8px] text-black"
                 variant="outline"
               >
-                {process.env["NEXT_PUBLIC_STELLAR_NETWORK"] === "PUBLIC" ? "MAINNET" : "TESTNET"}
+                {process.env["NEXT_PUBLIC_STELLAR_NETWORK"] === "mainnet" ? "MAINNET" : "TESTNET"}
               </Badge>
             </div>
             <Typography className="text-sm">{sidebarData.header.tagline}</Typography>

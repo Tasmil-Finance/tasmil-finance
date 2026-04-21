@@ -1,4 +1,5 @@
 "use client";
+import { activeNetwork } from "@/shared/config/stellar";
 
 import { AlertTriangle, Check, Copy, Loader2, Lock, ShieldOff, Wallet } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -34,7 +35,7 @@ async function signXdr(xdr: string, publicKey: string): Promise<string> {
   const { signedTxXdr } = await StellarWalletsKit.signTransaction(xdr, {
     address: publicKey,
     networkPassphrase:
-      process.env["NEXT_PUBLIC_STELLAR_PASSPHRASE"] ?? "Test SDF Network ; September 2015",
+      activeNetwork.networkPassphrase,
   });
   return signedTxXdr;
 }

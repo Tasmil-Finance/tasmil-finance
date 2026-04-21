@@ -6,14 +6,13 @@ import type { ProtocolPositionGroup, PositionItem } from "./use-defi-positions";
 
 // ─── Backstop addresses (used to discover ALL active pools dynamically) ──────
 
-const useTestnet = process.env["NEXT_PUBLIC_STELLAR_TESTNET"] === "true";
+const isTestnet = process.env["NEXT_PUBLIC_STELLAR_NETWORK"] !== "mainnet";
 
-const BACKSTOP_ADDRESS = useTestnet
+const BACKSTOP_ADDRESS = isTestnet
   ? "CBDVWXT433PRVTUNM56C3JREF3HIZHRBA64NB2C3B2UNCKIS65ZYCLZA"
   : "CAQQR5SWBXKIGZKPBZDH3KM5GQ5GUTPKB7JAFCINLZBC5WXPJKRG3IM7";
 
-// Static fallback pool list (used only when backstop discovery fails)
-const FALLBACK_POOLS = useTestnet
+const FALLBACK_POOLS = isTestnet
   ? ["CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF"]
   : [
       "CAJJZSGMMM3PD7N33TAPHGBUGTB43OC73HVIK2L2G6BNGGGYOSSYBXBD",

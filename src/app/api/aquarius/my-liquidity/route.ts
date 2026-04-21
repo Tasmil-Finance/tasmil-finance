@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getNetwork } from "../_sdk";
+import { STELLAR_NETWORK } from "@/shared/config/stellar-server";
+import { STELLAR_NETWORKS } from "@tasmil/adapter-sdk";
 
 const AQUARIUS_BASE: Record<string, string> = {
   mainnet: "https://amm-api.aqua.network",
@@ -40,9 +42,7 @@ export async function GET(req: NextRequest) {
     const tokensStr = Array.isArray(pool.tokens_str) ? pool.tokens_str : [];
 
     // Query Horizon for user's LP token balance
-    const horizonBase = network === "testnet"
-      ? "https://horizon-testnet.stellar.org"
-      : "https://horizon.stellar.org";
+    const horizonBase = STELLAR_NETWORKS[STELLAR_NETWORK].horizonUrl;
 
     const accRes = await fetch(`${horizonBase}/accounts/${userAddress}`);
     if (!accRes.ok) {
