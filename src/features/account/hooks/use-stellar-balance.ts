@@ -1,12 +1,21 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { activeNetwork } from "@/shared/config/stellar";
 
-/** Known testnet USDC issuer (SDF test anchor / Circle faucet). */
+const RAW_NETWORK = (process.env["NEXT_PUBLIC_STELLAR_NETWORK"] ?? "").toUpperCase();
+const IS_TESTNET =
+  RAW_NETWORK.includes("TEST") || process.env["NEXT_PUBLIC_STELLAR_TESTNET"] === "true";
+
+const HORIZON_URL =
+  IS_TESTNET ? "https://horizon-testnet.stellar.org" : "https://horizon.stellar.org";
+
+/** USDC issuer defaults by network (override via NEXT_PUBLIC_USDC_ISSUER). */
 const USDC_ASSET_CODE = "USDC";
+const DEFAULT_USDC_ISSUER = IS_TESTNET
+  ? "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+  : "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN";
 const USDC_ISSUER =
-  process.env["NEXT_PUBLIC_USDC_ISSUER"] ?? "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5";
+  process.env["NEXT_PUBLIC_USDC_ISSUER"] ?? DEFAULT_USDC_ISSUER;
 
 export interface StellarBalances {
   xlm: number;
@@ -14,7 +23,7 @@ export interface StellarBalances {
 }
 
 async function fetchBalances(publicKey: string): Promise<StellarBalances> {
-  const res = await fetch(`${activeNetwork.horizonUrl}/accounts/${publicKey}`);
+  const res = await fetch(`${HORIZON_URL}/accounts/${publicKey}`);
   if (!res.ok) return { xlm: 0, usdc: 0 };
 
   const data = await res.json();

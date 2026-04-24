@@ -143,7 +143,15 @@ export function OnboardingPage() {
     const signedTxXdr = assertSigned(signed);
 
     setDeploySubStep("submitting_setup");
-    await submitTx.mutateAsync({ signedXdr: signedTxXdr });
+    // V4: mark the setup TX with publicKey + txType so the backend's
+    // handleTxConfirmed flips status DEPLOYING → AWAITING_FUND. Without
+    // this, the account would stay in DEPLOYING forever and the dashboard
+    // would never unlock.
+    await submitTx.mutateAsync({
+      signedXdr: signedTxXdr,
+      publicKey,
+      txType: "setup",
+    });
 
     setDeploySubStep("done");
     return true;

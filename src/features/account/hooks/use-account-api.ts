@@ -110,7 +110,7 @@ export function useResumeAccount() {
 export interface SubmitTxParams {
   signedXdr: string;
   publicKey?: string;
-  txType?: "deploy" | "fund" | "withdraw" | "revoke" | "reactivate";
+  txType?: "deploy" | "setup" | "fund" | "withdraw" | "revoke" | "reactivate";
   amount?: number;
   token?: string;
 }

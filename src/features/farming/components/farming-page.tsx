@@ -389,7 +389,12 @@ function FarmingContent() {
     );
   }
 
-  if (!position) return <OnboardingPage />;
+  // Keep onboarding rendered until the full 2-of-2 signup finishes. Status
+  // DEPLOYING means TX 1 (keeper-wallet deploy) confirmed but TX 2
+  // (configure_session_key) has not — if we swap to the Dashboard too
+  // early the user loses the TX 2 prompt and lands on a vault that cannot
+  // actually sign anything.
+  if (!position || position.status === "DEPLOYING") return <OnboardingPage />;
 
   // ─── Derived ──────────────────────────────────────────────────────────────
 
