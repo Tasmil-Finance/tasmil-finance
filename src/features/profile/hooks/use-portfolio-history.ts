@@ -26,14 +26,6 @@ interface BackendEnvelope<T> {
   message?: string;
 }
 
-const EMPTY: PortfolioHistoryData = {
-  snapshots: [],
-  latestTotalUsd: null,
-  rangeStartUsd: 0,
-  deltaUsd: 0,
-  deltaPercent: 0,
-};
-
 function apiBase(): string {
   const base = process.env["NEXT_PUBLIC_BACKEND_URL"];
   return base ? `${base.replace(/\/$/, "")}/api` : "http://localhost:6756/api";
@@ -60,6 +52,5 @@ export function usePortfolioHistory(
     queryFn: () => fetchHistory(address!, days),
     enabled: !!address,
     staleTime: 5 * 60_000,
-    placeholderData: EMPTY,
   });
 }
