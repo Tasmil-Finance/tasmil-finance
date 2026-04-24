@@ -146,7 +146,12 @@ function FarmingContent() {
     isLoading: activitiesLoading,
     refetch: refetchActivity,
   } = useActivity(publicKey);
-  const { data: presets, isLoading: presetsLoading } = usePresets();
+  // Default preview asset to the account's current baseAsset; fall back to
+  // USDC until position loads.
+  const [strategyPreviewAsset, setStrategyPreviewAsset] = useState<"USDC" | "XLM">(
+    "USDC",
+  );
+  const { data: presets, isLoading: presetsLoading } = usePresets(strategyPreviewAsset);
 
   // Keep selectedPreset in sync with the account's active preset so the
   // Strategy tab visually highlights the current selection on first render.
@@ -167,6 +172,17 @@ function FarmingContent() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [position?.preset]);
+
+  // Sync the preview asset toggle with the account's active baseAsset once
+  // the position data loads. Users can still switch the toggle to preview
+  // the other asset's allocation.
+  useEffect(() => {
+    const base = position?.baseAsset?.toUpperCase();
+    if (base === "USDC" || base === "XLM") {
+      setStrategyPreviewAsset(base);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [position?.baseAsset]);
 
   // Mutations
   const fundAccount = useFundAccount();
@@ -638,18 +654,55 @@ function FarmingContent() {
                 transition={{ duration: 0.25 }}
                 className="space-y-6"
               >
-                <div className="space-y-1">
-                  <h2 className="font-semibold text-foreground text-xl">Choose Your Strategy</h2>
-                  <p className="text-muted-foreground text-sm">
-                    Your current preset is{" "}
-                    <span className="font-medium text-foreground">
-                      {position?.preset
-                        ? position.preset.charAt(0) +
-                          position.preset.slice(1).toLowerCase()
-                        : "Balanced"}
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <h2 className="font-semibold text-foreground text-xl">Choose Your Strategy</h2>
+                    <p className="text-muted-foreground text-sm">
+                      Your current preset is{" "}
+                      <span className="font-medium text-foreground">
+                        {position?.preset
+                          ? position.preset.charAt(0) +
+                            position.preset.slice(1).toLowerCase()
+                          : "Balanced"}
+                      </span>
+                      . The same preset applies to both USDC and XLM deposits —
+                      each portion is allocated through its asset-specific pools.
+                    </p>
+                  </div>
+
+                  {/* Asset preview toggle — lets user see how the preset
+                      distributes for USDC vs XLM deposits. Active asset
+                      (account.baseAsset) is marked. */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-muted-foreground/70 text-[11px] uppercase tracking-widest">
+                      Preview allocation for
                     </span>
-                    . Changes apply on the next allocation cycle (within 10 min).
-                  </p>
+                    {(["USDC", "XLM"] as const).map((asset) => {
+                      const isActive = strategyPreviewAsset === asset;
+                      const isCurrentBase =
+                        position?.baseAsset?.toUpperCase() === asset;
+                      return (
+                        <button
+                          type="button"
+                          key={asset}
+                          onClick={() => setStrategyPreviewAsset(asset)}
+                          className={cn(
+                            "inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm transition-all",
+                            isActive
+                              ? "border-primary/50 bg-primary/10 text-foreground ring-1 ring-primary/40"
+                              : "border-white/8 bg-white/3 text-muted-foreground hover:border-white/12 hover:text-foreground",
+                          )}
+                        >
+                          <span className="font-semibold">{asset}</span>
+                          {isCurrentBase && (
+                            <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] text-emerald-400">
+                              active
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {isRevoked && (

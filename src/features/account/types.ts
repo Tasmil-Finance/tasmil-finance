@@ -19,6 +19,7 @@ export interface PositionData {
   currentApy: number;
   preset: string;
   status: string;
+  baseAsset?: string;
   positions: {
     poolName: string;
     poolType: string;
