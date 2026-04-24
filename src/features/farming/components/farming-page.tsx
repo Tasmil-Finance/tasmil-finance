@@ -668,7 +668,9 @@ function FarmingContent() {
                   </div>
                 ) : presets && presets.length > 0 ? (
                   <>
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    {/* Stack on narrow viewports, 3-col only on xl so the
+                        cards never clip when the sidebar is open. */}
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                       {presets.map((preset) => (
                         <PresetCard
                           key={preset.name}

@@ -73,10 +73,22 @@ export function OnboardingPage() {
   // User's preset pick. Defaults to Balanced (most users should start here).
   const [selectedPreset, setSelectedPreset] = useState<RiskPreset>(DEFAULT_PRESET);
 
-  // Base asset the user plans to deposit. Presets API returns different
-  // pool universes per asset; the UI toggle lets the user preview both
-  // before they fund.
-  const [selectedBaseAsset, setSelectedBaseAsset] = useState<"USDC" | "XLM">("USDC");
+  // Base asset the user plans to deposit. Persist to sessionStorage so a
+  // mid-flow re-render (e.g. after TX 1 confirms and React remounts the
+  // OnboardingPage because position.status flips to DEPLOYING) doesn't
+  // reset the pick back to USDC and cause the UI to flash mid-signup.
+  const [selectedBaseAsset, setSelectedBaseAsset] = useState<"USDC" | "XLM">(() => {
+    if (typeof window === "undefined") return "USDC";
+    const stored = window.sessionStorage.getItem("tasmil.onboarding.baseAsset");
+    return stored === "XLM" ? "XLM" : "USDC";
+  });
+  // Keep sessionStorage in sync so reloads / remounts restore the choice.
+  const updateBaseAsset = (next: "USDC" | "XLM") => {
+    setSelectedBaseAsset(next);
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem("tasmil.onboarding.baseAsset", next);
+    }
+  };
 
   // Deploy sub-step tracking
   const [deploySubStep, setDeploySubStep] = useState<DeploySubStep>("idle");
@@ -267,6 +279,9 @@ export function OnboardingPage() {
       // apply is best-effort and already caught above, so a preset failure
       // still lets us navigate to the dashboard where the user can retry.
       if (allDone) {
+        if (typeof window !== "undefined") {
+          window.sessionStorage.removeItem("tasmil.onboarding.baseAsset");
+        }
         router.push("/farming");
       }
     }
@@ -328,7 +343,7 @@ export function OnboardingPage() {
                 type="button"
                 key={asset.id}
                 disabled={isDeploying}
-                onClick={() => !isDeploying && setSelectedBaseAsset(asset.id)}
+                onClick={() => !isDeploying && updateBaseAsset(asset.id)}
                 className={cn(
                   "rounded-xl border px-3.5 py-1.5 text-sm transition-all",
                   "disabled:cursor-not-allowed disabled:opacity-60",
