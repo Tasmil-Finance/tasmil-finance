@@ -128,7 +128,10 @@ function FarmingContent() {
   const [selectedPreset, setSelectedPreset] = useState<RiskPreset | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const withdrawAmountInputId = useId();
-  const canChangeStrategy = false;
+  // V4: users can switch presets at any time. Change takes effect on the
+  // next allocation cycle (within 10 min). Backend enforces preset
+  // validation; frontend just sends the choice.
+  const canChangeStrategy = true;
 
   // Data hooks
   const {

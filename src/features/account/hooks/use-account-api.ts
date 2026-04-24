@@ -73,6 +73,7 @@ export function useFundAccount() {
 }
 
 export function useUpdatePreset() {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ publicKey, preset }: { publicKey: string; preset: string }) => {
       const { data } = await backendAxios.put<{ data: unknown }>(
@@ -80,6 +81,21 @@ export function useUpdatePreset() {
         { preset }
       );
       return data.data;
+    },
+    // Refresh position so the dashboard shows the new preset + allocation
+    // pipeline picks it up on the next rebalance cycle.
+    onSuccess: () => {
+      qc.invalidateQueries({
+        predicate: (q) => {
+          const k = q.queryKey[0];
+          return typeof k === "string" && (
+            k.includes("getPosition") ||
+            k.includes("getActivity") ||
+            k === "/api/account/position" ||
+            k === "/api/account/activity"
+          );
+        },
+      });
     },
   });
 }

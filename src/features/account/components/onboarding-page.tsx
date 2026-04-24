@@ -8,7 +8,15 @@ import { useRef, useState } from "react";
 import { Button } from "@/shared/ui/button-v2";
 import { useWalletStore } from "@/store/use-wallet";
 
-import { useDeployAccount, useSetupAccount, useSubmitTx } from "../hooks/use-account-api";
+import {
+  useDeployAccount,
+  usePresets,
+  useSetupAccount,
+  useSubmitTx,
+  useUpdatePreset,
+} from "../hooks/use-account-api";
+import type { RiskPreset } from "../types";
+import { PresetCard } from "./preset-card";
 
 /** Sub-steps within Step 1 (Create Account) */
 type DeploySubStep =
@@ -19,7 +27,8 @@ type DeploySubStep =
   | "building_setup" // Building setup TX from backend
   | "signing_setup" // Waiting for user to sign TX 2/2
   | "submitting_setup" // Submitting + confirming setup TX
-  | "done"; // Both TXs confirmed
+  | "applying_preset" // Calling updatePreset after deploy+setup succeed
+  | "done"; // Everything confirmed
 
 /** User-friendly labels for each sub-step */
 function getDeployStatusLabel(subStep: DeploySubStep): string {
@@ -36,6 +45,8 @@ function getDeployStatusLabel(subStep: DeploySubStep): string {
       return "Sign transaction 2 of 2 — Configure Session Key";
     case "submitting_setup":
       return "Submitting setup transaction...";
+    case "applying_preset":
+      return "Applying your strategy...";
     case "done":
       return "Account created successfully!";
     default:
@@ -43,22 +54,32 @@ function getDeployStatusLabel(subStep: DeploySubStep): string {
   }
 }
 
+const DEFAULT_PRESET: RiskPreset = "Balanced";
+
 export function OnboardingPage() {
   const router = useRouter();
   const { account } = useWalletStore();
   const publicKey = account ?? null;
 
+  // User's preset pick. Defaults to Balanced (most users should start here).
+  // Persisted in local state only until account is created; then pushed to
+  // the backend via updatePreset.
+  const [selectedPreset, setSelectedPreset] = useState<RiskPreset>(DEFAULT_PRESET);
+
   // Deploy sub-step tracking
   const [deploySubStep, setDeploySubStep] = useState<DeploySubStep>("idle");
-  const [deployCompleted, setDeployCompleted] = useState(false); // Deploy TX confirmed; setup can be retried
+  const [deployCompleted, setDeployCompleted] = useState(false); // TX 1 confirmed; setup retriable
+  const [setupCompleted, setSetupCompleted] = useState(false); // TX 2 confirmed; preset apply next
   const [deployError, setDeployError] = useState<string | null>(null);
 
   // Guard: prevent double-click while flow is in progress
   const flowInProgressRef = useRef(false);
 
+  const { data: presets, isLoading: presetsLoading } = usePresets();
   const deployAccount = useDeployAccount();
   const setupAccount = useSetupAccount();
   const submitTx = useSubmitTx();
+  const updatePreset = useUpdatePreset();
 
   // Helper to get StellarWalletsKit + passphrase
   const getStellarKit = async () => {
@@ -71,8 +92,7 @@ export function OnboardingPage() {
   /**
    * Normalise wallet-signing result: some Stellar wallet adapters RESOLVE
    * with an empty / undefined signedTxXdr on user rejection instead of
-   * throwing. Treat any non-string / empty result as an explicit cancel so
-   * we never submit garbage to the backend or navigate past a rejected step.
+   * throwing. Treat any non-string / empty result as an explicit cancel.
    */
   const assertSigned = (
     signResult: { signedTxXdr?: string } | null | undefined,
@@ -128,7 +148,6 @@ export function OnboardingPage() {
       throw new Error("No setup transaction returned from server");
     }
 
-    // Should always be exactly 1 TX now (configure_session_key)
     const setupXdr = setupXdrs[0];
     if (!setupXdr) {
       throw new Error("Invalid setup transaction payload");
@@ -143,42 +162,66 @@ export function OnboardingPage() {
     const signedTxXdr = assertSigned(signed);
 
     setDeploySubStep("submitting_setup");
-    // V4: mark the setup TX with publicKey + txType so the backend's
-    // handleTxConfirmed flips status DEPLOYING → AWAITING_FUND. Without
-    // this, the account would stay in DEPLOYING forever and the dashboard
-    // would never unlock.
     await submitTx.mutateAsync({
       signedXdr: signedTxXdr,
       publicKey,
       txType: "setup",
     });
 
-    setDeploySubStep("done");
+    setSetupCompleted(true);
     return true;
   };
 
-  // ---- Combined flow: Deploy + Setup (exactly 2 signatures) ----
+  // ---- Step 2: Apply the chosen preset (skip if Balanced == default) ----
+  const applyChosenPreset = async (): Promise<boolean> => {
+    if (!publicKey) return false;
+
+    // Backend seeds BALANCED on signup, so only push when the user picked
+    // something else. Saves a request + avoids a noop activity row.
+    if (selectedPreset === DEFAULT_PRESET) return true;
+
+    setDeploySubStep("applying_preset");
+    // preset API expects uppercase ("SAFE" | "BALANCED" | "AGGRESSIVE")
+    await updatePreset.mutateAsync({
+      publicKey,
+      preset: selectedPreset.toUpperCase(),
+    });
+    return true;
+  };
+
+  // ---- Combined flow: Deploy → Setup → Apply Preset ----
   const handleDeploy = async () => {
     if (!publicKey || flowInProgressRef.current) return;
 
     flowInProgressRef.current = true;
     setDeployError(null);
 
-    let setupDidComplete = false;
+    let allDone = false;
     try {
-      // If deploy already confirmed (e.g., retry after setup failure), skip to setup
+      // TX 1 (skip if already confirmed on a retry)
       if (!deployCompleted) {
         await handleDeployTx();
       }
-
-      await handleSetupTx();
-      // Only mark setup success AFTER submitTx resolves (step `done`).
-      setupDidComplete = true;
+      // TX 2 (skip if already confirmed on a rare preset-only retry)
+      if (!setupCompleted) {
+        await handleSetupTx();
+      }
+      // Preset: non-fatal. If it fails, the account still works on BALANCED
+      // and the user can change it later via the Strategy tab.
+      try {
+        await applyChosenPreset();
+      } catch (presetErr: any) {
+        console.warn(
+          "Preset application failed; leaving account on default BALANCED:",
+          presetErr?.message ?? presetErr,
+        );
+      }
+      setDeploySubStep("done");
+      allDone = true;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Unknown error";
       console.error("Account creation failed:", message);
 
-      // User-friendly error messages
       const rejected =
         (err as { userRejected?: boolean })?.userRejected === true ||
         message.includes("User rejected") ||
@@ -187,11 +230,15 @@ export function OnboardingPage() {
         message.includes("declined") ||
         message.includes("cancelled");
       if (rejected) {
-        const step = deployCompleted ? "session-key setup" : "deploy";
+        const step = !deployCompleted
+          ? "deploy"
+          : !setupCompleted
+            ? "session-key setup"
+            : "strategy update";
         setDeployError(
           `Transaction signing was cancelled at the ${step} step. ` +
-            (deployCompleted
-              ? "Your account exists but is not yet usable — click retry to sign the remaining transaction."
+            (deployCompleted && !setupCompleted
+              ? "Your account was deployed but session key setup didn't complete — click retry to finish."
               : "Please try again."),
         );
       } else if (message.includes("insufficient") || message.includes("Insufficient")) {
@@ -201,17 +248,13 @@ export function OnboardingPage() {
       } else {
         setDeployError(message);
       }
-
-      // Reset sub-step to idle so the button is clickable again,
-      // but keep deployCompleted if deploy TX was already confirmed
       setDeploySubStep("idle");
     } finally {
       flowInProgressRef.current = false;
-      // SAFETY: only navigate on full 2-of-2 success. Any earlier exit
-      // (rejected, error, timeout) keeps the user on onboarding so they
-      // can retry. Prevents the observed bug where rejecting TX2 still
-      // pushed to /farming.
-      if (setupDidComplete) {
+      // Navigate ONLY when the full flow (deploy + setup) succeeded. Preset
+      // apply is best-effort and already caught above, so a preset failure
+      // still lets us navigate to the dashboard where the user can retry.
+      if (allDone) {
         router.push("/farming");
       }
     }
@@ -233,25 +276,59 @@ export function OnboardingPage() {
   }
 
   const isDeploying = deploySubStep !== "idle" && deploySubStep !== "done";
-  // Determine the button label for Step 1
   const getDeployButtonLabel = (): string => {
     if (isDeploying) return getDeployStatusLabel(deploySubStep);
-    if (deployCompleted) return "Retry Setup (Transaction 2 of 2)";
+    if (deployCompleted && !setupCompleted) return "Retry Setup (Transaction 2 of 2)";
     return "Create Smart Account";
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10">
+    <div className="mx-auto max-w-5xl px-4 py-10">
       {/* Header */}
       <div className="mb-8 text-center">
         <h1 className="mb-2 font-bold text-3xl text-foreground">Set Up Your Account</h1>
         <p className="text-muted-foreground">
-          Create your self-custody smart account to start using the farming agent.
+          Pick a strategy, then create your self-custody smart account to start earning.
         </p>
       </div>
 
-      {/* Step content */}
-      <div className="mx-auto max-w-lg space-y-6 text-center">
+      {/* Section 1 — Strategy picker */}
+      <section className="mb-10">
+        <div className="mb-4 text-center">
+          <h2 className="font-semibold text-foreground text-xl">Choose Your Strategy</h2>
+          <p className="mt-1 text-muted-foreground text-sm">
+            You can change this any time from the dashboard.
+          </p>
+        </div>
+
+        {presetsLoading ? (
+          <div className="flex items-center justify-center py-10">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : presets && presets.length > 0 ? (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {presets.map((preset) => (
+              <PresetCard
+                key={preset.name}
+                preset={preset}
+                selected={selectedPreset === preset.name}
+                onSelect={() => {
+                  // Block changing strategy mid-flow — the selection is
+                  // locked in once signing starts.
+                  if (!isDeploying) setSelectedPreset(preset.name);
+                }}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-xl border border-border bg-muted/10 p-6 text-center text-muted-foreground text-sm">
+            Strategy options are loading. If this persists, please refresh the page.
+          </div>
+        )}
+      </section>
+
+      {/* Section 2 — Account creation */}
+      <section className="mx-auto max-w-lg space-y-6 text-center">
         <div className="space-y-3 rounded-xl border border-border bg-muted/10 p-6">
           <h2 className="font-semibold text-foreground text-xl">Create Smart Account</h2>
           <p className="text-muted-foreground text-sm">
@@ -274,6 +351,18 @@ export function OnboardingPage() {
             </li>
           </ul>
 
+          {/* Selected preset summary — confirms user's choice before signing */}
+          {!isDeploying && !deployCompleted && (
+            <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-3 text-left">
+              <p className="font-medium text-foreground text-sm">
+                Strategy: <span className="text-primary">{selectedPreset}</span>
+              </p>
+              <p className="mt-1 text-muted-foreground text-xs">
+                You can change this from the Strategy tab after your account is created.
+              </p>
+            </div>
+          )}
+
           {/* Progress info when deploying */}
           {isDeploying && (
             <div className="mt-4 rounded-lg border border-primary/20 bg-primary/5 p-3">
@@ -285,9 +374,11 @@ export function OnboardingPage() {
           )}
 
           {/* Deploy completed but setup pending (retry scenario) */}
-          {deployCompleted && deploySubStep === "idle" && (
+          {deployCompleted && !setupCompleted && deploySubStep === "idle" && (
             <div className="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
-              <p className="font-medium text-amber-400 text-sm">Deploy confirmed ✓ — Setup still needed</p>
+              <p className="font-medium text-amber-400 text-sm">
+                Deploy confirmed ✓ — Setup still needed
+              </p>
               <p className="mt-1 text-muted-foreground text-xs">
                 Your account was deployed but session key setup didn&apos;t complete. Click below to
                 sign the setup transaction (1 signature needed).
@@ -301,7 +392,7 @@ export function OnboardingPage() {
           size="lg"
           className="h-12 w-full"
           onClick={handleDeploy}
-          disabled={isDeploying}
+          disabled={isDeploying || presetsLoading}
         >
           {isDeploying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {getDeployButtonLabel()}
@@ -313,7 +404,7 @@ export function OnboardingPage() {
             <p className="text-destructive text-sm">{deployError}</p>
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }
