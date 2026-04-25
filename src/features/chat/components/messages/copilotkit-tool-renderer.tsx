@@ -4,16 +4,17 @@ import type { Message } from "@langchain/langgraph-sdk";
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
-import { ToolStatusDispatcher } from "@/shared/components/tool-status-dispatcher";
 import { SupervisorAgentCallCard } from "@/features/chat/actions/components/stellar/supervisor-agent-call-card";
 import { useStreamContext } from "@/features/chat/hooks";
 import {
-  INFO_TOOL_RENDERERS,
-  OPERATION_TOOL_RENDERERS,
   BLEND_SHARED_INFO,
   BLEND_SHARED_OPERATIONS,
+  FLOW_TOOL_RENDERERS,
+  INFO_TOOL_RENDERERS,
+  OPERATION_TOOL_RENDERERS,
   SUPERVISOR_AGENTS,
 } from "@/features/chat/hooks/use-defi-tool-renderers";
+import { ToolStatusDispatcher } from "@/shared/components/tool-status-dispatcher";
 
 interface ToolCallData {
   id: string;
@@ -25,6 +26,7 @@ type SharedRenderProps = {
   status: "inProgress" | "executing" | "complete";
   args: Record<string, unknown>;
   result: unknown;
+  toolCallId?: string;
   respond?: (result: Record<string, unknown>) => void;
 };
 
@@ -44,6 +46,10 @@ function getCardRenderer(toolName: string): CardRendererResult {
   const sharedOp = BLEND_SHARED_OPERATIONS.find((r) => r.toolName === toolName);
   if (sharedOp) return { kind: "shared-op", render: sharedOp.render };
 
+  // Check flow tool renderers — "shared" kind (no BlendOpWithRespond wrapper)
+  const flowTool = FLOW_TOOL_RENDERERS.find((r) => r.toolName === toolName);
+  if (flowTool) return { kind: "shared", render: flowTool.render };
+
   // Generic info/operation cards
   const info = INFO_TOOL_RENDERERS.find((r) => r.toolName === toolName);
   if (info) return { component: info.component, label: info.type, kind: "info" };
@@ -58,7 +64,9 @@ function parseResult(content: string | unknown): unknown {
   // MCP tools return content as an array of blocks: [{type:"text", text:"..."}]
   // Extract the text from the first text block before JSON parsing
   if (Array.isArray(content)) {
-    const textBlock = (content as any[]).find((b) => b?.type === "text" && typeof b?.text === "string");
+    const textBlock = (content as any[]).find(
+      (b) => b?.type === "text" && typeof b?.text === "string"
+    );
     if (textBlock) {
       try {
         return JSON.parse(textBlock.text);
@@ -75,6 +83,9 @@ function parseResult(content: string | unknown): unknown {
     return content;
   }
 }
+
+// Module-level guard: prevents duplicate respond submissions across remounts
+const respondedToolCalls = new Set<string>();
 
 /**
  * Wrapper that injects a stream-based `respond` callback into shared Blend
@@ -96,6 +107,8 @@ function BlendOpWithRespond({
 
   const respond = useCallback(
     async (result: Record<string, unknown>) => {
+      if (respondedToolCalls.has(toolCallId)) return;
+      respondedToolCalls.add(toolCallId);
       const success = Boolean(result.success);
       try {
         await stream.submit(
@@ -117,7 +130,7 @@ function BlendOpWithRespond({
                 decisions: [{ type: success ? "approve" : "reject" }],
               },
             },
-          },
+          }
         );
 
         if (!success) {
@@ -127,7 +140,7 @@ function BlendOpWithRespond({
         console.error("[BlendOpWithRespond] Error resuming graph:", error);
       }
     },
-    [stream, toolCallId, toolName],
+    [stream, toolCallId, toolName]
   );
 
   // Pass respond through renderProps so the card receives it
@@ -142,7 +155,7 @@ export function CopilotKitToolCallRenderer({
   messages: Message[];
 }) {
   const toolCalls: ToolCallData[] =
-    message && "tool_calls" in message ? (message.tool_calls as ToolCallData[]) ?? [] : [];
+    message && "tool_calls" in message ? ((message.tool_calls as ToolCallData[]) ?? []) : [];
 
   // Build map of tool_call_id -> result from subsequent tool messages
   const resultMap = useMemo(() => {
@@ -160,11 +173,38 @@ export function CopilotKitToolCallRenderer({
           ("error" in parsed || (parsed as any).success === false);
         map.set(m.tool_call_id, { content: parsed, hasError });
       }
-      if (m.type === "human" || (m.type === "ai" && i !== msgIdx)) break;
+      // Keep scanning across AI follow-up messages because HITL updates
+      // (approve/reject/cancel tool payloads) can arrive later in the same turn.
+      if (m.type === "human") break;
     }
 
     return map;
   }, [messages, message?.id]);
+
+  // Build set of supervisor agent calls that already appeared in earlier messages
+  // so we can skip rendering duplicates (e.g. supervisor retrying the same agent).
+  const duplicateSupervisorCalls = useMemo(() => {
+    const dupes = new Set<string>();
+    const msgIdx = messages.findIndex((m) => m.id === message?.id);
+    if (msgIdx <= 0) return dupes;
+
+    for (const tc of toolCalls) {
+      if (!tc.name.startsWith("call_") || !tc.name.endsWith("_agent")) continue;
+      const argsKey = JSON.stringify(tc.args);
+      for (let i = 0; i < msgIdx; i++) {
+        const prev = messages[i] as any;
+        if (prev.type !== "ai" || !prev.tool_calls?.length) continue;
+        const hasSameCall = prev.tool_calls.some(
+          (pc: any) => pc.name === tc.name && JSON.stringify(pc.args) === argsKey
+        );
+        if (hasSameCall) {
+          dupes.add(tc.id);
+          break;
+        }
+      }
+    }
+    return dupes;
+  }, [messages, message?.id, toolCalls]);
 
   if (toolCalls.length === 0) return null;
 
@@ -176,6 +216,9 @@ export function CopilotKitToolCallRenderer({
 
         // Supervisor agent call
         if (tc.name.startsWith("call_") && tc.name.endsWith("_agent")) {
+          // Skip duplicate supervisor calls that already appeared in earlier messages
+          if (duplicateSupervisorCalls.has(tc.id)) return null;
+
           const agentName = tc.name.replace("call_", "").replace("_agent", "");
           if (SUPERVISOR_AGENTS.includes(agentName)) {
             return (
@@ -192,6 +235,11 @@ export function CopilotKitToolCallRenderer({
         const cardRenderer = isComplete ? getCardRenderer(tc.name) : null;
         const status = result?.hasError ? "error" : isComplete ? "complete" : "calling";
 
+        // Hide parse_user_intent entirely — it's an internal routing step
+        if (tc.name === "parse_user_intent" && isComplete) {
+          return null;
+        }
+
         return (
           <div key={tc.id} className="flex flex-col gap-1">
             {/* Tool status: spinner/check + "Tool Name" + chevron (old style) */}
@@ -203,8 +251,9 @@ export function CopilotKitToolCallRenderer({
             />
 
             {/* Data card when tool call is complete */}
-            {isComplete && cardRenderer && (
-              cardRenderer.kind === "shared-op" ? (
+            {isComplete &&
+              cardRenderer &&
+              (cardRenderer.kind === "shared-op" ? (
                 <div className="max-w-[360px]">
                   <BlendOpWithRespond
                     toolCallId={tc.id}
@@ -213,6 +262,7 @@ export function CopilotKitToolCallRenderer({
                       status: "complete",
                       args: tc.args as Record<string, unknown>,
                       result: result?.content,
+                      toolCallId: tc.id,
                     }}
                     renderFn={cardRenderer.render}
                   />
@@ -235,8 +285,7 @@ export function CopilotKitToolCallRenderer({
                   status="complete"
                   toolCallId={tc.id}
                 />
-              )
-            )}
+              ))}
           </div>
         );
       })}

@@ -58,23 +58,23 @@ describe("OptionCard", () => {
     render(<OptionCard {...defaultProps} />);
     const pill = screen.getByText("recommended");
     expect(pill).toBeInTheDocument();
-    expect(pill.className).toContain("bg-emerald-400/10");
-    expect(pill.className).toContain("text-emerald-400");
+    expect(pill.className).toContain("bg-[#00C278]/12");
+    expect(pill.className).toContain("text-[#00C278]");
   });
 
   it("renders il_risk tag as yellow/amber pill", () => {
     render(<OptionCard {...defaultProps} />);
-    const pill = screen.getByText("IL risk");
+    const pill = screen.getByText("il_risk");
     expect(pill).toBeInTheDocument();
-    expect(pill.className).toContain("bg-amber-400/10");
+    expect(pill.className).toContain("bg-amber-500/12");
     expect(pill.className).toContain("text-amber-400");
   });
 
   it("renders high_tvl tag as blue pill", () => {
     render(<OptionCard {...defaultProps} />);
-    const pill = screen.getByText("high TVL");
+    const pill = screen.getByText("high_tvl");
     expect(pill).toBeInTheDocument();
-    expect(pill.className).toContain("bg-blue-400/10");
+    expect(pill.className).toContain("bg-blue-500/12");
     expect(pill.className).toContain("text-blue-400");
   });
 
@@ -118,7 +118,7 @@ describe("OptionCard", () => {
     expect(onSelect).not.toHaveBeenCalled();
   });
 
-  it("selected row has highlighted background", () => {
+  it("selected row has highlighted border", () => {
     render(
       <OptionCard
         {...defaultProps}
@@ -129,7 +129,7 @@ describe("OptionCard", () => {
 
     const buttons = screen.getAllByRole("button");
     // First button corresponds to "Blend USDC Pool" which matches selectedValue
-    expect(buttons[0].className).toContain("bg-primary/5");
+    expect(buttons[0].className).toContain("border-[#00C278]");
   });
 
   it("non-selected rows are dimmed after selection", () => {
@@ -216,7 +216,7 @@ describe("OptionCard", () => {
     );
 
     const pill = screen.getByText("bridge");
-    expect(pill.className).toContain("bg-purple-400/10");
+    expect(pill.className).toContain("bg-purple-500/12");
     expect(pill.className).toContain("text-purple-400");
   });
 });

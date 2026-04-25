@@ -1,14 +1,15 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import type { Suggestion } from "@/features/chat/types/flow-messages";
 
-const TAG_STYLES: Record<string, [string, string]> = {
-  recommended: ["recommended", "text-emerald-400 bg-emerald-400/10"],
-  il_risk: ["IL risk", "text-amber-400 bg-amber-400/10"],
-  high_tvl: ["high TVL", "text-blue-400 bg-blue-400/10"],
-  bridge: ["bridge", "text-purple-400 bg-purple-400/10"],
+const TAG_STYLES: Record<string, string> = {
+  recommended: "bg-[#00C278]/12 text-[#00C278]",
+  il_risk: "bg-amber-500/12 text-amber-400",
+  high_tvl: "bg-blue-500/12 text-blue-400",
+  bridge: "bg-purple-500/12 text-purple-400",
 };
+
+const DEFAULT_TAG_STYLE = "bg-white/8 text-[#9aada4]";
 
 interface OptionCardProps {
   question: string;
@@ -34,13 +35,11 @@ export function OptionCard({
   selectedValue,
 }: OptionCardProps) {
   return (
-    <div className="w-fit min-w-[280px] max-w-[360px] overflow-hidden rounded-xl border border-border bg-card">
-      <div className="border-b border-border px-4 py-2.5">
-        <p className="text-[13px] font-medium text-foreground">{question}</p>
-      </div>
+    <div className="max-w-[360px] rounded-xl border border-white/[0.07] bg-[#131715] p-3">
+      <p className="mb-2 text-sm text-[#9aada4]">{question}</p>
 
       {suggestions.length > 0 && (
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-1.5">
           {suggestions.map((suggestion, index) => {
             const selected = isSelected(suggestion.value, selectedValue);
             const dimmed = disabled && !selected && selectedValue !== undefined;
@@ -52,41 +51,39 @@ export function OptionCard({
                 aria-label={`Select ${suggestion.label}`}
                 disabled={disabled}
                 onClick={() => onSelect(suggestion.value)}
-                className={cn(
-                  "flex w-full items-start gap-2.5 px-4 py-2.5 text-left transition-colors",
-                  index > 0 && "border-t border-border",
+                className={[
+                  "flex w-full items-start gap-2.5 rounded-lg border bg-[#181c1a] px-3 py-2.5 text-left transition-colors",
                   selected
-                    ? "bg-primary/5"
-                    : "hover:bg-muted/30",
-                  dimmed && "opacity-50",
+                    ? "border-[#00C278]"
+                    : "border-white/[0.07] hover:border-[#00C278]/35",
+                  dimmed ? "opacity-50" : "",
                   disabled ? "pointer-events-none" : "cursor-pointer",
-                )}
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
               >
-                <span className="mt-0.5 shrink-0 font-mono text-xs text-muted-foreground/60">
+                <span className="mt-0.5 shrink-0 font-mono text-xs text-[#5e736a]">
                   {index + 1}
                 </span>
 
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-[13px] font-medium text-foreground">
+                    <span className="text-sm text-[#f0f2f1]">
                       {suggestion.label}
                     </span>
 
-                    {suggestion.tags?.map((tag) => {
-                      const [label, cls] = TAG_STYLES[tag] ?? [tag, "text-muted-foreground bg-muted"];
-                      return (
-                        <span
-                          key={tag}
-                          className={cn("rounded-md px-1.5 py-px text-[10px] font-medium", cls)}
-                        >
-                          {label}
-                        </span>
-                      );
-                    })}
+                    {suggestion.tags?.map((tag) => (
+                      <span
+                        key={tag}
+                        className={`rounded-full px-2 py-0.5 text-[10px] ${TAG_STYLES[tag] ?? DEFAULT_TAG_STYLE}`}
+                      >
+                        {tag}
+                      </span>
+                    ))}
                   </div>
 
                   {suggestion.description && (
-                    <p className="mt-0.5 text-xs text-muted-foreground">
+                    <p className="mt-0.5 text-xs text-[#5e736a]">
                       {suggestion.description}
                     </p>
                   )}

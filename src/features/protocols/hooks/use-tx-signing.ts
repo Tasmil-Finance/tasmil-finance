@@ -141,14 +141,15 @@ export function useTxSigning(options: TxSigningOptions): TxSigningResult {
           });
 
           // Persist to LangGraph thread state
-          if (stream && toolCallId) {
+          if (stream && !respond) {
+            // Only submit directly if there's no respond callback (non-HITL path)
             await stream.submit(
               {
                 messages: [{ id: `__hidden__tx-success-${Date.now()}`, type: "human" as const, content: `Transaction ${hash} submitted successfully` }],
                 ...(walletAddress ? { wallet_address: walletAddress } : {}),
-                signed_txs: { [toolCallId]: { success: true, hash, operation, timestamp: Date.now() } },
+                ...(toolCallId ? { signed_txs: { [toolCallId]: { success: true, hash, operation, timestamp: Date.now() } } } : {}),
               },
-              { streamMode: ["values"], streamSubgraphs: false, streamResumable: true },
+            { streamMode: ["values", "custom"], streamSubgraphs: false, streamResumable: true },
             );
           }
 
@@ -182,18 +183,18 @@ export function useTxSigning(options: TxSigningOptions): TxSigningResult {
         }
 
         // Persist error to LangGraph
-        if (mode === "chat" && stream && toolCallId) {
+        if (mode === "chat" && stream && !respond) {
           await stream.submit(
             {
               messages: [{
-                id: `__hidden__tx-${isRejection ? "reject" : "error"}-${Date.now()}`,
+                id: `__hidden__tx-${isRejection ? "cancel" : "error"}-${Date.now()}`,
                 type: "human" as const,
                 content: isRejection ? "Transaction rejected by user" : `Transaction failed: ${msg}`,
               }],
               ...(walletAddress ? { wallet_address: walletAddress } : {}),
-              signed_txs: { [toolCallId]: { success: false, error: cardResult.message, operation, timestamp: Date.now() } },
+              ...(toolCallId ? { signed_txs: { [toolCallId]: { success: false, error: cardResult.message, operation, timestamp: Date.now() } } } : {}),
             },
-            { streamMode: ["values"], streamSubgraphs: false, streamResumable: true },
+            { streamMode: ["values", "custom"], streamSubgraphs: false, streamResumable: true },
           );
         }
 

@@ -175,8 +175,9 @@ export async function POST(
         return NextResponse.json({ success: false, error: `Unhandled: ${operation}` }, { status: 400 });
     }
   } catch (e) {
+    const rawError = e instanceof Error ? e.message : "Operation failed";
     return NextResponse.json(
-      { success: false, error: e instanceof Error ? e.message : "Operation failed" },
+      { success: false, error: humanizeAquariusError(rawError) },
       { status: 400 },
     );
   }
