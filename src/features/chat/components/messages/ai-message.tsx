@@ -136,13 +136,24 @@ export function AssistantMessage({
     return null;
   }
 
+  // Hide AI messages that ONLY contain parse_user_intent (internal routing step)
+  // These produce no visible UI and would show an orphaned avatar
+  const onlyHasHiddenTools =
+    allToolCalls &&
+    allToolCalls.length > 0 &&
+    allToolCalls.every((tc) => tc.name === "parse_user_intent") &&
+    contentString.length === 0;
+  if (onlyHasHiddenTools && !isLoading) {
+    return null;
+  }
+
   // Whether this message has tool calls that produce UI
   const hasToolCalls = !!(allToolCalls && allToolCalls.length > 0);
 
   return (
-    <div className="group mr-auto flex w-full items-start gap-3">
-      {hideAvatar ? <div className="w-10 shrink-0" /> : <AgentAvatar />}
-      <div className="flex w-full min-w-0 flex-col gap-2">
+    <div className="group mr-auto flex w-full items-start gap-3 overflow-hidden">
+      <div className="w-10 shrink-0">{!hideAvatar && <AgentAvatar />}</div>
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
         {isToolResult ? (
           <>
             <ToolResult message={message} />

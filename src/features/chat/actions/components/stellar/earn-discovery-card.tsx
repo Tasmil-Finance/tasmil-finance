@@ -160,13 +160,13 @@ function EarnDiscoveryCardComponent({ type, result, toolCallId, status }: EarnDi
                       value={<span className="text-orange-500">{formatPercent(opp.borrowApy)}</span>}
                     />
                   )}
-                  {opp.utilization != null && (
-                    <DetailRow label="Util." value={`${opp.utilization?.toFixed(1)}%`} />
+                  {opp.utilization != null && typeof opp.utilization === "number" && (
+                    <DetailRow label="Util." value={`${opp.utilization.toFixed(1)}%`} />
                   )}
-                  {opp.collateralFactor != null && (
+                  {opp.collateralFactor != null && typeof opp.collateralFactor === "number" && (
                     <DetailRow
                       label="CF"
-                      value={`${((opp.collateralFactor ?? 0) * 100).toFixed(0)}%`}
+                      value={`${(opp.collateralFactor * 100).toFixed(0)}%`}
                     />
                   )}
                 </div>

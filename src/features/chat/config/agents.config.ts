@@ -22,18 +22,36 @@ export const AGENTS: Record<string, AgentConfig> = {
     supportedChains: ["Stellar"],
     testnetAvailable: true,
     suggestions: [
-      "I have USDC on ETH and I wanna supply on Backstop",
-      "Swap 100 XLM to USDC and stake it",
-      "What are the best yield opportunities on Stellar?",
-      "Check my Stellar account balances",
-      "Bridge USDC from Ethereum to Stellar",
-      "Compare lending rates on Blend vs Templar",
-      "What's the price of XLM?",
-      "Find the best APY for USDC on Stellar",
-      "Show me my portfolio overview",
-      "Help me get started with Stellar DeFi",
+      // ── Yield & Earn (vague → triggers clarify flow) ──────────
+      "Earn yield on my USDC",
+      "Where should I put 500 USDC safely?",
+      "Find the best APY for XLM right now",
+      "Put 1000 USDC safe, max 40% per protocol",
+      "Compare yield across Blend, Aquarius, and DeFindex",
+
+      // ── Specific actions (skip clarify → straight to plan) ────
+      "Supply 200 USDC to Blend",
+      "Deposit 100 XLM into a DeFindex vault",
+      "Swap 500 XLM to USDC on best route",
+      "Add liquidity to XLM/USDC on Aquarius",
+      "Deposit to Blend backstop pool",
+
+      // ── Multi-step & Cross-chain ──────────────────────────────
+      "Bridge 100 USDC from Ethereum and supply to Blend",
+      "Swap 200 XLM to USDC then earn yield",
+      "Bridge USDC from Arbitrum to Stellar",
+
+      // ── Portfolio & Info ───────────────────────────────────────
+      "Show my positions across all protocols",
+      "Check my Blend lending position",
+      "What's the current XLM price?",
+      "Show my wallet balances",
+      "Compare Blend vs Templar lending rates for USDC",
+
+      // ── Research & Analysis ────────────────────────────────────
       "Analyze the Stellar DeFi ecosystem",
-      "Deposit into the best yield vault",
+      "What are the trending tokens today?",
+      "Give me a market overview",
     ],
     capabilities: [
       "swap",

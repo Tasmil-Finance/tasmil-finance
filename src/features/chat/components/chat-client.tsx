@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
-import { WelcomeRewardCard } from "@/features/welcome-reward/components/welcome-reward-card";
+import { WelcomeRewardDialog } from "@/features/welcome-reward/components/welcome-reward-dialog";
 import { useWelcomeReward } from "@/features/welcome-reward/hooks/use-welcome-reward";
 import { useSearchAssistantsAssistantsSearchPost } from "@/gen-ai/hooks/use-search-assistants-assistants-search-post";
 import { DO_NOT_RENDER_ID_PREFIX, ensureToolCallsHaveResponses } from "@/lib/ensure-tool-responses";
@@ -156,7 +156,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
   // The React state from useWallet() starts null on page load and is set after async kit init.
   // Using the store as fallback ensures wallet_address is always included even before kit ready.
   const effectiveWalletAddress = walletAddress ?? useWalletStore.getState().account;
-  const { status: welcomeRewardStatus, openRewardPage } = useWelcomeReward();
+  const { status: welcomeRewardStatus, openRewardPage, markSeen } = useWelcomeReward();
 
   // Fetch assistant info for avatar
   const { mutate: searchAssistants } = useSearchAssistantsAssistantsSearchPost({
@@ -211,8 +211,10 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
   // Show suggestions when: new chat OR agent finished responding
   // Use isAiResponseComplete as a faster indicator that AI is done
   const showSuggestions = isNewChat || (!effectiveIsLoading && messages.length > 0);
-  const showWelcomeRewardCard =
-    Boolean(welcomeRewardStatus?.reserved) && !welcomeRewardStatus?.welcomeCardSeen;
+  const showWelcomeRewardDialog =
+    isNewChat &&
+    Boolean(welcomeRewardStatus?.reserved) &&
+    !welcomeRewardStatus?.welcomeCardSeen;
   const [productError, setProductError] = useState<ChatProductError | null>(null);
 
   // Error handling
@@ -438,7 +440,10 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
     forceUpdate({});
 
     stream.submit(
-      { messages: [newHumanMessage] },
+      {
+        messages: [newHumanMessage],
+        ...(effectiveWalletAddress && { wallet_address: effectiveWalletAddress }),
+      },
       {
         // Use parentCheckpoint directly (not ?? null). The SDK treats null as "no checkpoint"
         // (same as undefined), but a valid checkpoint object triggers a branch fork.
@@ -554,16 +559,16 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
             {showGreeting && <Greeting agentId={agentId} />}
           </AnimatePresence>
 
-          {showWelcomeRewardCard && welcomeRewardStatus && (
-            <div className="pointer-events-auto">
-              <WelcomeRewardCard
-                status={welcomeRewardStatus}
-                onOpen={() => void openRewardPage()}
-              />
-            </div>
+          {showWelcomeRewardDialog && welcomeRewardStatus && (
+            <WelcomeRewardDialog
+              open
+              status={welcomeRewardStatus}
+              onDismiss={() => void markSeen()}
+              onOpen={() => void openRewardPage()}
+            />
           )}
 
-          <div className="pointer-events-auto flex flex-col gap-4">
+          <div className="pointer-events-auto flex flex-col gap-2">
             {(() => {
               // First pass: remove hidden/tool/system messages for rendering
               const visible = messages
@@ -580,8 +585,8 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
 
               return filtered.map((message, index, arr) => {
                 const prevMessage = index > 0 ? arr[index - 1] : undefined;
-                // Check if there's a hidden human message (e.g. __hidden__tx-success-*) between
-                // prevMessage and message in the unfiltered thread. If so, treat as new turn → show avatar.
+                // Check if there's a hidden human message between prev and current
+                // in the unfiltered thread. If so, treat as new turn → show avatar.
                 const hasHiddenHumanBetween =
                   prevMessage && message
                     ? (() => {

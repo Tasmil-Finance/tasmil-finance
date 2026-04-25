@@ -1,19 +1,42 @@
 "use client";
 
 import { useRenderToolCall } from "@copilotkit/react-core";
+import { useCallback, useState } from "react";
 import { AccountInfoCard } from "@/features/chat/actions/components/stellar/account-info-card";
 import { ActionSearchCard } from "@/features/chat/actions/components/stellar/action-search-card";
 import { BridgeDiscoveryCard } from "@/features/chat/actions/components/stellar/bridge-discovery-card";
 import { EarnDiscoveryCard } from "@/features/chat/actions/components/stellar/earn-discovery-card";
 import { StellarExecuteCard } from "@/features/chat/actions/components/stellar/execute-card";
 import { PoolInfoCard } from "@/features/chat/actions/components/stellar/pool-info-card";
-import { SwapQuoteCard } from "@/features/chat/actions/components/stellar/swap-quote-card";
-import { TxSubmitCard } from "@/features/chat/actions/components/stellar/tx-submit-card";
-import { TrustlineExecuteCard } from "@/features/chat/actions/components/stellar/trustline-execute-card";
 import { SupervisorAgentCallCard } from "@/features/chat/actions/components/stellar/supervisor-agent-call-card";
+import { SwapQuoteCard } from "@/features/chat/actions/components/stellar/swap-quote-card";
+import { TrustlineExecuteCard } from "@/features/chat/actions/components/stellar/trustline-execute-card";
+import { TxSubmitCard } from "@/features/chat/actions/components/stellar/tx-submit-card";
+import { ExecutionCard } from "@/features/chat/components/flow/execution-card";
+// Flow cards (option-select pattern)
+import { OptionCard } from "@/features/chat/components/flow/option-card";
+import { PlanPreviewCard } from "@/features/chat/components/flow/plan-preview-card";
+import { useStreamContext } from "@/features/chat/hooks/use-stream";
+import { useWalletStore } from "@/store/use-wallet";
+import {
+  normalizeBackstopBalanceFromMcp,
+  normalizeBackstopFromMcp,
+  normalizePoolFromMcp,
+  normalizePoolsFromMcp,
+  normalizePositionsFromMcp,
+  normalizeReserveFromMcp,
+  normalizeTxFromMcp,
+} from "@/features/protocols/adapters/from-mcp";
 // Shared protocol cards
-import { BlendPoolsCard, BlendPoolDetailCard, BlendReserveCard, BlendPositionsCard, BlendTxCard, BlendBackstopInfoCard, BlendBackstopBalanceCard } from "@/features/protocols/cards/blend";
-import { normalizePoolsFromMcp, normalizePoolFromMcp, normalizeReserveFromMcp, normalizePositionsFromMcp, normalizeTxFromMcp, normalizeBackstopFromMcp, normalizeBackstopBalanceFromMcp } from "@/features/protocols/adapters/from-mcp";
+import {
+  BlendBackstopBalanceCard,
+  BlendBackstopInfoCard,
+  BlendPoolDetailCard,
+  BlendPoolsCard,
+  BlendPositionsCard,
+  BlendReserveCard,
+  BlendTxCard,
+} from "@/features/protocols/cards/blend";
 
 /**
  * Registers CopilotKit tool renderers for all MCP tools.
@@ -32,6 +55,7 @@ type RenderProps = {
   status: "inProgress" | "executing" | "complete";
   args: Record<string, unknown>;
   result: unknown;
+  respond?: (result: Record<string, unknown>) => void;
 };
 
 // ---------------------------------------------------------------------------
@@ -85,7 +109,11 @@ export const INFO_TOOL_RENDERERS: Array<{
   { toolName: "templar_get_position", type: "user_position", component: AccountInfoCard },
   { toolName: "templar_swap_quote", type: "swap_quote", component: SwapQuoteCard },
   { toolName: "templar_get_borrow_health", type: "borrow_health", component: AccountInfoCard },
-  { toolName: "templar_get_pending_interest", type: "pending_interest", component: AccountInfoCard },
+  {
+    toolName: "templar_get_pending_interest",
+    type: "pending_interest",
+    component: AccountInfoCard,
+  },
   { toolName: "templar_get_pending_yield", type: "pending_yield", component: AccountInfoCard },
 
   // DeFindex
@@ -113,31 +141,59 @@ export const OPERATION_TOOL_RENDERERS: Array<{
   // Soroswap
   { toolName: "swap_build_transaction", operation: "swap_execute", component: StellarExecuteCard },
   { toolName: "swap_add_liquidity", operation: "add_liquidity", component: StellarExecuteCard },
-  { toolName: "swap_remove_liquidity", operation: "remove_liquidity", component: StellarExecuteCard },
+  {
+    toolName: "swap_remove_liquidity",
+    operation: "remove_liquidity",
+    component: StellarExecuteCard,
+  },
   { toolName: "sdex_swap", operation: "sdex_swap_execute", component: StellarExecuteCard },
 
   // Blend operations — now use shared BlendTxCard (see BLEND_SHARED_OPERATIONS below)
 
   // Phoenix
   { toolName: "phoenix_swap", operation: "phoenix_swap_execute", component: StellarExecuteCard },
-  { toolName: "phoenix_provide_liquidity", operation: "provide_liquidity", component: StellarExecuteCard },
-  { toolName: "phoenix_withdraw_liquidity", operation: "withdraw_liquidity", component: StellarExecuteCard },
+  {
+    toolName: "phoenix_provide_liquidity",
+    operation: "provide_liquidity",
+    component: StellarExecuteCard,
+  },
+  {
+    toolName: "phoenix_withdraw_liquidity",
+    operation: "withdraw_liquidity",
+    component: StellarExecuteCard,
+  },
   { toolName: "phoenix_stake_bond", operation: "stake_bond", component: StellarExecuteCard },
   { toolName: "phoenix_stake_unbond", operation: "stake_unbond", component: StellarExecuteCard },
-  { toolName: "phoenix_stake_claim_rewards", operation: "claim_rewards", component: StellarExecuteCard },
+  {
+    toolName: "phoenix_stake_claim_rewards",
+    operation: "claim_rewards",
+    component: StellarExecuteCard,
+  },
 
   // Aquarius
   { toolName: "aquarius_add_liquidity", operation: "add_liquidity", component: StellarExecuteCard },
-  { toolName: "aquarius_withdraw_liquidity", operation: "withdraw_liquidity", component: StellarExecuteCard },
+  {
+    toolName: "aquarius_withdraw_liquidity",
+    operation: "withdraw_liquidity",
+    component: StellarExecuteCard,
+  },
   { toolName: "aquarius_swap", operation: "swap_execute", component: StellarExecuteCard },
   { toolName: "aquarius_claim_rewards", operation: "claim_rewards", component: StellarExecuteCard },
   { toolName: "aquarius_lock_aqua", operation: "lock_aqua", component: StellarExecuteCard },
 
   // Bridge
-  { toolName: "bridge_build_transaction", operation: "bridge_execute", component: StellarExecuteCard },
+  {
+    toolName: "bridge_build_transaction",
+    operation: "bridge_execute",
+    component: StellarExecuteCard,
+  },
 
   // Allbridge
-  { toolName: "allbridge_build_transaction", operation: "allbridge_execute", component: StellarExecuteCard },
+  {
+    toolName: "allbridge_build_transaction",
+    operation: "allbridge_execute",
+    component: StellarExecuteCard,
+  },
 
   // Templar
   { toolName: "templar_swap_execute", operation: "templar_swap", component: StellarExecuteCard },
@@ -154,8 +210,18 @@ export const OPERATION_TOOL_RENDERERS: Array<{
 // ---------------------------------------------------------------------------
 
 export const SUPERVISOR_AGENTS = [
-  "info", "blend", "soroswap", "phoenix", "aquarius", "defindex",
-  "templar", "allbridge", "sdex", "bridge", "yield", "research",
+  "info",
+  "blend",
+  "soroswap",
+  "phoenix",
+  "aquarius",
+  "defindex",
+  "templar",
+  "allbridge",
+  "sdex",
+  "bridge",
+  "yield",
+  "research",
 ];
 
 // ---------------------------------------------------------------------------
@@ -181,7 +247,8 @@ export const BLEND_SHARED_INFO: Array<{
     type: "blend_pool_info",
     render: (props) => {
       const pool = normalizePoolFromMcp(props.result);
-      if (!pool) return <PoolInfoCard type="blend_pool_info" result={props.result} status={props.status} />;
+      if (!pool)
+        return <PoolInfoCard type="blend_pool_info" result={props.result} status={props.status} />;
       return <BlendPoolDetailCard pool={pool} mode="playground" />;
     },
   },
@@ -190,7 +257,10 @@ export const BLEND_SHARED_INFO: Array<{
     type: "blend_reserve_info",
     render: (props) => {
       const reserve = normalizeReserveFromMcp(props.result);
-      if (!reserve) return <PoolInfoCard type="blend_reserve_info" result={props.result} status={props.status} />;
+      if (!reserve)
+        return (
+          <PoolInfoCard type="blend_reserve_info" result={props.result} status={props.status} />
+        );
       return <BlendReserveCard reserve={reserve} mode="playground" />;
     },
   },
@@ -199,7 +269,10 @@ export const BLEND_SHARED_INFO: Array<{
     type: "blend_user_position",
     render: (props) => {
       const data = normalizePositionsFromMcp(props.result);
-      if (!data) return <AccountInfoCard type="blend_user_position" result={props.result} status={props.status} />;
+      if (!data)
+        return (
+          <AccountInfoCard type="blend_user_position" result={props.result} status={props.status} />
+        );
       return <BlendPositionsCard data={data} mode="playground" />;
     },
   },
@@ -208,7 +281,10 @@ export const BLEND_SHARED_INFO: Array<{
     type: "blend_backstop_info",
     render: (props) => {
       const backstop = normalizeBackstopFromMcp(props.result);
-      if (!backstop) return <PoolInfoCard type="blend_backstop_info" result={props.result} status={props.status} />;
+      if (!backstop)
+        return (
+          <PoolInfoCard type="blend_backstop_info" result={props.result} status={props.status} />
+        );
       return <BlendBackstopInfoCard backstop={backstop} mode="playground" />;
     },
   },
@@ -217,7 +293,14 @@ export const BLEND_SHARED_INFO: Array<{
     type: "blend_backstop_balance",
     render: (props) => {
       const data = normalizeBackstopBalanceFromMcp(props.result);
-      if (!data) return <AccountInfoCard type="blend_backstop_balance" result={props.result} status={props.status} />;
+      if (!data)
+        return (
+          <AccountInfoCard
+            type="blend_backstop_balance"
+            result={props.result}
+            status={props.status}
+          />
+        );
       return <BlendBackstopBalanceCard data={data} mode="playground" />;
     },
   },
@@ -228,11 +311,12 @@ export const BLEND_SHARED_INFO: Array<{
 // ---------------------------------------------------------------------------
 
 function makeBlendOpRenderer(operation: string) {
-  return (props: RenderProps & { respond?: (result: Record<string, unknown>) => void }) => {
+  return (props: RenderProps) => {
     const tx = normalizeTxFromMcp(props.result, props.args);
-    if (!tx) return <div className="text-xs text-muted-foreground">Failed to parse transaction data</div>;
+    if (!tx)
+      return <div className="text-muted-foreground text-xs">Failed to parse transaction data</div>;
     const txWithOp = { ...tx, operation: tx.operation || operation };
-    return <BlendTxCard tx={txWithOp} mode="playground" respond={props.respond} />;
+    return <BlendTxCard tx={txWithOp} mode="chat" respond={props.respond} />;
   };
 }
 
@@ -253,6 +337,161 @@ export const BLEND_SHARED_OPERATIONS = BLEND_OPS_RAW.map((op) => ({
   ...op,
   render: makeBlendOpRenderer(op.operation),
 }));
+
+// ---------------------------------------------------------------------------
+// Flow tool renderers (option-select cards)
+//
+// Unlike Blend HITL cards that resume a paused graph via `respond`,
+// flow cards send the user's selection as a new human message via
+// `stream.submit`. This starts a new agent turn with the selection context.
+// ---------------------------------------------------------------------------
+
+/** OptionCard wrapper that sends selection as a new human message via stream. */
+function FlowOptionCardWithStream({
+  question,
+  suggestions,
+}: {
+  question: string;
+  suggestions: { label: string; value: Record<string, unknown>; tags?: string[] }[];
+}) {
+  const stream = useStreamContext();
+  const walletAddress = useWalletStore((s) => s.account);
+  const [selected, setSelected] = useState<Record<string, unknown> | undefined>(undefined);
+  const [sent, setSent] = useState(false);
+
+  const handleSelect = useCallback(
+    async (value: Record<string, unknown>) => {
+      if (sent) return;
+      setSelected(value);
+      setSent(true);
+
+      // Short label only — no raw JSON in user message
+      const label =
+        suggestions.find((s) => JSON.stringify(s.value) === JSON.stringify(value))?.label ??
+        "selected option";
+
+      try {
+        await stream.submit({
+          messages: [
+            {
+              type: "human" as const,
+              content: label,
+            },
+          ],
+          ...(walletAddress && { wallet_address: walletAddress }),
+        });
+      } catch (err) {
+        console.error("[FlowOptionCard] submit error:", err);
+        setSent(false);
+        setSelected(undefined);
+      }
+    },
+    [stream, suggestions, sent]
+  );
+
+  return (
+    <OptionCard
+      question={question}
+      suggestions={suggestions}
+      onSelect={handleSelect}
+      disabled={sent}
+      selectedValue={selected}
+    />
+  );
+}
+
+/** Parse flow tool result — handles string, object, and MCP content-block formats. */
+function parseFlowResult(result: unknown): Record<string, unknown> | null {
+  if (!result) return null;
+
+  // Already an object with expected fields
+  if (typeof result === "object" && !Array.isArray(result) && result !== null) {
+    const obj = result as Record<string, unknown>;
+    if ("kind" in obj || "question" in obj || "plan" in obj || "step" in obj) {
+      return obj;
+    }
+  }
+
+  // MCP content-block format: [{type:"text", text:"..."}]
+  let raw = result;
+  if (Array.isArray(result)) {
+    const textBlock = (result as { type?: string; text?: string }[]).find(
+      (b) => b?.type === "text" && typeof b?.text === "string"
+    );
+    if (textBlock) raw = textBlock.text;
+  }
+
+  // String — parse JSON
+  if (typeof raw === "string") {
+    try {
+      return JSON.parse(raw) as Record<string, unknown>;
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
+}
+
+export const FLOW_TOOL_RENDERERS: Array<{
+  toolName: string;
+  render: (props: RenderProps) => React.ReactElement;
+}> = [
+  {
+    // parse_user_intent: render nothing — it's an internal step
+    toolName: "parse_user_intent",
+    render: () => <></>,
+  },
+  {
+    toolName: "flow_clarify",
+    render: (props) => {
+      const data = parseFlowResult(props.result);
+      if (!data?.question) {
+        return <div className="text-muted-foreground text-xs">Invalid clarify data</div>;
+      }
+      return (
+        <FlowOptionCardWithStream
+          question={data.question as string}
+          suggestions={(data.suggestions as any[]) ?? []}
+        />
+      );
+    },
+  },
+  {
+    toolName: "flow_plan_preview",
+    render: (props) => {
+      const data = parseFlowResult(props.result);
+      if (!data?.plan) {
+        return <div className="text-muted-foreground text-xs">Invalid plan data</div>;
+      }
+      return (
+        <PlanPreviewCard
+          plan={data.plan as any}
+          simulationReport={data.simulation_report as any}
+          onConfirm={() => props.respond?.({ kind: "plan_confirm", action: "confirm" })}
+          onCancel={() => props.respond?.({ kind: "plan_cancel", action: "cancel" })}
+        />
+      );
+    },
+  },
+  {
+    toolName: "flow_execution_update",
+    render: (props) => {
+      const data = parseFlowResult(props.result);
+      if (!data) return <div className="text-muted-foreground text-xs">No execution data</div>;
+      return (
+        <ExecutionCard
+          step={(data.step as number) ?? 0}
+          totalSteps={(data.total_steps as number) ?? 1}
+          status={(data.status as string) ?? "submitting"}
+          txHash={data.tx_hash as string}
+          description={data.description as string}
+          error={data.error as string}
+        />
+      );
+    },
+  },
+];
 
 // ---------------------------------------------------------------------------
 // Component that registers all renderers
@@ -311,15 +550,17 @@ export function DefiToolRenderers() {
     useRenderToolCall({
       name: toolName,
       description: `Render ${operation} operation card (shared)`,
-      render: (props: RenderProps & { respond?: (result: Record<string, unknown>) => void }) => {
+      render: (props: RenderProps) => {
         const tx = normalizeTxFromMcp(props.result, props.args);
         if (!tx) {
-          return <div className="text-xs text-muted-foreground">Failed to parse transaction data</div>;
+          return (
+            <div className="text-muted-foreground text-xs">Failed to parse transaction data</div>
+          );
         }
         const txWithOp = { ...tx, operation: tx.operation || operation };
         return (
           <div className="max-w-[360px]">
-            <BlendTxCard tx={txWithOp} mode="chat" respond={props.respond} />
+            <BlendTxCard tx={txWithOp} mode="playground" respond={props.respond} />
           </div>
         );
       },
@@ -339,6 +580,16 @@ export function DefiToolRenderers() {
           status={props.status === "complete" ? "complete" : "calling"}
         />
       ),
+    });
+  }
+
+  // Flow message tools (option-select cards)
+  for (const { toolName, render: flowRender } of FLOW_TOOL_RENDERERS) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useRenderToolCall({
+      name: toolName,
+      description: `Render ${toolName} flow card`,
+      render: (props: RenderProps) => <div className="max-w-[360px]">{flowRender(props)}</div>,
     });
   }
 

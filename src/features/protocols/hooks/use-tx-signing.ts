@@ -141,7 +141,8 @@ export function useTxSigning(options: TxSigningOptions): TxSigningResult {
           });
 
           // Persist to LangGraph thread state
-          if (stream) {
+          if (stream && !respond) {
+            // Only submit directly if there's no respond callback (non-HITL path)
             await stream.submit(
               {
                 messages: [{ id: `__hidden__tx-success-${Date.now()}`, type: "human" as const, content: `Transaction ${hash} submitted successfully` }],
@@ -182,7 +183,7 @@ export function useTxSigning(options: TxSigningOptions): TxSigningResult {
         }
 
         // Persist error to LangGraph
-        if (mode === "chat" && stream) {
+        if (mode === "chat" && stream && !respond) {
           await stream.submit(
             {
               messages: [{

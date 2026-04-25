@@ -13,3 +13,4 @@ export * from "./agent.types";
 export * from "./message.types";
 export * from "./stream.types";
 export * from "./thread.types";
+export * from "./flow-messages";

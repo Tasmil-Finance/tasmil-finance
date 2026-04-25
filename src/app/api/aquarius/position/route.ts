@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       success: true,
       position,
-      hasPosition: position != null && BigInt(position.liquidity) > 0n,
+      hasPosition: position != null && BigInt(String(position.liquidity).split(".")[0]) > 0n,
     });
   } catch (e) {
     return NextResponse.json(

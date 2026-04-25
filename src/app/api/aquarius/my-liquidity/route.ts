@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { createTasmilClient } from "@tasmil/adapter-sdk";
 import { getNetwork } from "../_sdk";
 import { STELLAR_NETWORK } from "@/shared/config/stellar-server";
-import { STELLAR_NETWORKS } from "@tasmil/adapter-sdk";
 
 const AQUARIUS_BASE: Record<string, string> = {
   mainnet: "https://amm-api.aqua.network",
@@ -11,8 +11,8 @@ const AQUARIUS_BASE: Record<string, string> = {
 /**
  * GET /api/aquarius/my-liquidity?pool=C...&user=G...
  *
- * Track user's LP position by querying the pool detail + Horizon account balances.
- * No MCP dependency.
+ * Track user's LP position by querying Aquarius Soroban contracts directly.
+ * This is the same source of truth used by on-chain position reads.
  */
 export async function GET(req: NextRequest) {
   const poolAddress = req.nextUrl.searchParams.get("pool");
@@ -28,39 +28,53 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Get pool detail to find LP token address
-    const poolRes = await fetch(`${base}/pools/${poolAddress}/`, {
-      headers: { Accept: "application/json", "User-Agent": "Tasmil/1.0" },
-    });
+    const sdk = createTasmilClient({ network: STELLAR_NETWORK });
 
-    if (!poolRes.ok) {
-      return NextResponse.json({ success: true, network, protocol: "aquarius", hasPosition: false, positions: [] });
+    // Pool metadata is optional for display (don't fail position reads if API endpoint shape differs).
+    let tokensStr: string[] = [];
+    let reserves: string[] = [];
+    try {
+      const poolRes = await fetch(`${base}/pools/?search=${poolAddress}&size=5`, {
+        headers: { Accept: "application/json", "User-Agent": "Tasmil/1.0" },
+      });
+      if (poolRes.ok) {
+        const poolData = await poolRes.json();
+        const items = Array.isArray(poolData?.items) ? poolData.items : [];
+        const pool = items.find((p: any) => p?.address === poolAddress) ?? items[0];
+        if (pool) {
+          tokensStr = Array.isArray(pool.tokens_str) ? pool.tokens_str : [];
+          reserves = Array.isArray(pool.reserves) ? pool.reserves : [];
+        }
+      }
+    } catch {
+      // Keep metadata empty; on-chain share position is still valid.
     }
 
-    const pool = await poolRes.json();
-    const shareTokenAddress = pool.share_token_address;
-    const tokensStr = Array.isArray(pool.tokens_str) ? pool.tokens_str : [];
+    // Source of truth from adapter SDK.
+    const [sharesRaw, shareInfo] = await Promise.all([
+      sdk.aquarius.getUserShares(poolAddress, userAddress),
+      sdk.aquarius.getShareInfo(poolAddress),
+    ]);
 
-    // Query Horizon for user's LP token balance
-    const horizonBase = STELLAR_NETWORKS[STELLAR_NETWORK].horizonUrl;
+    console.log("Aquarius position data", { sharesRaw, shareInfo, tokensStr, reserves });
+    const sharesBig = sharesRaw ?? 0n;
+    const totalSharesBig = shareInfo.totalShares ?? 0n;
+    const hasPosition = sharesBig > 0n;
 
-    const accRes = await fetch(`${horizonBase}/accounts/${userAddress}`);
-    if (!accRes.ok) {
-      return NextResponse.json({ success: true, network, protocol: "aquarius", hasPosition: false, positions: [] });
-    }
+    const shares = (Number(sharesBig) / 1e7).toFixed(7);
+    const sharePct =
+      totalSharesBig > 0n
+        ? (Number(sharesBig) / Number(totalSharesBig)) * 100
+        : 0;
 
-    const account = await accRes.json();
-    const balances = account.balances ?? [];
-
-    // Find LP token balance (match by contract or asset code)
-    const lpBalance = balances.find((b: any) =>
-      b.asset_type === "credit_alphanum12" && b.asset_code?.startsWith("LP") ||
-      b.liquidity_pool_id ||
-      (shareTokenAddress && b.asset_issuer === shareTokenAddress)
-    );
-
-    const shares = lpBalance ? lpBalance.balance ?? "0" : "0";
-    const hasPosition = Number(shares) > 0;
+    const pooled0 =
+      hasPosition && totalSharesBig > 0n && reserves[0] != null
+        ? Number((BigInt(String(reserves[0]).split(".")[0]) * sharesBig) / totalSharesBig) / 1e7
+        : 0;
+    const pooled1 =
+      hasPosition && totalSharesBig > 0n && reserves[1] != null
+        ? Number((BigInt(String(reserves[1]).split(".")[0]) * sharesBig) / totalSharesBig) / 1e7
+        : 0;
 
     return NextResponse.json({
       success: true,
@@ -71,13 +85,15 @@ export async function GET(req: NextRequest) {
         ? [{
             poolAddress,
             shares,
+            sharePct,
+            pooled: [pooled0, pooled1],
             tokensStr: tokensStr.map((s: string) => s === "native" ? "XLM" : s.includes(":") ? s.split(":")[0] : s),
           }]
         : [],
     });
-  } catch {
+  } catch (e) {
     return NextResponse.json(
-      { success: false, error: "Failed to fetch liquidity data" },
+      { success: false, error: e instanceof Error ? e.message : "Failed to fetch liquidity data" },
       { status: 500 },
     );
   }

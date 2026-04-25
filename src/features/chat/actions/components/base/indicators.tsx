@@ -22,10 +22,17 @@ export function StatusBadge({ status }: { status: string | undefined | null }) {
 }
 
 /** APY display with color coding: green (20%+), yellow (10-20%), blue (<10%). */
-export function APYDisplay({ value }: { value: number | string | undefined | null }) {
+export function APYDisplay({ value }: { value: number | string | Record<string, unknown> | undefined | null }) {
   if (value === undefined || value === null)
     return <span className="text-muted-foreground text-xs">N/A</span>;
-  const n = typeof value === "string" ? Number.parseFloat(value) : value;
+
+  // Handle APY object format: { total: 14.2, base: 10, reward: 4.2 }
+  let raw: unknown = value;
+  if (typeof raw === "object" && raw !== null && "total" in raw) {
+    raw = (raw as Record<string, unknown>).total;
+  }
+
+  const n = typeof raw === "string" ? Number.parseFloat(raw) : typeof raw === "number" ? raw : Number.NaN;
   if (Number.isNaN(n)) return <span className="text-muted-foreground text-xs">N/A</span>;
 
   const color = n >= 20 ? "text-green-500" : n >= 10 ? "text-yellow-500" : "text-blue-500";

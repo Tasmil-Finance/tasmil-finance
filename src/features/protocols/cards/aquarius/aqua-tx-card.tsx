@@ -16,11 +16,8 @@ import type { CardMode } from "../../schemas/common.schema";
 import type { AquaTxCardProps } from "../../schemas/aquarius.schema";
 import { ProtocolCard } from "../base/protocol-card";
 import { DetailRow } from "../base/indicators";
-import { fmtGas, trunc, fmt, resolveSymbol } from "../../lib/formatting";
+import { fmtGas, trunc, fmt } from "../../lib/formatting";
 import { useTxSigning } from "../../hooks/use-tx-signing";
-import { useTrustlineCheck } from "../../hooks/use-trustline-check";
-import { useMultiTrustlineCheck } from "../../hooks/use-multi-trustline-check";
-import { useWallet } from "@/shared/context/wallet-context";
 
 // ─── Operation config ───────────────────────────────────────────
 
@@ -122,22 +119,6 @@ interface AquaTxCardComponentProps {
 
 // ─── Component ──────────────────────────────────────────────────
 
-/**
- * Determine the output asset contract that needs a trustline.
- * - swap → tokenOut
- * - withdraw_liquidity → pool tokens (both)
- * - claim_rewards → AQUA token
- */
-function getOutputAsset(tx: AquaTxCardProps): { contract?: string; symbol?: string } {
-  if (tx.operation === "swap" && tx.tokenOut) {
-    return { contract: tx.tokenOut, symbol: resolveSymbol(tx.tokenOut) };
-  }
-  if (tx.operation === "claim_rewards") {
-    return { contract: "CDNVQW44C3HALYNVQ4SOBXY5EWYTGVYXX6JPESOLQDABJI5FC5LTRRUE", symbol: "AQUA" };
-  }
-  return {};
-}
-
 export function AquaTxCard({
   tx,
   mode = "playground",
@@ -148,7 +129,6 @@ export function AquaTxCard({
   const cfg = OP_CONFIG[tx.operation] ?? DEFAULT_OP_CONFIG;
   const xdr = tx.xdr;
   const fee = tx.estimatedFee ?? "0";
-  const { address: walletAddress } = useWallet();
 
   const { sign, signing, txResult, txError } = useTxSigning({
     mode,
@@ -158,35 +138,7 @@ export function AquaTxCard({
     respond,
   });
 
-  // ─── Trustline precheck ─────────────────────────────────────
-  // Swap: check output token. Deposit/Withdraw: check ALL pool tokens.
-  const outputAsset = getOutputAsset(tx);
-  const swapTl = useTrustlineCheck(walletAddress ?? tx.from, outputAsset.contract, outputAsset.symbol);
-
-  // For liquidity ops: check all tokens in the route (pool tokens)
   const isLiquidityOp = tx.operation === "add_liquidity" || tx.operation === "withdraw_liquidity";
-  // Build token list from route tokens + any known addresses
-  const poolTokens = (tx.route?.tokens ?? []).map((sym: string) => {
-    // Try to find contract address from known symbols
-    const knownMap: Record<string, string> = {
-      XLM: "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
-      USDC: "CAZRY5GSFBFXD7H6GAFBA5YGYQTDXU4QKWKMYFWBAZFUCURN3WKX6LF5",
-      USDT: "CBL6KD2LFMLAUKFFWNNXWOXFN73GAXLEA4WMJRLQ5L76DMYTM3KWQVJN",
-      AQUA: "CDNVQW44C3HALYNVQ4SOBXY5EWYTGVYXX6JPESOLQDABJI5FC5LTRRUE",
-      BLND: "CB22KRA3YZVCNCQI64JQ5WE7UY2VAV7WFLK6A2JN3HEX56T2EDAFO7QF",
-      ICE: "CCQZWA6GDCNLEMNUYTCMYGIXLX3ECAXW7RICSUZWWXM5AMDWAANC4SZK",
-    };
-    return { contract: knownMap[sym] ?? sym, symbol: sym };
-  });
-  const multiTl = useMultiTrustlineCheck(
-    isLiquidityOp ? (walletAddress ?? tx.from) : undefined,
-    isLiquidityOp ? poolTokens : [],
-  );
-
-  const trustlineChecking = isLiquidityOp ? multiTl.checking : swapTl.checking;
-  const trustlineBlocking = isLiquidityOp
-    ? multiTl.hasMissing && !multiTl.checking
-    : swapTl.needsTrustline && !swapTl.hasTrustline && !swapTl.checking;
 
   const [showXdr, setShowXdr] = useState(false);
   const [cancelled, setCancelled] = useState(false);
@@ -229,36 +181,14 @@ export function AquaTxCard({
           <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3">
             <p className="text-destructive text-sm">{txResult.message}</p>
           </div>
-        ) : trustlineBlocking ? (
-          <div className="mt-2 space-y-2">
-            {isLiquidityOp ? (
-              <>
-                <p className="text-xs text-amber-400">Missing trustlines for: {multiTl.missing.map((t) => t.symbol).join(", ")}</p>
-                {multiTl.missing.map((t) => (
-                  <button key={t.contract} type="button" onClick={() => multiTl.addTrustline(t.contract, t.symbol)} disabled={multiTl.adding}
-                    className="w-full rounded-lg bg-amber-500/20 py-2 text-sm font-semibold text-amber-400 hover:bg-amber-500/30 disabled:opacity-40 flex items-center justify-center gap-1.5">
-                    {multiTl.adding ? <><Loader2 className="h-4 w-4 animate-spin" /> Adding...</> : `Add ${t.symbol} Trustline`}
-                  </button>
-                ))}
-              </>
-            ) : (
-              <>
-                <p className="text-xs text-amber-400">Trustline required for {outputAsset.symbol ?? "output token"}</p>
-                <button type="button" onClick={() => swapTl.addTrustline()} disabled={swapTl.adding}
-                  className="w-full rounded-lg bg-amber-500/20 py-2.5 text-sm font-semibold text-amber-400 hover:bg-amber-500/30 disabled:opacity-40 flex items-center justify-center gap-1.5">
-                  {swapTl.adding ? <><Loader2 className="h-4 w-4 animate-spin" /> Adding...</> : `Add ${outputAsset.symbol ?? ""} Trustline`}
-                </button>
-              </>
-            )}
-          </div>
         ) : (
           <button
             type="button"
             onClick={handleSign}
-            disabled={signing || !xdr || trustlineChecking}
+            disabled={signing || !xdr}
             className="mt-2 w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
           >
-            {trustlineChecking ? <><Loader2 className="h-4 w-4 animate-spin" /> Checking...</> : signing ? <><Loader2 className="h-4 w-4 animate-spin" /> Signing...</> : cfg.buttonText}
+            {signing ? <><Loader2 className="h-4 w-4 animate-spin" /> Signing...</> : cfg.buttonText}
           </button>
         )}
       </ProtocolCard>
@@ -444,34 +374,6 @@ export function AquaTxCard({
           <div className="rounded-lg py-2 px-3 text-xs bg-destructive/10 border border-destructive/20 text-destructive text-center">
             Failed {"\u00B7"} {txError.length > 80 ? txError.slice(0, 80) + "\u2026" : txError}
           </div>
-        ) : trustlineBlocking ? (
-          <div className="space-y-2">
-            {isLiquidityOp ? (
-              <>
-                <div className="rounded-lg py-2 px-3 text-xs bg-amber-500/10 border border-amber-500/20 text-amber-400 text-center">
-                  Missing trustlines: {multiTl.missing.map((t) => t.symbol).join(", ")}
-                </div>
-                {multiTl.missing.map((t) => (
-                  <button key={t.contract} type="button"
-                    className="w-full rounded-lg py-2 text-xs font-semibold bg-amber-500/20 border border-amber-500/30 text-amber-400 hover:bg-amber-500/30 transition-all active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-1.5"
-                    onClick={() => multiTl.addTrustline(t.contract, t.symbol)} disabled={multiTl.adding}>
-                    {multiTl.adding ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Adding...</> : `Add ${t.symbol} Trustline`}
-                  </button>
-                ))}
-              </>
-            ) : (
-              <>
-                <div className="rounded-lg py-2 px-3 text-xs bg-amber-500/10 border border-amber-500/20 text-amber-400 text-center">
-                  Trustline required for {outputAsset.symbol ?? "output token"}
-                </div>
-                <button type="button"
-                  className="w-full rounded-lg py-2 text-xs font-semibold bg-amber-500/20 border border-amber-500/30 text-amber-400 hover:bg-amber-500/30 transition-all active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-1.5"
-                  onClick={() => swapTl.addTrustline()} disabled={swapTl.adding}>
-                  {swapTl.adding ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Adding...</> : `Add ${outputAsset.symbol ?? ""} Trustline`}
-                </button>
-              </>
-            )}
-          </div>
         ) : cancelled ? (
           <div className="rounded-lg py-2 px-3 text-xs bg-muted border border-border text-muted-foreground text-center">
             Transaction cancelled
@@ -490,9 +392,9 @@ export function AquaTxCard({
               type="button"
               className="flex-1 rounded-lg py-2 text-xs font-semibold bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] text-black hover:from-[#C5F0FF] hover:to-[#1CCFFF] transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
               onClick={handleSign}
-              disabled={signing || !xdr || trustlineChecking}
+              disabled={signing || !xdr}
             >
-              {trustlineChecking ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Checking...</> : signing ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Signing...</> : cfg.action}
+              {signing ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Signing...</> : cfg.action}
             </button>
           </div>
         )}
