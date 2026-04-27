@@ -1,13 +1,13 @@
 "use client";
 
 import type { AssistantFlowMessage } from "@/features/chat/types/flow-messages";
+import { ClarifyCard } from "./clarify-card";
 import { ExecutionCard } from "./execution-card";
-import { OptionCard } from "./option-card";
 import { PlanPreviewCard } from "./plan-preview-card";
 
 interface FlowMessageRouterProps {
   message: AssistantFlowMessage;
-  onOptionSelect?: (value: Record<string, unknown>) => void;
+  onSubmit?: (answers: Record<string, unknown>) => void;
   onConfirm?: () => void;
   onCancel?: () => void;
   onRetry?: () => void;
@@ -19,7 +19,7 @@ function bpsToPercent(bps: number): string {
 
 export function FlowMessageRouter({
   message,
-  onOptionSelect,
+  onSubmit,
   onConfirm,
   onCancel,
   onRetry,
@@ -30,10 +30,9 @@ export function FlowMessageRouter({
 
     case "clarify":
       return (
-        <OptionCard
-          question={message.question}
-          suggestions={message.suggestions ?? []}
-          onSelect={onOptionSelect ?? (() => {})}
+        <ClarifyCard
+          questions={message.questions}
+          onSubmit={onSubmit ?? (() => {})}
         />
       );
 

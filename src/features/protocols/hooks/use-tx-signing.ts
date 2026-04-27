@@ -5,11 +5,33 @@ import { toast } from "sonner";
 import { useWallet } from "@/shared/context/wallet-context";
 import { activeNetwork } from "@/shared/config/stellar";
 import { checkWalletNetwork, parseSigningError } from "@/lib/stellar-network-check";
+import { getExplorerUrl } from "@/shared/config/stellar";
+import { useWelcomeReward, type TrackVolumeContext } from "@/features/welcome-reward/hooks/use-welcome-reward";
 import type { CardMode } from "../schemas/common.schema";
 
-// Module-level cache: survives component remounts within the same browser session.
+// Persisted cache: survives component remounts AND page reloads (same tab).
 type TxCacheEntry = { success: boolean; hash?: string; message: string };
-const sessionTxCache = new Map<string, TxCacheEntry>();
+const TX_CACHE_PREFIX = "tasmil.tx-cache.";
+const sessionTxCache = {
+  get(key: string): TxCacheEntry | undefined {
+    try {
+      const raw = sessionStorage.getItem(`${TX_CACHE_PREFIX}${key}`);
+      return raw ? (JSON.parse(raw) as TxCacheEntry) : undefined;
+    } catch {
+      return undefined;
+    }
+  },
+  set(key: string, value: TxCacheEntry) {
+    try {
+      sessionStorage.setItem(`${TX_CACHE_PREFIX}${key}`, JSON.stringify(value));
+    } catch {
+      /* sessionStorage full or unavailable — degrade silently */
+    }
+  },
+  has(key: string): boolean {
+    return sessionStorage.getItem(`${TX_CACHE_PREFIX}${key}`) !== null;
+  },
+};
 
 interface TxSigningOptions {
   mode: CardMode;
@@ -21,10 +43,13 @@ interface TxSigningOptions {
   operation?: string;
   /** CopilotKit respond callback (chat mode only). */
   respond?: (result: Record<string, unknown>) => void;
+  /** Volume tracking context — protocol, asset, amount for reward tracking. */
+  volumeContext?: TrackVolumeContext;
 }
 
 interface TxSigningResult {
   sign: (xdr: string) => Promise<{ success: boolean; hash?: string; error?: string }>;
+  cancel: () => void;
   signing: boolean;
   txResult: TxCacheEntry | null;
   txError: string | null;
@@ -32,8 +57,9 @@ interface TxSigningResult {
 }
 
 export function useTxSigning(options: TxSigningOptions): TxSigningResult {
-  const { mode, stream, toolCallId, operation, respond } = options;
+  const { mode, stream, toolCallId, operation, respond, volumeContext } = options;
   const { signTransaction, address: walletAddress } = useWallet();
+  const { reportTransaction } = useWelcomeReward();
 
   // Initialise from session cache or LangGraph persisted state
   const [txResult, setTxResult] = useState<TxCacheEntry | null>(() => {
@@ -70,6 +96,11 @@ export function useTxSigning(options: TxSigningOptions): TxSigningResult {
     setTxError(null);
   }, []);
 
+  const cancel = useCallback(() => {
+    cacheTxResult({ success: false, message: "Transaction cancelled" });
+    respond?.({ success: false, cancelled: true, reason: "User cancelled the operation" });
+  }, [cacheTxResult, respond]);
+
   const sign = useCallback(
     async (xdr: string) => {
       if (!xdr) return { success: false, error: "No transaction XDR available" };
@@ -94,6 +125,9 @@ export function useTxSigning(options: TxSigningOptions): TxSigningResult {
           if (submitData.success) {
             const hash = submitData.hash ?? "Submitted";
             cacheTxResult({ success: true, hash, message: "Transaction successful!" });
+            reportTransaction(hash, volumeContext);
+            // Notify CopilotKit that the TX was already submitted (prevents agent re-submit)
+            respond?.({ success: true, hash });
             return { success: true, hash };
           }
 
@@ -101,6 +135,7 @@ export function useTxSigning(options: TxSigningOptions): TxSigningResult {
           const errMsg = typeof e === "string" ? e : JSON.stringify(e);
           setTxError(errMsg);
           cacheTxResult({ success: false, message: errMsg });
+          respond?.({ success: false, error: errMsg });
           return { success: false, error: errMsg };
         }
 
@@ -134,9 +169,14 @@ export function useTxSigning(options: TxSigningOptions): TxSigningResult {
           const { hash } = response;
           const cardResult = { success: true, hash, message: "Transaction successful!" };
           cacheTxResult(cardResult);
+          reportTransaction(hash, volumeContext);
 
           toast.success("Transaction submitted successfully!", {
-            description: `Hash: ${hash.slice(0, 8)}...`,
+            description: hash.slice(0, 8) + "...",
+            action: {
+              label: "View on Explorer",
+              onClick: () => window.open(getExplorerUrl("tx", hash), "_blank"),
+            },
             duration: 5000,
           });
 
@@ -204,8 +244,8 @@ export function useTxSigning(options: TxSigningOptions): TxSigningResult {
         setSigning(false);
       }
     },
-    [mode, signTransaction, walletAddress, stream, toolCallId, operation, respond, cacheTxResult],
+    [mode, signTransaction, walletAddress, stream, toolCallId, operation, respond, cacheTxResult, reportTransaction, volumeContext],
   );
 
-  return { sign, signing, txResult, txError, resetResult };
+  return { sign, cancel, signing, txResult, txError, resetResult };
 }

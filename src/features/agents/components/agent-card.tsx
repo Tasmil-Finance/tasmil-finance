@@ -30,6 +30,7 @@ interface AssistantMetadata {
 interface AgentCardProps {
   assistant: Assistant;
   onClick: () => void;
+  comingSoon?: boolean;
 }
 
 // Map chain name to icon path (files in /public/token/)
@@ -98,7 +99,7 @@ function ChainIcon({ chain, size = 20 }: { chain: string; size?: number }) {
   );
 }
 
-export function AgentCard({ assistant, onClick }: AgentCardProps) {
+export function AgentCard({ assistant, onClick, comingSoon }: AgentCardProps) {
   const metadata = assistant.metadata as AssistantMetadata;
 
   const agentName = metadata?.name || assistant.name || "Unknown Agent";
@@ -117,21 +118,22 @@ export function AgentCard({ assistant, onClick }: AgentCardProps) {
         : agentType;
 
   return (
-    <button 
-      onClick={onClick} 
-      className="h-full w-full cursor-pointer text-left"
+    <button
+      onClick={comingSoon ? undefined : onClick}
+      className={`h-full w-full text-left ${comingSoon ? "cursor-default" : "cursor-pointer"}`}
       type="button"
       data-testid={`agent-card-${agentId}`}
+      disabled={comingSoon}
     >
       <BorderGlow
-        animated
-        className="group relative flex h-full flex-col overflow-hidden"
+        animated={!comingSoon}
+        className={`group relative flex h-full flex-col overflow-hidden ${comingSoon ? "opacity-60" : ""}`}
         backgroundColor="#18181b"
         borderRadius={8}
         edgeSensitivity={12}
         glowColor="189 100 66"
         glowRadius={40}
-        glowIntensity={1.2}
+        glowIntensity={comingSoon ? 0 : 1.2}
         coneSpread={28}
         colors={["#52e5ff", "#36b1ff", "#e4f5ff"]}
       >
@@ -149,25 +151,34 @@ export function AgentCard({ assistant, onClick }: AgentCardProps) {
               )}
             </div>
 
-            <Badge
-              variant="outline"
-              className={`border-border bg-background/50 px-3 py-1 backdrop-blur-md ${
-                agentGroup === "Protocol Agents"
-                  ? "text-primary"
-                  : agentGroup === "Common Agents"
-                    ? "text-accent-foreground"
-                    : agentType === "Assistant"
-                      ? "text-primary"
-                      : "text-muted-foreground"
-              }`}
-            >
-              {agentGroup ? (
-                <Layers className="mr-1 h-3 w-3" />
-              ) : (
-                <Sparkles className="mr-1 h-3 w-3" />
-              )}
-              {topBadgeLabel}
-            </Badge>
+            {comingSoon ? (
+              <Badge
+                variant="outline"
+                className="border-amber-500/40 bg-amber-500/10 px-3 py-1 text-amber-400 backdrop-blur-md"
+              >
+                Coming Soon
+              </Badge>
+            ) : (
+              <Badge
+                variant="outline"
+                className={`border-border bg-background/50 px-3 py-1 backdrop-blur-md ${
+                  agentGroup === "Protocol Agents"
+                    ? "text-primary"
+                    : agentGroup === "Common Agents"
+                      ? "text-accent-foreground"
+                      : agentType === "Assistant"
+                        ? "text-primary"
+                        : "text-muted-foreground"
+                }`}
+              >
+                {agentGroup ? (
+                  <Layers className="mr-1 h-3 w-3" />
+                ) : (
+                  <Sparkles className="mr-1 h-3 w-3" />
+                )}
+                {topBadgeLabel}
+              </Badge>
+            )}
           </div>
 
           {/* Content */}

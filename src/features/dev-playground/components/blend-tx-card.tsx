@@ -5,6 +5,7 @@ import { ArrowRight, Fuel, Loader2, AlertTriangle, TrendingUp, Layers, Coins, Wa
 import { TokenImage } from "@/shared/components/token-image";
 import { useWallet } from "@/shared/context/wallet-context";
 import { checkWalletNetwork } from "@/lib/stellar-network-check";
+import { getExplorerUrl } from "@/shared/config/stellar";
 
 // ─── Symbol resolution from contract address ────────────────────
 
@@ -337,7 +338,7 @@ export function BlendTxCard({ operation, result, form }: BlendTxCardProps) {
         {txResult ? (
           /* Success state */
           <a
-            href={`https://stellar.expert/explorer/testnet/tx/${txResult}`}
+            href={getExplorerUrl("tx", txResult)}
             target="_blank"
             rel="noopener noreferrer"
             className="block w-full rounded-lg py-2 text-xs font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-center hover:bg-emerald-500/15 transition-colors"

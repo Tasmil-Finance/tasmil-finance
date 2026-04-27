@@ -30,7 +30,7 @@ const OP_LABELS: Record<string, string> = {
 
 export function AllbridgeTxCard({ tx, mode = "playground", stream, toolCallId, respond }: Props) {
   const isChat = mode === "chat";
-  const { sign, signing, txResult, txError } = useTxSigning({ mode, stream, toolCallId, respond });
+  const { sign, signing, txResult, txError } = useTxSigning({ mode, stream, toolCallId, respond, volumeContext: { protocol: "allbridge", operation: tx.operation, asset: tx.asset ?? tx.symbol ?? "", amount: tx.amount ?? "0" } });
   const [showXdr, setShowXdr] = useState(false);
   const label = OP_LABELS[tx.operation] ?? tx.operation;
   const isBridge = tx.operation.includes("bridge") || tx.operation === "bridge";

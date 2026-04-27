@@ -126,7 +126,7 @@ const VALID_AGENT_IDS = isTestnet
 const normalizeIconPath = (icon: string | undefined, graphId: string): string => {
   // Force use of local high-quality 3D icons for known agents
   const defaultIcons: Record<string, string> = {
-    supervisor: "/agents/supervisor-agent.svg",
+    supervisor: "/agents/supervisor-agent.png",
     info_agent: "/agents/info-agent.png",
     blend_agent: "/agents/blend-agent.svg",
     soroswap_agent: "/agents/soroswap-agent.svg",
@@ -235,9 +235,12 @@ export default function AgentsPage() {
     return groups;
   }, [validAgents]);
 
-  // Filter agents based on type and search query
+  // Agents that are live (not coming soon) — sorted to the top
+  const AVAILABLE_AGENT_IDS = new Set(["blend_agent"]);
+
+  // Filter agents based on type and search query, available agents first
   const filteredAgents = useMemo(() => {
-    return validAgents.filter((assistant) => {
+    const filtered = validAgents.filter((assistant) => {
       const metadata = assistant.metadata as AssistantMetadata;
 
       const matchesFilter =
@@ -254,6 +257,13 @@ export default function AgentsPage() {
         );
 
       return matchesFilter && matchesSearch;
+    });
+
+    // Available agents first, coming-soon agents after
+    return filtered.sort((a, b) => {
+      const aAvail = AVAILABLE_AGENT_IDS.has(a.graph_id || "") ? 0 : 1;
+      const bAvail = AVAILABLE_AGENT_IDS.has(b.graph_id || "") ? 0 : 1;
+      return aAvail - bAvail;
     });
   }, [validAgents, activeFilter, searchQuery]);
 
@@ -319,21 +329,28 @@ export default function AgentsPage() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
               >
-                {filteredAgents.map((assistant: any, idx: number) => (
-                  <motion.div
-                    key={assistant.assistant_id}
-                    className="h-full"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      duration: 0.4,
-                      delay: idx * 0.06,
-                      ease: "easeOut",
-                    }}
-                  >
-                    <AgentCard assistant={assistant} onClick={() => handleAgentClick(assistant)} />
-                  </motion.div>
-                ))}
+                {filteredAgents.map((assistant: any, idx: number) => {
+                  const isAvailable = AVAILABLE_AGENT_IDS.has(assistant.graph_id || "");
+                  return (
+                    <motion.div
+                      key={assistant.assistant_id}
+                      className="h-full"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        duration: 0.4,
+                        delay: idx * 0.06,
+                        ease: "easeOut",
+                      }}
+                    >
+                      <AgentCard
+                        assistant={assistant}
+                        onClick={() => handleAgentClick(assistant)}
+                        comingSoon={!isAvailable}
+                      />
+                    </motion.div>
+                  );
+                })}
               </motion.div>
             </AnimatePresence>
           )}

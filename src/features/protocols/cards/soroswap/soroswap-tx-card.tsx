@@ -10,6 +10,7 @@ import { DetailRow } from "../base/indicators";
 import { fmtGas, trunc, fmt, resolveSymbol } from "../../lib/formatting";
 import { useTxSigning } from "../../hooks/use-tx-signing";
 import { useTrustlineCheck } from "../../hooks/use-trustline-check";
+import { getExplorerUrl } from "@/shared/config/stellar";
 import { useWallet } from "@/shared/context/wallet-context";
 
 interface OpConfig {
@@ -51,7 +52,7 @@ export function SoroswapTxCard({ tx, mode = "playground", stream, toolCallId, re
   const xdr = tx.xdr;
   const fee = tx.estimatedFee ?? "0";
   const { address: walletAddress } = useWallet();
-  const { sign, signing, txResult, txError } = useTxSigning({ mode, stream, toolCallId, operation: tx.operation, respond });
+  const { sign, signing, txResult, txError } = useTxSigning({ mode, stream, toolCallId, operation: tx.operation, respond, volumeContext: { protocol: "soroswap", operation: tx.operation, asset: resolveSymbol(tx.tokenIn ?? tx.assetA ?? ""), amount: tx.amount ?? tx.amountA ?? "0" } });
 
   // ─── Trustline precheck for output asset ────────────────────
   const outputAsset = getOutputAsset(tx);
@@ -144,7 +145,7 @@ export function SoroswapTxCard({ tx, mode = "playground", stream, toolCallId, re
       <div className="h-px bg-border" />
       <div className="px-4 py-3">
         {txResult?.success ? (
-          <a href={`https://stellar.expert/explorer/testnet/tx/${txResult.hash}`} target="_blank" rel="noopener noreferrer"
+          <a href={getExplorerUrl("tx", txResult.hash ?? "")} target="_blank" rel="noopener noreferrer"
             className="block w-full rounded-lg py-2 text-xs font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-center hover:bg-emerald-500/15 transition-colors">
             Transaction confirmed · {trunc(txResult.hash ?? "")}
           </a>

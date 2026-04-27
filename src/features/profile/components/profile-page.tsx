@@ -74,6 +74,7 @@ function ProfileContent() {
   const {
     groups,
     isLoading: positionsLoading,
+    loadingProtocols,
     totalValueUsd: positionsTotalUsd,
   } = useDefiPositions(account);
 
@@ -175,6 +176,7 @@ function ProfileContent() {
                 <ProtocolPositions
                   groups={groups}
                   isLoading={positionsLoading}
+                  loadingProtocols={loadingProtocols}
                   totalValueUsd={positionsTotalUsd}
                 />
               </motion.div>

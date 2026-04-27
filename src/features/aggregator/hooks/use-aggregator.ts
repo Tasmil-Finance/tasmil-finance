@@ -653,7 +653,12 @@ export function useAggregator(): AggregatorState {
           setAmount("");
           setQuotes([]);
           setMode(null);
-          reportTransaction(submitData.hash);
+          reportTransaction(submitData.hash, {
+            protocol,
+            operation: mode || "swap",
+            asset: tokenIn.symbol,
+            amount: rawAmount,
+          });
           setExecuteSuccess(submitData.hash);
         } else if (result.depositAddress) {
           setExecuteSuccess(`Send funds to: ${result.depositAddress}`);

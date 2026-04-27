@@ -15,6 +15,22 @@ export interface Suggestion {
   description?: string;
 }
 
+// ─── Clarify Question (for multi-clarify card) ───────────────
+// Questions and options are generated dynamically by the AI agent.
+
+export interface ClarifyQuestion {
+  /** Identifier for this question (e.g. "q0", "q1", or any custom key) */
+  field_name: string;
+  /** Question text shown to user */
+  question: string;
+  /** "select" for tappable option list, "text" for free-form input */
+  input_type: "select" | "text";
+  /** Tappable options for select-type questions */
+  suggestions?: Suggestion[];
+  /** Placeholder text for text-type questions */
+  placeholder?: string;
+}
+
 // ─── Plan + Steps ──────────────────────────────────────────────
 
 export interface PlanStep {
@@ -82,7 +98,7 @@ export type TxStatus = "submitting" | "confirmed" | "failed";
 
 export type AssistantFlowMessage =
   | { kind: "text"; text: string }
-  | { kind: "clarify"; question: string; suggestions?: Suggestion[] }
+  | { kind: "clarify"; questions: ClarifyQuestion[] }
   | {
       kind: "plan_preview";
       plan: Plan;

@@ -88,9 +88,13 @@ function parseResult(content: string | unknown): unknown {
 const respondedToolCalls = new Set<string>();
 
 /**
- * Wrapper that injects a stream-based `respond` callback into shared Blend
- * operation cards. When the user cancels (or signs), this resumes the
- * LangGraph HITL interrupt so the AI can respond.
+ * Wrapper that injects a stream-based `respond` callback into shared
+ * operation/flow cards rendered from message history.
+ *
+ * Two paths:
+ * - **Interrupted graph** (HITL): resumes the interrupt with approve/reject.
+ * - **Completed tool call** (no interrupt): sends a human message so the
+ *   agent starts a new turn and can acknowledge the cancel/confirm.
  */
 function BlendOpWithRespond({
   toolCallId,
@@ -111,27 +115,49 @@ function BlendOpWithRespond({
       respondedToolCalls.add(toolCallId);
       const success = Boolean(result.success);
       try {
-        await stream.submit(
-          {},
-          {
-            command: {
-              update: {
-                messages: [
-                  {
-                    type: "tool",
-                    tool_call_id: toolCallId,
-                    id: `__do_not_render__${uuidv4()}`,
-                    name: toolName,
-                    content: JSON.stringify(result),
-                  },
-                ],
+        // Check if the graph is currently interrupted — if so, resume via
+        // HITL command. Otherwise the tool call already completed and there
+        // is nothing to resume; send a human message instead so the agent
+        // starts a new turn.
+        if (stream.interrupt) {
+          await stream.submit(
+            {},
+            {
+              command: {
+                update: {
+                  messages: [
+                    {
+                      type: "tool",
+                      tool_call_id: toolCallId,
+                      id: `__do_not_render__${uuidv4()}`,
+                      name: toolName,
+                      content: JSON.stringify(result),
+                    },
+                  ],
+                },
+                resume: {
+                  decisions: [{ type: success ? "approve" : "reject" }],
+                },
               },
-              resume: {
-                decisions: [{ type: success ? "approve" : "reject" }],
+            }
+          );
+        } else {
+          // No interrupt — send as a human message (same pattern as flow cards)
+          const msg = success
+            ? `Transaction confirmed for ${toolName}`
+            : result.reason
+              ? String(result.reason)
+              : "I want to cancel this transaction";
+          await stream.submit({
+            messages: [
+              {
+                type: "human" as const,
+                content: msg,
+                id: `__hidden__respond-${uuidv4()}`,
               },
-            },
-          }
-        );
+            ],
+          });
+        }
 
         if (!success) {
           toast.info("Transaction cancelled");
@@ -269,11 +295,17 @@ export function CopilotKitToolCallRenderer({
                 </div>
               ) : cardRenderer.kind === "shared" ? (
                 <div className="max-w-[360px]">
-                  {cardRenderer.render({
-                    status: "complete",
-                    args: tc.args as Record<string, unknown>,
-                    result: result?.content,
-                  })}
+                  <BlendOpWithRespond
+                    toolCallId={tc.id}
+                    toolName={tc.name}
+                    renderProps={{
+                      status: "complete",
+                      args: tc.args as Record<string, unknown>,
+                      result: result?.content,
+                      toolCallId: tc.id,
+                    }}
+                    renderFn={cardRenderer.render}
+                  />
                 </div>
               ) : (
                 <cardRenderer.component

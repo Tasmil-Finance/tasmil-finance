@@ -2,13 +2,15 @@
 
 import type { Checkpoint, Message } from "@langchain/langgraph-sdk";
 import { AnimatePresence } from "framer-motion";
-import { ArrowDown, ArrowLeft, Clock, Paperclip, Send, Square, Wrench } from "lucide-react";
+import { ArrowDown, ArrowLeft, Clock, Coins, Paperclip, Send, Square, Wrench } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { WelcomeRewardDialog } from "@/features/welcome-reward/components/welcome-reward-dialog";
 import { useWelcomeReward } from "@/features/welcome-reward/hooks/use-welcome-reward";
+import { useUserStatus, USER_STATUS_KEY, type UserStatus } from "@/shared/hooks/use-user-status";
 import { useSearchAssistantsAssistantsSearchPost } from "@/gen-ai/hooks/use-search-assistants-assistants-search-post";
 import { DO_NOT_RENDER_ID_PREFIX, ensureToolCallsHaveResponses } from "@/lib/ensure-tool-responses";
 import { kubbClient } from "@/lib/kubb";
@@ -73,6 +75,7 @@ interface ChatClientProps {
 
 export function ChatClient({ agentId, chatId }: ChatClientProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -105,15 +108,24 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
   const messagesCache = useRef<Message[]>([]);
   // Cache UI to prevent UI loss during streaming
   const uiCache = useRef<any[]>([]);
+  // Track chatId to detect thread switches and clear caches
+  const prevChatIdRef = useRef(chatId);
   // Force re-render trigger for instant user message display
   const [, forceUpdate] = useState({});
 
   const messages = useMemo(() => {
+    // Clear cache when chatId changes (e.g. navigating to "new")
+    if (prevChatIdRef.current !== chatId) {
+      messagesCache.current = [];
+      uiCache.current = [];
+      prevChatIdRef.current = chatId;
+    }
+
     const incoming = stream.messages || [];
     const merged = mergeMessagesWithCache(messagesCache.current, incoming);
     messagesCache.current = merged;
     return merged;
-  }, [stream.messages, forceUpdate]);
+  }, [stream.messages, forceUpdate, chatId]);
 
   const uiComponents = useMemo(() => {
     const incoming = (stream.values?.["ui"] as any[] | undefined) || [];
@@ -143,12 +155,34 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
     return uiCache.current;
   }, [stream.values]);
 
+  // Reset firstTokenReceived when switching chats
+  useEffect(() => {
+    setFirstTokenReceived(false);
+  }, [chatId]);
+
   // Clear isSubmitting when stream actually starts loading
   useEffect(() => {
     if (stream.isLoading) {
       setIsSubmitting(false);
     }
   }, [stream.isLoading]);
+
+  // Debug: detect message loss on reload — log raw vs rendered counts
+  useEffect(() => {
+    const raw = stream.messages || [];
+    const humanCount = raw.filter((m: any) => m.type === "human").length;
+    const aiCount = raw.filter((m: any) => m.type === "ai").length;
+    const toolCount = raw.filter((m: any) => m.type === "tool").length;
+    const hiddenCount = raw.filter(
+      (m: any) => m.id?.startsWith("__hidden__") || m.id?.startsWith("do-not-render-")
+    ).length;
+    if (raw.length > 0) {
+      console.warn(
+        `[ChatDebug] stream.messages loaded: ${raw.length} total (${humanCount} human, ${aiCount} ai, ${toolCount} tool, ${hiddenCount} hidden)`,
+        raw.map((m: any) => ({ id: m.id?.slice(0, 20), type: m.type, content: typeof m.content === "string" ? m.content.slice(0, 50) : "[array]" }))
+      );
+    }
+  }, [stream.messages]);
 
   const { hideToolCalls, setHideToolCalls, setAssistantInfo } = useChatState();
   const { address: walletAddress, forceReauth } = useWallet();
@@ -157,6 +191,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
   // Using the store as fallback ensures wallet_address is always included even before kit ready.
   const effectiveWalletAddress = walletAddress ?? useWalletStore.getState().account;
   const { status: welcomeRewardStatus, openRewardPage, markSeen } = useWelcomeReward();
+  const { status: userStatus } = useUserStatus();
 
   // Fetch assistant info for avatar
   const { mutate: searchAssistants } = useSearchAssistantsAssistantsSearchPost({
@@ -260,7 +295,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
     }
 
     if (kind === "CHAT_USAGE_LIMIT_REACHED") {
-      toast.error("You have reached the current 20-response limit.");
+      toast.error("You have reached the AI response limit for this period.");
       return;
     }
 
@@ -413,6 +448,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
       {
         messages: [...stream.messages, ...toolMessages, newHumanMessage],
         ...(effectiveWalletAddress && { wallet_address: effectiveWalletAddress }),
+        charge_usage: true,
       },
       {
         streamMode: ["values", "custom"],
@@ -424,6 +460,18 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
         }),
       } as StreamSubmitOptions
     );
+
+    // Optimistic credit deduction: -1 turn = -10 credits displayed
+    queryClient.setQueryData<UserStatus>(USER_STATUS_KEY, (prev) => {
+      if (!prev?.chatCredits) return prev;
+      return {
+        ...prev,
+        chatCredits: {
+          ...prev.chatCredits,
+          remaining: Math.max(prev.chatCredits.remaining - 1, 0),
+        },
+      };
+    });
 
     setInput("");
     setContentBlocks([]);
@@ -530,6 +578,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
         // IMPORTANT: Send ALL existing messages + tool responses + new message
         messages: [...stream.messages, ...toolMessages, newHumanMessage],
         ...(effectiveWalletAddress && { wallet_address: effectiveWalletAddress }),
+        charge_usage: true,
       },
       {
         streamMode: ["values", "custom"],
@@ -541,6 +590,19 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
         }),
       } as StreamSubmitOptions
     );
+
+    // Optimistic credit deduction
+    queryClient.setQueryData<UserStatus>(USER_STATUS_KEY, (prev) => {
+      if (!prev?.chatCredits) return prev;
+      return {
+        ...prev,
+        chatCredits: {
+          ...prev.chatCredits,
+          remaining: Math.max(prev.chatCredits.remaining - 1, 0),
+        },
+      };
+    });
+
     setUserScrolledUp(false); // Reset scroll state
   };
 
@@ -576,15 +638,6 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
           <AnimatePresence initial={false}>
             {showGreeting && <Greeting agentId={agentId} />}
           </AnimatePresence>
-
-          {showWelcomeRewardDialog && welcomeRewardStatus && (
-            <WelcomeRewardDialog
-              open
-              status={welcomeRewardStatus}
-              onDismiss={() => void markSeen()}
-              onOpen={() => void openRewardPage()}
-            />
-          )}
 
           <div className="pointer-events-auto flex flex-col gap-2">
             {(() => {
@@ -719,8 +772,8 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
 
           {productError === "CHAT_USAGE_LIMIT_REACHED" ? (
             <div className="mb-4 rounded-2xl border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
-              You have used all 20 AI responses available in this phase. Additional unlock flow
-              stays out of scope for this iteration.
+              You have used all available AI responses. Trade on any supported protocol to
+              earn more credits.
             </div>
           ) : null}
 
@@ -740,7 +793,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onPaste={handlePaste}
+                // onPaste={handlePaste}
                 onKeyDown={(e) => {
                   if (
                     e.key === "Enter" &&
@@ -762,7 +815,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
               {/* Bottom toolbar */}
               <div className="flex items-center justify-between px-3 pb-3">
                 <div className="flex items-center gap-1">
-                  {/* Upload button with label */}
+                  {/* Attach button — hidden for now
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <label
@@ -783,8 +836,13 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
                     accept="image/jpeg,image/png,image/gif,image/webp,application/pdf"
                     className="hidden"
                   />
+                  */}
+                  <span className="flex items-center gap-1 px-2 text-xs text-muted-foreground">
+                    <Coins className="h-3.5 w-3.5" />
+                    10 credits/chat
+                  </span>
 
-                  {/* Toggle hide tools button with label */}
+                  {/* Temporarily hidden — tools toggle button
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button
@@ -805,6 +863,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
                       {hideToolCalls ? "Show tool calls" : "Hide tool calls"}
                     </TooltipContent>
                   </Tooltip>
+                  */}
                 </div>
 
                 {/* Send/Stop button */}
@@ -836,6 +895,16 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
           </div>
         </div>
       </div>
+
+      {/* Welcome reward dialog — rendered as a proper modal overlay */}
+      {welcomeRewardStatus && (
+        <WelcomeRewardDialog
+          open={showWelcomeRewardDialog}
+          status={welcomeRewardStatus}
+          onDismiss={() => void markSeen()}
+          onOpen={() => void openRewardPage()}
+        />
+      )}
     </div>
   );
 }

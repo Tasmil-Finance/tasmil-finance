@@ -20,7 +20,7 @@ export function ChatPageWrapper({ agentId, chatId }: ChatPageWrapperProps) {
   const initialThreadId = chatId === "new" ? undefined : chatId;
 
   return (
-    <ChatProvider agentId={agentId} chatId={initialThreadId}>
+    <ChatProvider key={chatId} agentId={agentId} chatId={initialThreadId}>
       <ChatClient agentId={agentId} chatId={chatId} />
     </ChatProvider>
   );

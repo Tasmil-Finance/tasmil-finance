@@ -9,6 +9,7 @@ import type { TxCardProps } from "../../schemas/blend.schema";
 import { resolveSymbol, fmtAmount, fmtGas, trunc } from "../../lib/formatting";
 import { useTxSigning } from "../../hooks/use-tx-signing";
 import { useStreamContext } from "@/features/chat/hooks/use-stream";
+import { getExplorerUrl } from "@/shared/config/stellar";
 
 interface OpConfig {
   label: string;
@@ -70,17 +71,19 @@ export function BlendTxCard({
   const chatStream = useStreamContext();
   const stream = mode === "chat" ? chatStream : streamProp;
 
-  const { sign, signing, txResult, txError } = useTxSigning({
+  const { sign, cancel, signing, txResult, txError } = useTxSigning({
     mode,
     stream,
     toolCallId,
     operation: tx.operation,
     respond,
+    volumeContext: { protocol: "blend", operation: tx.operation, asset: symbol, amount },
   });
 
   const [showXdr, setShowXdr] = useState(false);
   const [showCancelWarning, setShowCancelWarning] = useState(false);
-  const [cancelled, setCancelled] = useState(false);
+  // Derive cancelled from persisted txResult so it survives page reloads
+  const cancelled = txResult !== null && !txResult.success && txResult.message === "Transaction cancelled";
   const cardRef = useRef<HTMLDivElement>(null);
 
   const ctx = tx.context;
@@ -98,10 +101,7 @@ export function BlendTxCard({
   const estimatedYearlyEarnings = apy != null && apy > 0 ? delta * (apy / 100) : null;
 
   const handleSign = () => sign(xdr);
-
-  const handleCancel = () => {
-    respond?.({ success: false, cancelled: true, reason: "User cancelled the operation" });
-  };
+  const handleCancel = () => cancel();
 
   return (
     <div ref={cardRef} className="relative rounded-xl border border-border bg-card overflow-hidden">
@@ -168,7 +168,7 @@ export function BlendTxCard({
       <div className="px-4 py-3">
         {txResult?.success ? (
           <a
-            href={`https://stellar.expert/explorer/testnet/tx/${txResult.hash}`}
+            href={getExplorerUrl("tx", txResult.hash ?? "")}
             target="_blank"
             rel="noopener noreferrer"
             className="block w-full rounded-lg py-2 text-xs font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-center hover:bg-emerald-500/15 transition-colors"
@@ -189,7 +189,7 @@ export function BlendTxCard({
               type="button"
               className="flex-1 rounded-lg py-2 text-xs font-semibold border border-border text-muted-foreground hover:bg-secondary hover:text-foreground transition-all active:scale-[0.98]"
               onClick={() => {
-                if (cfg.cancel) { setCancelled(true); handleCancel(); }
+                if (cfg.cancel) { handleCancel(); }
                 else setShowCancelWarning(true);
               }}
               disabled={signing}
@@ -217,7 +217,7 @@ export function BlendTxCard({
         onConfirm={() => {
           setShowCancelWarning(false);
           if (!cfg.sign) { handleSign(); }
-          else { setCancelled(true); handleCancel(); }
+          else { handleCancel(); }
         }}
         symbol={symbol}
         amount={fmtAmount(amount)}

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Layers } from "lucide-react";
+import { ChevronDown, Layers, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
@@ -262,12 +262,15 @@ function groupByProtocol(groups: ProtocolPositionGroup[]): ProtocolCard[] {
 interface ProtocolPositionsProps {
   groups: ProtocolPositionGroup[];
   isLoading: boolean;
+  /** Protocols still being fetched (shown as skeleton cards) */
+  loadingProtocols?: string[];
   totalValueUsd: number;
 }
 
 export function ProtocolPositions({
   groups,
   isLoading,
+  loadingProtocols = [],
   totalValueUsd,
 }: ProtocolPositionsProps) {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -282,6 +285,7 @@ export function ProtocolPositions({
   };
 
   const cards = groupByProtocol(groups);
+  const hasPartialData = cards.length > 0;
 
   // Pie chart data
   const pieData = cards.map((c, i) => ({
@@ -291,7 +295,8 @@ export function ProtocolPositions({
     fill: PIE_COLORS[i % PIE_COLORS.length],
   }));
 
-  if (isLoading) {
+  // Full skeleton only when ALL protocols are loading and we have no data yet
+  if (isLoading && !hasPartialData) {
     return (
       <motion.div
         className="flex flex-col gap-4"
@@ -361,7 +366,7 @@ export function ProtocolPositions({
     );
   }
 
-  if (groups.length === 0) {
+  if (groups.length === 0 && loadingProtocols.length === 0) {
     return (
       <motion.div
         className="flex flex-col gap-4"
@@ -712,6 +717,54 @@ export function ProtocolPositions({
                 </motion.div>
               )}
             </AnimatePresence>
+          </motion.div>
+        );
+      })}
+
+      {/* Per-protocol loading skeletons for protocols still being fetched */}
+      {loadingProtocols.map((name) => {
+        const key = name.toLowerCase().replace(/\s+/g, "-");
+        const iconSrc = getProtocolIcon(key) ?? getProtocolIcon(name.toLowerCase());
+        return (
+          <motion.div
+            key={`loading-${key}`}
+            className="overflow-hidden rounded-xl border border-border bg-card"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+          >
+            <div className="flex w-full items-center gap-3 px-6 py-4">
+              {iconSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={iconSrc}
+                  alt={name}
+                  className="h-8 w-8 shrink-0 rounded-full opacity-50"
+                />
+              ) : (
+                <Skeleton className="h-8 w-8 shrink-0 rounded-full" />
+              )}
+              <span className="text-base font-semibold text-foreground/60">
+                {name}
+              </span>
+              <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Loading positions...
+              </span>
+            </div>
+            <div className="border-t border-border px-6 py-3">
+              {Array.from({ length: 2 }).map((_, j) => (
+                <div key={j} className="flex items-center gap-3 py-2.5">
+                  <Skeleton className="h-7 w-7 rounded-full" />
+                  <div className="flex-1 space-y-1">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                  <Skeleton className="h-5 w-14 rounded-md" />
+                  <Skeleton className="h-4 w-20" />
+                </div>
+              ))}
+            </div>
           </motion.div>
         );
       })}

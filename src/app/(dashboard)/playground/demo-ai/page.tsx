@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { AIReasoning } from "@/features/chat/components/ai/ai-reasoning";
 import { AITask, AITaskItem, AITaskList } from "@/features/chat/components/ai/ai-task";
+import { ClarifyCard } from "@/features/chat/components/flow/clarify-card";
+import { WelcomeRewardDialog } from "@/features/welcome-reward/components/welcome-reward-dialog";
 import { Button } from "@/shared/ui/button";
 
 /**
@@ -15,6 +17,7 @@ import { Button } from "@/shared/ui/button";
 export default function AIDemoPage() {
   const [isThinking, setIsThinking] = useState(false);
   const [taskStatus, setTaskStatus] = useState<"pending" | "in_progress" | "completed">("pending");
+  const [showReward, setShowReward] = useState(true);
 
   const startThinking = () => {
     setIsThinking(true);
@@ -44,6 +47,36 @@ export default function AIDemoPage() {
       </div>
 
       <div className="space-y-6">
+        <section className="space-y-4">
+          <div className="space-y-2">
+            <h2 className="font-semibold text-2xl">Welcome Reward Dialog</h2>
+            <p className="text-muted-foreground text-sm">
+              Modal dialog shown on first chat visit
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <Button onClick={() => setShowReward(true)}>
+              Open Welcome Reward Dialog
+            </Button>
+
+            <WelcomeRewardDialog
+              open={showReward}
+              status={{
+                reserved: true,
+                welcomeCardSeen: false,
+                currentVolumeUsd: 6.5,
+                targetVolumeUsd: 10,
+                progressPercent: 65,
+                unlocked: false,
+                unlockedAt: null,
+              }}
+              onDismiss={() => setShowReward(false)}
+              onOpen={() => console.warn("[WelcomeReward] View details clicked")}
+            />
+          </div>
+        </section>
+
         <section className="space-y-4">
           <div className="space-y-2">
             <h2 className="font-semibold text-2xl">AI Reasoning</h2>
@@ -121,6 +154,156 @@ export default function AIDemoPage() {
                 <AITaskItem status="completed">Best option: Aqua protocol (8.5% APY)</AITaskItem>
               </AITaskList>
             </AITask>
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <div className="space-y-2">
+            <h2 className="font-semibold text-2xl">Clarify Card (Single Question)</h2>
+            <p className="text-muted-foreground text-sm">
+              Single question — tap option to submit immediately, no stepper
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <ClarifyCard
+              questions={[{
+                field_name: "pool",
+                question: "Which pool would you like to deposit into?",
+                input_type: "select",
+                suggestions: [
+                  {
+                    label: "USDC Lending (Fixed Pool) · Blend · 9.3% APY",
+                    value: { protocol: "blend", pool: "fixed" },
+                    tags: ["recommended"],
+                    description: "Low risk lending pool",
+                  },
+                  {
+                    label: "XLM/USDC LP · Aquarius · 12.4% APY",
+                    value: { protocol: "aquarius", pool: "xlm-usdc" },
+                    tags: ["high_tvl"],
+                    description: "AMM liquidity pool",
+                  },
+                  {
+                    label: "XLM/AQUA LP · Aquarius · 18.5% APY",
+                    value: { protocol: "aquarius", pool: "xlm-aqua" },
+                    tags: ["il_risk"],
+                    description: "Higher yield, impermanent loss risk",
+                  },
+                  {
+                    label: "USDC Stable Vault · DeFindex · 8.5% APY",
+                    value: { protocol: "defindex", pool: "usdc-vault" },
+                  },
+                ],
+              }]}
+              onSubmit={(answers) => console.log("[ClarifyCard single] submitted:", answers)}
+            />
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <div className="space-y-2">
+            <h2 className="font-semibold text-2xl">Multi-Clarify Card (Multiple Questions)</h2>
+            <p className="text-muted-foreground text-sm">
+              Multiple questions in one card — used when 2+ fields are missing.
+              AI generates questions and options dynamically.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="font-medium text-lg text-muted-foreground">Select + Select</h3>
+            <ClarifyCard
+              questions={[
+                {
+                  field_name: "pool",
+                  question: "Which pool?",
+                  input_type: "select",
+                  suggestions: [
+                    {
+                      label: "USDC Lending (Fixed Pool) · Blend · 9.3% APY",
+                      value: { label: "USDC Lending (Fixed Pool) · Blend · 9.3% APY" },
+                      tags: ["recommended"],
+                    },
+                    {
+                      label: "XLM/AQUA LP · Aquarius · 18.5% APY",
+                      value: { label: "XLM/AQUA LP · Aquarius · 18.5% APY" },
+                      tags: ["il_risk"],
+                    },
+                    {
+                      label: "USDC Stable Vault · DeFindex · 8.5% APY",
+                      value: { label: "USDC Stable Vault · DeFindex · 8.5% APY" },
+                    },
+                  ],
+                },
+                {
+                  field_name: "amount",
+                  question: "How much?",
+                  input_type: "select",
+                  suggestions: [
+                    { label: "5 USDC", value: { label: "5 USDC" } },
+                    { label: "10 USDC", value: { label: "10 USDC" } },
+                    { label: "50 USDC", value: { label: "50 USDC" } },
+                    { label: "100 USDC", value: { label: "100 USDC" } },
+                  ],
+                },
+              ]}
+              onSubmit={(answers) => console.log("[ClarifyCard select+select] submitted:", answers)}
+            />
+
+            <h3 className="font-medium text-lg text-muted-foreground">Select + Text Input</h3>
+            <ClarifyCard
+              questions={[
+                {
+                  field_name: "pair",
+                  question: "Which pair?",
+                  input_type: "select",
+                  suggestions: [
+                    { label: "XLM → USDC", value: { label: "XLM → USDC" } },
+                    { label: "USDC → XLM", value: { label: "USDC → XLM" } },
+                    { label: "XLM → AQUA", value: { label: "XLM → AQUA" } },
+                  ],
+                },
+                {
+                  field_name: "amount",
+                  question: "How much do you want to swap?",
+                  input_type: "text",
+                  placeholder: "e.g. 100 XLM",
+                },
+              ]}
+              onSubmit={(answers) => console.log("[ClarifyCard select+text] submitted:", answers)}
+            />
+
+            <h3 className="font-medium text-lg text-muted-foreground">3 Questions</h3>
+            <ClarifyCard
+              questions={[
+                {
+                  field_name: "asset",
+                  question: "Which asset to bridge?",
+                  input_type: "select",
+                  suggestions: [
+                    { label: "USDC", value: { label: "USDC" }, description: "Balance: 250" },
+                    { label: "XLM", value: { label: "XLM" }, description: "Balance: 1,200" },
+                  ],
+                },
+                {
+                  field_name: "destination",
+                  question: "Destination chain?",
+                  input_type: "select",
+                  suggestions: [
+                    { label: "Ethereum", value: { label: "Ethereum" } },
+                    { label: "Arbitrum", value: { label: "Arbitrum" }, tags: ["recommended"] },
+                    { label: "Base", value: { label: "Base" } },
+                  ],
+                },
+                {
+                  field_name: "amount",
+                  question: "Amount to bridge?",
+                  input_type: "text",
+                  placeholder: "e.g. 100",
+                },
+              ]}
+              onSubmit={(answers) => console.log("[ClarifyCard 3Q] submitted:", answers)}
+            />
           </div>
         </section>
 

@@ -18,7 +18,7 @@ export const AGENTS: Record<string, AgentConfig> = {
     id: "supervisor",
     name: "Tasmil Assistant",
     description: "AI DeFi assistant for the Stellar ecosystem. Orchestrates all specialized agents. Routes your requests to the best agent automatically",
-    icon: "/agents/supervisor-agent.svg",
+    icon: "/agents/supervisor-agent.png",
     supportedChains: ["Stellar"],
     testnetAvailable: true,
     suggestions: [
@@ -72,18 +72,30 @@ export const AGENTS: Record<string, AgentConfig> = {
     supportedChains: ["Stellar"],
     testnetAvailable: true,
     suggestions: [
+      // ── Beginner-friendly (new to DeFi) ──────────────────────
+      "I have $5, how can I start earning?",
+      "How can I make money with my USDC?",
+      "What is Blend and how does it work?",
+      "Is it safe to lend my crypto here?",
+      "How much can I earn on $100?",
+
+      // ── Easy actions ─────────────────────────────────────────
+      "Start earning with my USDC",
+      "Put my XLM to work",
+      "Show me the best rates right now",
+      "What's the current APY?",
+
+      // ── Intermediate ─────────────────────────────────────────
       "Supply 100 USDC to Blend",
-      "What's the USDC lending rate on Blend?",
-      "Borrow XLM against my collateral",
       "Show my Blend positions",
+      "Claim my BLND rewards",
+      "Borrow XLM against my collateral",
+
+      // ── Advanced ─────────────────────────────────────────────
       "Deposit to backstop pool",
-      "Claim my BLND emissions",
-      "What's the backstop APR?",
-      "Show Blend reserve info for USDC",
       "Toggle my USDC as collateral",
-      "How do I join the Comet BLND:USDC pool?",
-      "Repay my Blend loan",
       "Queue backstop withdrawal",
+      "Repay my Blend loan",
     ],
     capabilities: ["supply", "borrow", "repay", "backstop", "claim_emissions"],
   },

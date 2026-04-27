@@ -822,23 +822,26 @@ export function AggregatorPage() {
                       })
                     }
                     className={`w-full rounded-2xl font-bold py-3.5 text-[15px] transition-all flex items-center justify-center gap-2 active:scale-[0.98] relative overflow-hidden ${
-                      aggHasAmount &&
-                      selectedProtocol &&
-                      !agg.isExecuting &&
-                      !agg.needsTrustline &&
-                      !insufficientBalance
-                        ? "bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] text-black hover:scale-[1.02] hover:from-[#C5F0FF] hover:to-[#1CCFFF] cursor-pointer"
-                        : "cursor-not-allowed opacity-50"
+                      agg.isExecuting
+                        ? "cursor-wait"
+                        : aggHasAmount &&
+                            selectedProtocol &&
+                            !agg.needsTrustline &&
+                            !insufficientBalance
+                          ? "bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] text-black hover:scale-[1.02] hover:from-[#C5F0FF] hover:to-[#1CCFFF] cursor-pointer"
+                          : "cursor-not-allowed opacity-50"
                     }`}
                     style={
-                      !(
-                        aggHasAmount &&
-                        selectedProtocol &&
-                        !agg.needsTrustline &&
-                        !insufficientBalance
-                      )
-                        ? { background: C.interactive, color: C.dimText }
-                        : undefined
+                      agg.isExecuting
+                        ? { background: C.sectionBg, color: "var(--muted-foreground)" }
+                        : !(
+                              aggHasAmount &&
+                              selectedProtocol &&
+                              !agg.needsTrustline &&
+                              !insufficientBalance
+                            )
+                          ? { background: C.interactive, color: C.dimText }
+                          : undefined
                     }
                   >
                     {aggHasAmount &&

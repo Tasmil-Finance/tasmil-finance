@@ -94,21 +94,36 @@ function convertMcpApyToDecimal(reserve: Record<string, unknown>): Record<string
 }
 
 function convertMcpPoolReserves(data: Record<string, unknown>): Record<string, unknown> {
-  // Convert reserves APY in pool data
-  const pool = (data.pool ?? data) as Record<string, unknown>;
+  // IMPORTANT: return a new object — never mutate `data` because React may
+  // re-render and call this function again on the same reference, causing
+  // double-division of APY values (2.78 → 0.0278 → 0.000278).
+  let out = { ...data };
+
+  // Convert single pool reserves
+  const pool = (out.pool ?? out) as Record<string, unknown>;
   if (pool.reserves && Array.isArray(pool.reserves)) {
-    pool.reserves = (pool.reserves as Record<string, unknown>[]).map(convertMcpApyToDecimal);
+    const converted = { ...pool, reserves: (pool.reserves as Record<string, unknown>[]).map(convertMcpApyToDecimal) };
+    if (out.pool) {
+      out = { ...out, pool: converted };
+    } else {
+      out = converted as Record<string, unknown>;
+    }
   }
+
   // Handle pools array (resolve_pool returns multiple)
-  if (data.pools && Array.isArray(data.pools)) {
-    data.pools = (data.pools as Record<string, unknown>[]).map((p) => {
-      if (p.reserves && Array.isArray(p.reserves)) {
-        return { ...p, reserves: (p.reserves as Record<string, unknown>[]).map(convertMcpApyToDecimal) };
-      }
-      return p;
-    });
+  if (out.pools && Array.isArray(out.pools)) {
+    out = {
+      ...out,
+      pools: (out.pools as Record<string, unknown>[]).map((p) => {
+        if (p.reserves && Array.isArray(p.reserves)) {
+          return { ...p, reserves: (p.reserves as Record<string, unknown>[]).map(convertMcpApyToDecimal) };
+        }
+        return p;
+      }),
+    };
   }
-  return data;
+
+  return out;
 }
 
 // ─── Pool ──────────────────────────────────────────────────────

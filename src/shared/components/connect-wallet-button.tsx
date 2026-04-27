@@ -4,6 +4,7 @@ import { Check, Copy, ExternalLink, LogOut, User, Wallet } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useWallet } from "@/shared/context/wallet-context";
+import { isMainnet, getExplorerUrl } from "@/shared/config/stellar";
 import { Button } from "@/shared/ui/button-v2";
 import {
   DropdownMenu,
@@ -56,13 +57,10 @@ const AddressAvatar = ({
   );
 };
 
-const networkLabel =
-  "Testnet";
+const networkLabel = isMainnet ? "Mainnet" : "Testnet";
 
 function explorerUrl(address: string): string {
-  const base =
-    "https://stellar.expert/explorer/testnet/account";
-  return `${base}/${address}`;
+  return getExplorerUrl("account", address);
 }
 
 interface ConnectWalletButtonProps {

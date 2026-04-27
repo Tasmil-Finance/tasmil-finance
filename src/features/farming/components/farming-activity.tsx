@@ -22,6 +22,7 @@ import { motion } from "framer-motion";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Button } from "@/shared/ui/button-v2";
 import { cn } from "@/lib/utils";
+import { getExplorerUrl } from "@/shared/config/stellar";
 import type { ActivityItem } from "@/features/account/types";
 
 const OP_ICONS: Record<string, { icon: LucideIcon; bg: string; fg: string }> = {
@@ -290,7 +291,7 @@ export function FarmingActivity({ activities, isLoading }: FarmingActivityProps)
                   )}
                   {activity.txHash && (
                     <a
-                      href={`https://stellar.expert/explorer/testnet/tx/${activity.txHash}`}
+                      href={getExplorerUrl("tx", activity.txHash)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="shrink-0 text-sm text-primary hover:underline"

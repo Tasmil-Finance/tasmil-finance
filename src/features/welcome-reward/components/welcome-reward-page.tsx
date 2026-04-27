@@ -2,6 +2,7 @@
 
 import { ArrowLeft, CheckCircle2, Compass, Gift, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button-v2";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
@@ -13,7 +14,7 @@ const COUNTING_RULES = [
     title: "Supported routes only",
     description: "Only supported Tasmil-routed transactions count in the current phase.",
     icon: Sparkles,
-    iconClassName: "text-amber-300",
+    iconClassName: "text-primary",
   },
   {
     title: "Hash reported from client",
@@ -37,6 +38,7 @@ function formatUsd(value: number) {
 }
 
 export function WelcomeRewardPage() {
+  const router = useRouter();
   const { status, isLoading, isError, refetch } = useWelcomeReward();
 
   if (isLoading) {
@@ -91,7 +93,7 @@ export function WelcomeRewardPage() {
         <div className="space-y-2">
           <Badge
             variant="secondary"
-            className="border border-amber-500/20 bg-amber-500/10 text-[11px] uppercase tracking-[0.16em] text-amber-300"
+            className="border border-primary/20 bg-primary/10 text-[11px] uppercase tracking-[0.16em] text-primary"
           >
             Welcome reward
           </Badge>
@@ -106,7 +108,7 @@ export function WelcomeRewardPage() {
         <Card className="border-border bg-card shadow-sm">
           <CardHeader className="space-y-4">
             <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/20">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
                 <Gift className="h-5 w-5" />
               </div>
 
@@ -147,8 +149,8 @@ export function WelcomeRewardPage() {
 
               <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted/40">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-amber-400 via-orange-400 to-emerald-400 transition-all"
-                  style={{ width: `${Math.max(8, Math.min(status.progressPercent, 100))}%` }}
+                  className="h-full rounded-full bg-gradient-to-r from-[#B5EAFF] to-[#00BFFF] transition-all"
+                  style={{ width: `${Math.min(status.progressPercent, 100)}%` }}
                 />
               </div>
             </div>
@@ -177,11 +179,11 @@ export function WelcomeRewardPage() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <Button asChild>
-                <Link href="/agents">Keep Trading</Link>
+              <Button variant="gradient" onClick={() => router.push("/agents")}>
+                Keep Trading
               </Button>
-              <Button asChild variant="outline">
-                <Link href="/aggregator">Open Aggregator</Link>
+              <Button variant="outline" onClick={() => router.push("/aggregator")}>
+                Open Aggregator
               </Button>
             </div>
           </CardContent>
@@ -196,7 +198,7 @@ export function WelcomeRewardPage() {
               {COUNTING_RULES.map(({ title, description, icon: Icon, iconClassName }) => (
                 <div key={title} className="rounded-xl border border-border bg-muted/10 p-4">
                   <div className="flex items-start gap-3">
-                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background/70 ring-1 ring-border">
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted/40 ring-1 ring-border">
                       <Icon className={`h-4 w-4 ${iconClassName}`} />
                     </div>
                     <div>

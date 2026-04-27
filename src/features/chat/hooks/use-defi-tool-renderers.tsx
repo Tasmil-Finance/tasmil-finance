@@ -15,7 +15,7 @@ import { TrustlineExecuteCard } from "@/features/chat/actions/components/stellar
 import { TxSubmitCard } from "@/features/chat/actions/components/stellar/tx-submit-card";
 import { ExecutionCard } from "@/features/chat/components/flow/execution-card";
 // Flow cards (option-select pattern)
-import { OptionCard } from "@/features/chat/components/flow/option-card";
+import { ClarifyCard } from "@/features/chat/components/flow/clarify-card";
 import { PlanPreviewCard } from "@/features/chat/components/flow/plan-preview-card";
 import { useStreamContext } from "@/features/chat/hooks/use-stream";
 import { useWalletStore } from "@/store/use-wallet";
@@ -56,6 +56,7 @@ type RenderProps = {
   status: "inProgress" | "executing" | "complete";
   args: Record<string, unknown>;
   result: unknown;
+  toolCallId?: string;
   respond?: (result: Record<string, unknown>) => void;
 };
 
@@ -317,7 +318,14 @@ function makeBlendOpRenderer(operation: string) {
     if (!tx)
       return <div className="text-muted-foreground text-xs">Failed to parse transaction data</div>;
     const txWithOp = { ...tx, operation: tx.operation || operation };
-    return <BlendTxCard tx={txWithOp} mode="chat" respond={props.respond} />;
+    return (
+      <BlendTxCard
+        tx={txWithOp}
+        mode="chat"
+        toolCallId={props.toolCallId}
+        respond={props.respond}
+      />
+    );
   };
 }
 
@@ -347,56 +355,62 @@ export const BLEND_SHARED_OPERATIONS = BLEND_OPS_RAW.map((op) => ({
 // `stream.submit`. This starts a new agent turn with the selection context.
 // ---------------------------------------------------------------------------
 
-/** OptionCard wrapper that sends selection as a new human message via stream. */
-function FlowOptionCardWithStream({
-  question,
-  suggestions,
+/** Unified ClarifyCard wrapper — handles both single and multi-question flows. */
+function FlowClarifyCardWithStream({
+  questions,
 }: {
-  question: string;
-  suggestions: { label: string; value: Record<string, unknown>; tags?: string[] }[];
+  questions: {
+    field_name: string;
+    question: string;
+    input_type: "select" | "text";
+    suggestions?: { label: string; value: Record<string, unknown>; tags?: string[]; description?: string }[];
+    placeholder?: string;
+  }[];
 }) {
   const stream = useStreamContext();
   const walletAddress = useWalletStore((s) => s.account);
-  const [selected, setSelected] = useState<Record<string, unknown> | undefined>(undefined);
   const [sent, setSent] = useState(false);
 
-  const handleSelect = useCallback(
-    async (value: Record<string, unknown>) => {
+  const handleSubmit = useCallback(
+    async (answers: Record<string, unknown>) => {
       if (sent) return;
-      setSelected(value);
       setSent(true);
 
-      // Short label only — no raw JSON in user message
-      const label =
-        suggestions.find((s) => JSON.stringify(s.value) === JSON.stringify(value))?.label ??
-        "selected option";
+      // Build a natural-language message from the collected answers
+      const parts: string[] = [];
+
+      for (const q of questions) {
+        const answer = answers[q.field_name];
+        if (q.input_type === "select" && answer) {
+          const suggestion = q.suggestions?.find(
+            (s) => JSON.stringify(s.value) === JSON.stringify(answer),
+          );
+          if (suggestion) parts.push(suggestion.label);
+        } else if (q.input_type === "text" && typeof answer === "string" && answer.trim()) {
+          parts.push(answer.trim());
+        }
+      }
+
+      const message = parts.join(", ");
 
       try {
         await stream.submit({
-          messages: [
-            {
-              type: "human" as const,
-              content: label,
-            },
-          ],
+          messages: [{ type: "human" as const, content: message }],
           ...(walletAddress && { wallet_address: walletAddress }),
         });
       } catch (err) {
-        console.error("[FlowOptionCard] submit error:", err);
+        console.error("[FlowClarifyCard] submit error:", err);
         setSent(false);
-        setSelected(undefined);
       }
     },
-    [stream, suggestions, sent]
+    [stream, questions, sent, walletAddress],
   );
 
   return (
-    <OptionCard
-      question={question}
-      suggestions={suggestions}
-      onSelect={handleSelect}
+    <ClarifyCard
+      questions={questions}
+      onSubmit={handleSubmit}
       disabled={sent}
-      selectedValue={selected}
     />
   );
 }
@@ -447,15 +461,26 @@ export const FLOW_TOOL_RENDERERS: Array<{
     toolName: "flow_clarify",
     render: (props) => {
       const data = parseFlowResult(props.result);
-      if (!data?.question) {
+      if (!data) {
         return <div className="text-muted-foreground text-xs">Invalid clarify data</div>;
       }
-      return (
-        <FlowOptionCardWithStream
-          question={data.question as string}
-          suggestions={(data.suggestions as any[]) ?? []}
-        />
-      );
+
+      // Normalize: support both old format {question, suggestions} and new {questions: [...]}
+      let questions = data.questions as any[] | undefined;
+      if (!questions && data.question) {
+        // Old single-question format → wrap into questions array
+        questions = [{
+          field_name: "q0",
+          question: data.question as string,
+          input_type: "select",
+          suggestions: (data.suggestions as any[]) ?? [],
+        }];
+      }
+      if (!questions || questions.length === 0) {
+        return <div className="text-muted-foreground text-xs">No questions</div>;
+      }
+
+      return <FlowClarifyCardWithStream questions={questions} />;
     },
   },
   {

@@ -172,8 +172,10 @@ export function CommandBar({
 
   return (
     <div className="flex items-center gap-2">
-      {/* Only show copy button if there's text content */}
+      {/* Temporarily hidden — copy button
       {content.length > 0 && <ContentCopyable content={content} disabled={isLoading} />}
+      */}
+      {/* Temporarily hidden — regenerate button
       {isAiMessage && !!handleRegenerate && (
         <TooltipIconButton
           disabled={isLoading}
@@ -184,6 +186,8 @@ export function CommandBar({
           <RefreshCcw />
         </TooltipIconButton>
       )}
+      */}
+      {/* Temporarily hidden — edit button
       {showEdit && (
         <TooltipIconButton
           disabled={isLoading}
@@ -196,6 +200,7 @@ export function CommandBar({
           <Pencil />
         </TooltipIconButton>
       )}
+      */}
     </div>
   );
 }

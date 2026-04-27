@@ -41,10 +41,22 @@ async function markWelcomeRewardSeen(): Promise<WelcomeRewardStatus> {
   return unwrapResponse(response.data);
 }
 
-async function trackWelcomeRewardTransaction(txHash: string): Promise<TrackWelcomeRewardResult> {
+export interface TrackVolumeContext {
+  protocol: string;
+  operation?: string;
+  asset: string;
+  amount: string;
+}
+
+async function trackWelcomeRewardTransaction(
+  params: { txHash: string; context?: TrackVolumeContext },
+): Promise<TrackWelcomeRewardResult> {
   const response = await backendAxios.post<
     { data?: TrackWelcomeRewardResult } | TrackWelcomeRewardResult
-  >("/api/welcome-reward/track", { txHash });
+  >("/api/welcome-reward/track", {
+    txHash: params.txHash,
+    ...(params.context ?? {}),
+  });
   return unwrapResponse(response.data);
 }
 
@@ -68,7 +80,7 @@ export function useWelcomeReward() {
   });
 
   const trackMutation = useMutation({
-    mutationFn: trackWelcomeRewardTransaction,
+    mutationFn: (params: { txHash: string; context?: TrackVolumeContext }) => trackWelcomeRewardTransaction(params),
     onSuccess: (result) => {
       queryClient.setQueryData(WELCOME_REWARD_QUERY_KEY, {
         reserved: result.reserved,
@@ -95,13 +107,13 @@ export function useWelcomeReward() {
   }, [isAuthenticated, markSeenMutation]);
 
   const reportTransaction = useCallback(
-    (txHash: string | null | undefined) => {
+    (txHash: string | null | undefined, context?: TrackVolumeContext) => {
       if (!isAuthenticated || !txHash || reportedTxHashes.current.has(txHash)) {
         return;
       }
 
       reportedTxHashes.current.add(txHash);
-      trackMutation.mutate(txHash);
+      trackMutation.mutate({ txHash, context });
     },
     [isAuthenticated, trackMutation]
   );

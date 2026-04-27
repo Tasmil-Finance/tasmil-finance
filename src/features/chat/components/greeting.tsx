@@ -14,20 +14,20 @@ type GreetingContent = {
 const AGENT_GREETING_CONTENT: Record<string, GreetingContent> = {
   supervisor: {
     title: "Your Tasmil DeFi Assistant",
-    subtitle: "Plan and execute multi-step DeFi flows in one conversation.",
+    subtitle: "Earn yield, swap tokens, and grow your portfolio with AI guidance.",
     bullets: [
-      "Route requests to the best protocol agent automatically",
-      "Coordinate swap, bridge, lend, and yield workflows",
-      "Guide each step before execution",
+      "Start earning with any amount, even $5",
+      "Compare rates and find the best opportunities automatically",
+      "Every step is explained before you confirm",
     ],
   },
   blend_agent: {
-    title: "Your Blend Lending Specialist",
-    subtitle: "Manage lending, borrowing, and backstop actions on Blend.",
+    title: "Your Blend Earning Assistant",
+    subtitle: "Put your crypto to work and start earning yield, even with just $5.",
     bullets: [
-      "Supply collateral and borrow with health checks",
-      "Track reserves, positions, and emissions",
-      "Handle backstop deposit and withdrawal flows",
+      "Tell me how much you have and I'll find the best rate",
+      "Earn passive income by lending your USDC or XLM",
+      "I'll guide every step, no DeFi experience needed",
     ],
   },
   soroswap_agent: {
@@ -158,7 +158,7 @@ export const Greeting = ({ agentId }: GreetingProps) => {
   const config = getAgentConfig(agentId);
   const content =
     AGENT_GREETING_CONTENT[config.id] ?? AGENT_GREETING_CONTENT.default ?? DEFAULT_GREETING;
-  const logo = config.icon || "/agents/supervisor-agent.svg";
+  const logo = config.icon || "/agents/supervisor-agent.png";
 
   return (
     <motion.div

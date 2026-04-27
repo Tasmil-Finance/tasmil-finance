@@ -247,7 +247,12 @@ export function BlendExecuteCard({
 
           const cardResult = { success: true, hash, message: "Transaction successful!" };
           cacheTxResult(cardResult);
-          reportTransaction(hash);
+          reportTransaction(hash, {
+            protocol: "blend",
+            operation: operation ?? "supply",
+            asset: (args?.asset as string) ?? "XLM",
+            amount: (args?.amount as string) ?? "0",
+          });
 
           toast.success("Transaction submitted successfully!", {
             description: (

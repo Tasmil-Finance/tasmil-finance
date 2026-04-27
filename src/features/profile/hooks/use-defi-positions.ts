@@ -189,10 +189,17 @@ export function useDefiPositions(address: string | null | undefined) {
 
   const groups = enrichWithPrices(rawGroups, priceMap);
 
+  // Track which protocols are still loading so the UI can show partial results
+  const loadingProtocols: string[] = [];
+  if (tasmilLoading) loadingProtocols.push("Tasmil Vault");
+  if (blendLoading && stableBlend.length === 0) loadingProtocols.push("Blend");
+  if (aquaLoading && stableAqua.length === 0) loadingProtocols.push("Aquarius");
+
   return {
     groups,
     vaultPnl,
     isLoading: tasmilLoading || blendLoading || aquaLoading,
+    loadingProtocols,
     totalValueUsd: groups.reduce((s, g) => s + g.totalValueUsd, 0),
   };
 }

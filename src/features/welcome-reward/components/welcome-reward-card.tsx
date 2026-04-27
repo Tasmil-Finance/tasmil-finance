@@ -21,7 +21,7 @@ export function WelcomeRewardCard({ status, onOpen }: WelcomeRewardCardProps) {
     <Card className="mb-4 border-border bg-card shadow-sm">
       <CardContent className="p-0">
         <div className="flex items-start gap-3 px-5 py-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/20">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
             <Gift className="h-5 w-5" />
           </div>
 
@@ -32,7 +32,7 @@ export function WelcomeRewardCard({ status, onOpen }: WelcomeRewardCardProps) {
               </p>
               <Badge
                 variant="secondary"
-                className="border border-amber-500/20 bg-amber-500/10 text-[10px] uppercase tracking-[0.16em] text-amber-300"
+                className="border border-primary/20 bg-primary/10 text-[10px] uppercase tracking-[0.16em] text-primary"
               >
                 Welcome reward
               </Badge>
@@ -57,8 +57,8 @@ export function WelcomeRewardCard({ status, onOpen }: WelcomeRewardCardProps) {
 
             <div className="h-1.5 overflow-hidden rounded-full bg-muted/40">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-amber-400 via-orange-400 to-emerald-400 transition-all"
-                style={{ width: `${Math.max(6, Math.min(status.progressPercent, 100))}%` }}
+                className="h-full rounded-full bg-gradient-to-r from-[#B5EAFF] to-[#00BFFF] transition-all"
+                style={{ width: `${Math.min(status.progressPercent, 100)}%` }}
               />
             </div>
           </div>
@@ -66,7 +66,7 @@ export function WelcomeRewardCard({ status, onOpen }: WelcomeRewardCardProps) {
           <Button
             className="h-10 w-full justify-between rounded-lg"
             onClick={onOpen}
-            variant="outline"
+            variant="gradient"
           >
             View reward progress
             <ArrowUpRight className="h-4 w-4" />

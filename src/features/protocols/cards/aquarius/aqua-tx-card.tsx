@@ -18,6 +18,7 @@ import { ProtocolCard } from "../base/protocol-card";
 import { DetailRow } from "../base/indicators";
 import { fmtGas, trunc, fmt } from "../../lib/formatting";
 import { useTxSigning } from "../../hooks/use-tx-signing";
+import { getExplorerUrl } from "@/shared/config/stellar";
 
 // ─── Operation config ───────────────────────────────────────────
 
@@ -136,6 +137,7 @@ export function AquaTxCard({
     toolCallId,
     operation: tx.operation,
     respond,
+    volumeContext: { protocol: "aquarius", operation: tx.operation, asset: tx.tokenIn ?? "", amount: tx.amount ?? tx.amounts?.[0] ?? "0" },
   });
 
   const _isLiquidityOp = tx.operation === "add_liquidity" || tx.operation === "withdraw_liquidity";
@@ -364,7 +366,7 @@ export function AquaTxCard({
       <div className="px-4 py-3">
         {txResult?.success ? (
           <a
-            href={`https://stellar.expert/explorer/testnet/tx/${txResult.hash}`}
+            href={getExplorerUrl("tx", txResult.hash ?? "")}
             target="_blank"
             rel="noopener noreferrer"
             className="block w-full rounded-lg py-2 text-xs font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-center hover:bg-emerald-500/15 transition-colors"
