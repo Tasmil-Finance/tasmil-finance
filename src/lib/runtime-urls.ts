@@ -106,5 +106,9 @@ export function getBackendProxyRewrites(env: NodeJS.ProcessEnv = process.env): P
       source: "/api/users/:path*",
       destination: `${backendBaseUrl}/api/users/:path*`,
     },
+    {
+      source: "/api/welcome-reward/:path*",
+      destination: `${backendBaseUrl}/api/welcome-reward/:path*`,
+    },
   ];
 }
