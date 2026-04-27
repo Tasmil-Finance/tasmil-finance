@@ -22,7 +22,7 @@ export function useSolanaTokenBalance(
     queryKey: ["solana-token-balance", walletAddress, mintAddress],
     queryFn: () => fetchSolanaTokenBalance(walletAddress!, mintAddress!),
     enabled: !!walletAddress && !!mintAddress,
-    staleTime: 10_000,
-    refetchInterval: 15_000,
+    staleTime: 4_000,
+    refetchInterval: 5_000,
   });
 }

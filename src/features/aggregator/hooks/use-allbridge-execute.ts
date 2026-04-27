@@ -21,6 +21,10 @@ const CHAIN_TO_ALLBRIDGE: Record<string, string> = {
   optimism: "OPT",
   base: "BAS",
   tron: "TRX",
+  sonic: "SNC",
+  celo: "CEL",
+  linea: "LIN",
+  unichain: "UNI",
 };
 
 function createSdk(): AllbridgeCoreSdk {

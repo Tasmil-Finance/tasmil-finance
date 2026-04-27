@@ -59,6 +59,10 @@ const EVM_CHAINS = new Set([
   "optimism",
   "bsc",
   "avalanche",
+  "sonic",
+  "celo",
+  "linea",
+  "unichain",
 ]);
 
 function truncAddr(addr: string) {
@@ -86,8 +90,7 @@ function formatUsdCompact(value: number): string {
 function formatBalanceShort(value: number): string {
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M`;
   if (value >= 1_000) return `${(value / 1_000).toFixed(2)}K`;
-  if (value >= 1) return value.toFixed(4);
-  if (value > 0) return value.toPrecision(4);
+  if (value > 0) return value.toFixed(6);
   return "0";
 }
 
@@ -177,12 +180,36 @@ export function AggregatorPage() {
 
   // Toast notifications for swap result
   const network = process.env["NEXT_PUBLIC_STELLAR_NETWORK"] === "mainnet" ? "public" : "testnet";
+  const CHAIN_EXPLORERS: Record<string, string> = {
+    stellar: `https://stellar.expert/explorer/${network}/tx`,
+    ethereum: "https://etherscan.io/tx",
+    arbitrum: "https://arbiscan.io/tx",
+    base: "https://basescan.org/tx",
+    polygon: "https://polygonscan.com/tx",
+    bsc: "https://bscscan.com/tx",
+    avalanche: "https://subnets.avax.network/c-chain/tx",
+    optimism: "https://optimistic.etherscan.io/tx",
+    solana: "https://solscan.io/tx",
+    tron: "https://tronscan.org/#/transaction",
+    sonic: "https://sonicscan.org/tx",
+    celo: "https://celoscan.io/tx",
+    linea: "https://lineascan.build/tx",
+    unichain: "https://uniscan.xyz/tx",
+  };
+  const getExplorerUrl = useCallback(
+    (hash: string) => {
+      const base = CHAIN_EXPLORERS[agg.chainIn] ?? CHAIN_EXPLORERS.stellar;
+      return `${base}/${hash}`;
+    },
+    [agg.chainIn, network]
+  );
   useEffect(() => {
     if (agg.executeSuccess) {
-      toast.success("Swap successful!", {
+      const isBridge = selectedProtocol === "allbridge";
+      toast.success(isBridge ? "Bridge successful!" : "Swap successful!", {
         description: (
           <a
-            href={`https://stellar.expert/explorer/${agg.chainIn === "stellar" ? network : "public"}/tx/${agg.executeSuccess}`}
+            href={getExplorerUrl(agg.executeSuccess)}
             target="_blank"
             rel="noopener noreferrer"
             className="underline"
@@ -208,18 +235,13 @@ export function AggregatorPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stellarAddress, evmAddress, solanaAddress]);
 
-  const chainTypeIn =
-    agg.chainIn === "stellar"
-      ? ("stellar" as const)
-      : agg.chainIn === "solana"
-        ? ("solana" as const)
-        : ("evm" as const);
-  const chainTypeOut =
-    agg.chainOut === "stellar"
-      ? ("stellar" as const)
-      : agg.chainOut === "solana"
-        ? ("solana" as const)
-        : ("evm" as const);
+  const resolveChainType = (chain: string) =>
+    chain === "stellar" ? ("stellar" as const)
+    : chain === "solana" ? ("solana" as const)
+    : EVM_CHAINS.has(chain) ? ("evm" as const)
+    : ("unsupported" as const);
+  const chainTypeIn = resolveChainType(agg.chainIn);
+  const chainTypeOut = resolveChainType(agg.chainOut);
 
   // Source address — from store selection or auto from connected wallet
   const isSourceStellar = agg.chainIn === "stellar";
@@ -248,7 +270,16 @@ export function AggregatorPage() {
     "";
 
   const srcConnected = !!sourceAddress;
-  const needsWallet = !srcConnected && (isSourceStellar || isSourceEvm || isSourceSolana);
+  const isUnsupportedChain = chainTypeIn === "unsupported" || chainTypeOut === "unsupported";
+  const isCrossChain = agg.chainIn !== agg.chainOut;
+  const destWalletAddress =
+    chainTypeOut === "stellar" ? stellarAddress
+    : chainTypeOut === "solana" ? solanaAddress
+    : evmAddress;
+  const destConnected = !!agg.destAddress || !!destWalletAddress;
+  const needsSrcWallet = !srcConnected && (isSourceStellar || isSourceEvm || isSourceSolana);
+  const needsDestWallet = isCrossChain && !destConnected && chainTypeOut !== "unsupported";
+  const needsWallet = isUnsupportedChain || needsSrcWallet || needsDestWallet;
   const aggHasBothTokens = !!agg.tokenIn && !!agg.tokenOut;
   const aggHasAmount = !!agg.amount && Number.parseFloat(agg.amount) > 0;
   const showRoutePanel = aggHasBothTokens && aggHasAmount;
@@ -532,12 +563,15 @@ export function AggregatorPage() {
                         {tokenInBalance != null && (
                           <>
                             <span className="text-sm leading-5" style={{ color: C.dimText }}>|</span>
-                            <span
-                              className="text-sm font-medium leading-5"
+                            <button
+                              type="button"
+                              onClick={() => agg.setAmount(String(tokenInBalance.balance))}
+                              className="text-sm font-medium leading-5 underline decoration-dotted underline-offset-2 hover:opacity-80 transition-opacity cursor-pointer"
                               style={{ color: C.dimText }}
+                              title="Use max balance"
                             >
                               Balance: {formatBalanceShort(tokenInBalance.balance)} {agg.tokenIn?.symbol ?? ""}
-                            </span>
+                            </button>
                           </>
                         )}
                       </div>
@@ -788,18 +822,32 @@ export function AggregatorPage() {
                 {needsWallet ? (
                   <button
                     type="button"
+                    disabled={isUnsupportedChain}
                     onClick={
-                      isSourceStellar
-                        ? () => connectStellar?.()
-                        : isSourceSolana
-                          ? connectSolana
-                          : connectEvm
+                      isUnsupportedChain
+                        ? undefined
+                        : needsSrcWallet
+                          ? isSourceStellar
+                            ? () => connectStellar?.()
+                            : isSourceSolana
+                              ? connectSolana
+                              : connectEvm
+                          : chainTypeOut === "stellar"
+                            ? () => connectStellar?.()
+                            : chainTypeOut === "solana"
+                              ? connectSolana
+                              : connectEvm
                     }
-                    className="w-full rounded-2xl font-bold py-4 text-base transition-all flex items-center justify-center gap-2 active:scale-[0.98] hover:scale-[1.02] relative overflow-hidden bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] text-black"
+                    className={`w-full rounded-2xl font-bold py-4 text-base transition-all flex items-center justify-center gap-2 relative overflow-hidden ${
+                      isUnsupportedChain
+                        ? "cursor-not-allowed opacity-50"
+                        : "active:scale-[0.98] hover:scale-[1.02] bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] text-black"
+                    }`}
+                    style={isUnsupportedChain ? { background: C.interactive, color: C.dimText } : undefined}
                   >
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 h-4 w-[50%] rounded-full bg-white/80 blur-xl" />
+                    {!isUnsupportedChain && <div className="absolute top-0 left-1/2 -translate-x-1/2 h-4 w-[50%] rounded-full bg-white/80 blur-xl" />}
                     <Wallet className="h-5 w-5" strokeWidth={2} />
-                    <span>Connect a wallet</span>
+                    <span>{isUnsupportedChain ? `${agg.chainIn === "tron" ? "Tron" : agg.chainIn} wallet not supported yet` : needsSrcWallet ? "Connect source wallet" : "Connect destination wallet"}</span>
                   </button>
                 ) : (
                   <button

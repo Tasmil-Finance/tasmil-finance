@@ -155,6 +155,23 @@ async function fetchExecute(params: {
 
 const ALL_PROTOCOLS = new Set(["soroswap", "sdex", "aquarius", "phoenix", "templar", "allbridge"]);
 
+// Supported chain types: Stellar + EVM only (no Solana, Tron, Sui, etc.)
+const SUPPORTED_CHAINS = new Set([
+  "stellar",
+  "solana",
+  "ethereum",
+  "arbitrum",
+  "base",
+  "polygon",
+  "optimism",
+  "bsc",
+  "avalanche",
+  "sonic",
+  "celo",
+  "linea",
+  "unichain",
+]);
+
 // ─── Hook ───────────────────────────────────────────────────────
 
 export function useAggregator(): AggregatorState {
@@ -214,16 +231,23 @@ export function useAggregator(): AggregatorState {
     fetchRegistry()
       .then(({ chains: c, tokens: t }) => {
         if (cancelled) return;
-        setChains(c);
-        setTokens(t);
+        const supportedChains = c.filter((ch) => SUPPORTED_CHAINS.has(ch.id));
+        const supportedTokens = t
+          .map((tk) => ({
+            ...tk,
+            chains: tk.chains.filter((ch) => SUPPORTED_CHAINS.has(ch)),
+          }))
+          .filter((tk) => tk.chains.length > 0);
+        setChains(supportedChains);
+        setTokens(supportedTokens);
         // Validate current selections against new token list, reset if invalid
         setTokenInState((prev) => {
-          const valid = prev && t.find((tk) => tk.symbol === prev.symbol);
-          return valid || t.find((tk) => tk.symbol === "XLM") || null;
+          const valid = prev && supportedTokens.find((tk) => tk.symbol === prev.symbol);
+          return valid || supportedTokens.find((tk) => tk.symbol === "XLM") || null;
         });
         setTokenOutState((prev) => {
-          const valid = prev && t.find((tk) => tk.symbol === prev.symbol);
-          return valid || t.find((tk) => tk.symbol === "USDC") || null;
+          const valid = prev && supportedTokens.find((tk) => tk.symbol === prev.symbol);
+          return valid || supportedTokens.find((tk) => tk.symbol === "USDC") || null;
         });
       })
       .catch(() => {})
@@ -242,8 +266,8 @@ export function useAggregator(): AggregatorState {
     if (!tokenIn) return;
     fetchFilteredTokens(tokenIn.symbol, chainIn, "in")
       .then(({ tokens: t, chains: c }) => {
-        setFilteredTokensOut(t);
-        setFilteredChainsOut(c);
+        setFilteredTokensOut(t.map((tk) => ({ ...tk, chains: tk.chains.filter((ch) => SUPPORTED_CHAINS.has(ch)) })).filter((tk) => tk.chains.length > 0));
+        setFilteredChainsOut(c.filter((ch) => SUPPORTED_CHAINS.has(ch)));
       })
       .catch(() => {});
   }, [tokenIn, chainIn]);
@@ -254,8 +278,8 @@ export function useAggregator(): AggregatorState {
     if (!tokenOut) return;
     fetchFilteredTokens(tokenOut.symbol, chainOut, "out")
       .then(({ tokens: t, chains: c }) => {
-        setFilteredTokensIn(t);
-        setFilteredChainsIn(c);
+        setFilteredTokensIn(t.map((tk) => ({ ...tk, chains: tk.chains.filter((ch) => SUPPORTED_CHAINS.has(ch)) })).filter((tk) => tk.chains.length > 0));
+        setFilteredChainsIn(c.filter((ch) => SUPPORTED_CHAINS.has(ch)));
       })
       .catch(() => {});
   }, [tokenOut, chainOut]);
@@ -569,33 +593,62 @@ export function useAggregator(): AggregatorState {
 
         // ── Allbridge cross-chain bridge (client-side via Tasmil SDK) ──
         if (protocol === "allbridge" && opts?.allbridgeExecute) {
-          const txHash = await opts.allbridgeExecute({
-            fromChain: chainIn,
-            toChain: chainOut,
-            tokenIn: tokenIn.symbol,
-            tokenOut: tokenOut.symbol,
-            amount: amount,
-            from: fromAddr,
-            to: destAddress || stellarAddress || fromAddr,
-            signSolana: opts.signSolana,
-            signEvm: opts.signEvm,
-            signStellar: async (xdr: string) => {
-              await checkWalletNetwork();
-              const signed = await signTransaction(xdr);
-              const submitRes = await fetch(`/api/aggregator/submit`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ signedXdr: signed, protocol: "trustline" }),
-              });
-              const submitData = await submitRes.json();
-              if (!submitData.success) throw new Error(submitData.error || "Submit failed");
-              return submitData.hash;
-            },
-          });
-          setAmount("");
-          setQuotes([]);
-          setMode(null);
-          setExecuteSuccess(txHash);
+          let bridgeTxHash: string | undefined;
+          try {
+            bridgeTxHash = await opts.allbridgeExecute({
+              fromChain: chainIn,
+              toChain: chainOut,
+              tokenIn: tokenIn.symbol,
+              tokenOut: tokenOut.symbol,
+              amount: amount,
+              from: fromAddr,
+              to: destAddress || stellarAddress || fromAddr,
+              signSolana: opts.signSolana
+                ? async (tx: unknown) => {
+                    const sig = await opts.signSolana!(tx);
+                    bridgeTxHash = sig;
+                    return sig;
+                  }
+                : undefined,
+              signEvm: opts.signEvm
+                ? async (tx: { to: string; data: string; value?: string }) => {
+                    const hash = await opts.signEvm!(tx);
+                    bridgeTxHash = hash;
+                    return hash;
+                  }
+                : undefined,
+              signStellar: async (xdr: string) => {
+                await checkWalletNetwork();
+                const signed = await signTransaction(xdr);
+                const submitRes = await fetch(`/api/aggregator/submit`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ signedXdr: signed }),
+                });
+                const submitData = await submitRes.json();
+                if (!submitData.success) throw new Error(submitData.error || "Submit failed");
+                bridgeTxHash = submitData.hash;
+                return submitData.hash;
+              },
+            });
+          } catch (sdkErr) {
+            // Allbridge SDK may throw after TX is already submitted successfully.
+            // If we captured the hash, treat as success.
+            if (!bridgeTxHash) throw sdkErr;
+            console.warn("[allbridge] SDK error after TX submitted:", sdkErr);
+          }
+          if (bridgeTxHash) {
+            setAmount("");
+            setQuotes([]);
+            setMode(null);
+            reportTransaction(bridgeTxHash, {
+              protocol: "allbridge",
+              operation: "bridge",
+              asset: tokenIn.symbol,
+              amount: rawAmount,
+            });
+            setExecuteSuccess(bridgeTxHash);
+          }
           return;
         }
 

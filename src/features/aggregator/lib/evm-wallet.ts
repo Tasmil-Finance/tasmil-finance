@@ -29,6 +29,10 @@ const EVM_CHAIN_IDS: Record<string, string> = {
   optimism: "0xa",
   bsc: "0x38",
   avalanche: "0xa86a",
+  sonic: "0x92",
+  celo: "0xa4ec",
+  linea: "0xe708",
+  unichain: "0x82",
 };
 
 // Testnet chain IDs

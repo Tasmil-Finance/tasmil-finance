@@ -162,7 +162,7 @@ export function useWalletTokens(address: string | null | undefined) {
     queryKey: ["profile", "wallet-tokens", address],
     queryFn: () => fetchWalletTokens(address!),
     enabled: !!address,
-    staleTime: 8_000,
-    refetchInterval: 10_000,
+    staleTime: 4_000,
+    refetchInterval: 5_000,
   });
 }

@@ -26,7 +26,7 @@ export function useEvmTokenBalance(
     queryKey: ["evm-token-balance", wallet, tokenAddress, chain],
     queryFn: () => fetchEvmTokenBalance(wallet!, tokenAddress!, chain!, decimals),
     enabled: !!wallet && !!tokenAddress && !!chain,
-    staleTime: 10_000,
-    refetchInterval: 15_000,
+    staleTime: 4_000,
+    refetchInterval: 5_000,
   });
 }
