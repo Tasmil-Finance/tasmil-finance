@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Badge } from "@/shared/ui/badge";
-import { Button } from "@/shared/ui/button-v2";
 import {
   Card,
   CardContent,
@@ -85,22 +84,20 @@ export function PackageCard({ pkg }: PackageCardProps) {
       </CardContent>
 
       <CardFooter className="flex flex-col gap-2 pt-0">
-        <Button
-          asChild
-          variant="gradient"
-          className="w-full"
+        <Link
+          href={cryptoHref}
           data-testid={`package-card-${pkg.id}-buy-crypto`}
+          className="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-3 font-medium text-primary-foreground text-sm transition-colors hover:bg-primary/90"
         >
-          <Link href={cryptoHref}>Buy with crypto</Link>
-        </Button>
-        <Button
-          asChild
-          variant="outline"
-          className="w-full"
+          Buy with crypto
+        </Link>
+        <Link
+          href={fiatHref}
           data-testid={`package-card-${pkg.id}-buy-fiat`}
+          className="inline-flex h-10 w-full items-center justify-center rounded-md border border-input bg-transparent px-3 font-medium text-foreground text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
         >
-          <Link href={fiatHref}>Buy with bank transfer</Link>
-        </Button>
+          Buy with bank transfer
+        </Link>
       </CardFooter>
     </Card>
   );
