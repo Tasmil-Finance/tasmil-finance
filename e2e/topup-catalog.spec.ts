@@ -99,14 +99,16 @@ test.describe("/topup — Pricing catalog", () => {
     expect(errors).toEqual([]);
   });
 
-  test("clicking a CTA navigates without throwing console errors (Phase 2 destination may 404)", async ({ page }) => {
+  test("clicking a CTA lands on the quote loader page (or redirects to login when unauthenticated)", async ({ page }) => {
     const { errors } = attachConsoleSpy(page);
     await page.goto("/topup");
 
     const button = page.getByTestId("package-card-starter-buy-crypto");
     await button.click();
 
-    await page.waitForURL("**/topup/starter/quote/crypto");
+    // Without an auth token the quote loader redirects to /login. With a token it
+    // would POST /api/topup/quote and replace to /topup/<id>/wait. Accept either.
+    await page.waitForURL(/(\/topup\/starter\/quote\/crypto|\/login)/, { timeout: 10_000 });
 
     expect(
       errors,
