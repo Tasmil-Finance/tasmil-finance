@@ -7,4 +7,5 @@ export {
   type CreditReason,
   type CreditSnapshot,
 } from "./use-credits";
-// CreditsPage will be added in Task 9; CreditsPill in Task 10.
+export { CreditsPage } from "./credits-page";
+// CreditsPill will be added in Task 10.
