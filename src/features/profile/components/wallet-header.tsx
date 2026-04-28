@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Copy, Layers, Wallet } from "lucide-react";
 import { useState } from "react";
+import { CreditsPill } from "@/features/credits/credits-pill";
 import { AddressAvatar } from "@/shared/components/connect-wallet-button";
 import { Skeleton } from "@/shared/ui/skeleton";
 
@@ -53,35 +54,38 @@ export function WalletHeader({
       <AddressAvatar address={address} size="size-20" iconSize="size-9" />
 
       <div className="flex flex-col gap-1">
-        <button
-          onClick={handleCopy}
-          className="flex items-center gap-1.5 text-base font-medium text-foreground transition-colors hover:text-muted-foreground"
-        >
-          <span>{shortenAddress(address)}</span>
-          <AnimatePresence mode="wait">
-            {copied ? (
-              <motion.span
-                key="check"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0 }}
-                transition={{ duration: 0.15 }}
-              >
-                <Check className="h-4 w-4 text-primary" />
-              </motion.span>
-            ) : (
-              <motion.span
-                key="copy"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0 }}
-                transition={{ duration: 0.15 }}
-              >
-                <Copy className="h-4 w-4 text-muted-foreground" />
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleCopy}
+            className="flex items-center gap-1.5 text-base font-medium text-foreground transition-colors hover:text-muted-foreground"
+          >
+            <span>{shortenAddress(address)}</span>
+            <AnimatePresence mode="wait">
+              {copied ? (
+                <motion.span
+                  key="check"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <Check className="h-4 w-4 text-primary" />
+                </motion.span>
+              ) : (
+                <motion.span
+                  key="copy"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <Copy className="h-4 w-4 text-muted-foreground" />
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </button>
+          <CreditsPill />
+        </div>
 
         {isLoading ? (
           <div className="flex flex-col gap-2">

@@ -1,11 +1,11 @@
+export { CreditsPage } from "./credits-page";
+export { CreditsPill } from "./credits-pill";
 export {
-  useCredits,
-  useCreditsLedger,
-  creditQueryKey,
   type CreditLedgerEntry,
   type CreditLedgerPage,
   type CreditReason,
   type CreditSnapshot,
+  creditQueryKey,
+  useCredits,
+  useCreditsLedger,
 } from "./use-credits";
-export { CreditsPage } from "./credits-page";
-// CreditsPill will be added in Task 10.
