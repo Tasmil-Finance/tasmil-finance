@@ -28,6 +28,39 @@ const WalletContext = createContext<WalletContextType | undefined>(undefined);
 // Throttle for auto-reauth triggered by 401 events. Prevents sign-prompt storms.
 const AUTO_REAUTH_THROTTLE_MS = 30_000;
 
+// sessionStorage key set by connect() before opening the wallet modal.
+// Signals "user intends to log in fully (sign included), recover the auth
+// step if the connect()'s sign popup is lost to a redirect or popup-blocker."
+// Cleared after the auto-auth effect fires (success OR rejection).
+const AUTH_INTENT_KEY = "tasmil.wallet.auth-intent";
+
+function readAuthIntent(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.sessionStorage.getItem(AUTH_INTENT_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeAuthIntent(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(AUTH_INTENT_KEY, "1");
+  } catch {
+    /* ignore quota / privacy mode */
+  }
+}
+
+function clearAuthIntent(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.removeItem(AUTH_INTENT_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
 export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [address, setAddress] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -49,6 +82,10 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const authInProgressRef = useRef(false);
   // Timestamp of the most recent auto-reauth attempt (for throttling).
   const lastAutoReauthRef = useRef<number>(0);
+  // Set once per address after we've auto-fired the post-restore auth check.
+  // Prevents loops if the user rejects the sign and the catch block resets
+  // authAttemptedRef to null (which would otherwise re-fire the effect).
+  const autoAuthFiredForRef = useRef<string | null>(null);
 
   // Initialize StellarWalletsKit on mount (client-side only)
   useEffect(() => {
@@ -355,16 +392,51 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [openWalletModal]);
 
   const connect = useCallback(async () => {
+    // Mark that the user explicitly wants the full sign-in flow. If the sign
+    // step is interrupted (redirect-based wallet, popup-blocker, etc.) the
+    // recovery effect below picks it up after the page settles.
+    writeAuthIntent();
     try {
       const addr = await openWalletModal();
       await authenticateWithWallet(addr);
+      clearAuthIntent();
     } catch (err) {
       console.error("Failed to connect wallet:", err);
       toast.error("Failed to connect wallet.", {
         description: parseSigningError(err),
       });
+      clearAuthIntent();
     }
   }, [authenticateWithWallet, openWalletModal]);
+
+  // Recover auth when the wallet was connected via connect() but no valid JWT
+  // exists. Only fires when the user explicitly intended to log in (intent
+  // flag in sessionStorage), so plain wallet-only flows and persisted-wallet
+  // page reloads don't surprise the user with a sign prompt.
+  //
+  // The bug this fixes: redirect-or-popup-based wallets (Albedo, web flows)
+  // can complete the address-pick step (walletStore is `connected: true`)
+  // but the subsequent sign popup inside connect()'s authenticateWithWallet
+  // gets dropped — typically because the multi-await chain between the user
+  // gesture and the sign popup loses the gesture context. The user ends up
+  // with a connected wallet but no JWT, gets 401s on protected calls, and
+  // only recovers via the 401-driven re-auth handler. With the intent flag
+  // we can recover proactively.
+  useEffect(() => {
+    if (!kitReady) return;
+    if (!address || !isConnected) return;
+    if (authInProgressRef.current) return;
+    if (autoAuthFiredForRef.current === address) return;
+    if (isAuthValid(address)) {
+      autoAuthFiredForRef.current = address;
+      clearAuthIntent();
+      return;
+    }
+    if (!readAuthIntent()) return;
+    autoAuthFiredForRef.current = address;
+    clearAuthIntent();
+    void authenticateWithWallet(address);
+  }, [kitReady, address, isConnected, isAuthValid, authenticateWithWallet]);
 
   const disconnect = useCallback(async () => {
     try {
@@ -379,6 +451,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     authLogout();
     authAttemptedRef.current = null;
     authInProgressRef.current = false;
+    autoAuthFiredForRef.current = null;
   }, [authLogout, resetWallet]);
 
   const signTransaction = useCallback(
