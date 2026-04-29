@@ -2,8 +2,21 @@ import type { NextConfig } from "next";
 import { getAiProxyRewrites, getBackendProxyRewrites } from "./src/lib/runtime-urls";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["@copilotkit/runtime", "@blend-capital/blend-sdk", "@stellar/stellar-sdk"],
+  serverExternalPackages: [
+    "@copilotkit/runtime",
+    "@blend-capital/blend-sdk",
+    "@stellar/stellar-sdk",
+  ],
   reactStrictMode: false,
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "tasmil-assets.sgp1.cdn.digitaloceanspaces.com",
+        pathname: "/static/**",
+      },
+    ],
+  },
   async rewrites() {
     return [...getBackendProxyRewrites(), ...getAiProxyRewrites()];
   },
