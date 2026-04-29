@@ -79,6 +79,14 @@ export function getBackendProxyRewrites(env: NodeJS.ProcessEnv = process.env): P
       destination: `${backendBaseUrl}/api/account/:path*`,
     },
     {
+      source: "/api/admin/:path*",
+      destination: `${backendBaseUrl}/api/admin/:path*`,
+    },
+    {
+      source: "/api/admin-auth/:path*",
+      destination: `${backendBaseUrl}/api/admin-auth/:path*`,
+    },
+    {
       source: "/api/auth/:path*",
       destination: `${backendBaseUrl}/api/auth/:path*`,
     },

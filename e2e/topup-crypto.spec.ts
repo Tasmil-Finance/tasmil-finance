@@ -113,7 +113,8 @@ async function postTestMatch(
     data: body,
   });
   expect(res.ok(), `test/match HTTP ${res.status()}: ${await res.text()}`).toBeTruthy();
-  return (await res.json()) as TestMatchResult;
+  const json = (await res.json()) as { data?: TestMatchResult } | TestMatchResult;
+  return ("data" in json && json.data ? json.data : json) as TestMatchResult;
 }
 
 async function getLedger(jwt: string): Promise<LedgerRow[]> {
