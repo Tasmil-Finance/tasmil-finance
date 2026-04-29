@@ -130,12 +130,17 @@ export async function run(opts: RunOpts): Promise<{
 
   const manifest = buildManifest(entries, opts.cdnEndpoint);
 
-  // Atomic write: tmp + rename.
-  const tmp = `${opts.manifestPath}.tmp`;
-  await mkdir(join(opts.manifestPath, ".."), { recursive: true });
-  await writeFile(tmp, JSON.stringify(manifest, null, 2));
+  // Atomic write: tmp + rename. Write to two locations:
+  //   1. src/shared/constants/asset-manifest.json (typed import for components)
+  //   2. public/asset-manifest.json              (browser-fetchable for SW install)
+  const targets = [opts.manifestPath, join(opts.publicDir, "asset-manifest.json")];
   const { rename } = await import("node:fs/promises");
-  await rename(tmp, opts.manifestPath);
+  for (const target of targets) {
+    const tmp = `${target}.tmp`;
+    await mkdir(join(target, ".."), { recursive: true });
+    await writeFile(tmp, JSON.stringify(manifest, null, 2));
+    await rename(tmp, target);
+  }
 
   return { uploaded, skipped, manifest };
 }

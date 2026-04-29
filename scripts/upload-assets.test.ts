@@ -1,5 +1,9 @@
 import { Buffer } from "node:buffer";
-import { buildManifest, hashContent, type S3Like, uploadFile } from "./upload-assets";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdir, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { buildManifest, hashContent, run, type S3Like, uploadFile } from "./upload-assets";
 
 describe("hashContent", () => {
   it("produces a 12-char hex hash deterministic per content", () => {
@@ -87,5 +91,45 @@ describe("uploadFile (idempotent)", () => {
 
     expect(result).toBe("uploaded");
     expect(sendMock).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("run() writes manifest to both src + public", () => {
+  let tmp: string;
+
+  beforeEach(() => {
+    tmp = mkdtempSync(join(tmpdir(), "upload-assets-"));
+  });
+
+  afterEach(() => {
+    rmSync(tmp, { recursive: true, force: true });
+  });
+
+  it("emits asset-manifest.json at both manifestPath and publicDir", async () => {
+    const tokenDir = join(tmp, "public", "token");
+    await mkdir(tokenDir, { recursive: true });
+    await writeFile(join(tokenDir, "usdc.png"), Buffer.from("fakepng"));
+
+    const sendMock = jest.fn();
+    sendMock.mockRejectedValueOnce(Object.assign(new Error("nf"), { name: "NotFound" }));
+    sendMock.mockResolvedValueOnce({}); // PUT ok
+
+    const result = await run({
+      publicDir: join(tmp, "public"),
+      manifestPath: join(tmp, "src/shared/constants/asset-manifest.json"),
+      prefixes: [{ dir: "token", key: "tokens" }],
+      bucket: "tasmil-assets",
+      cdnEndpoint: "https://cdn.test",
+      s3: { send: sendMock as never },
+    });
+
+    expect(result.uploaded).toBe(1);
+
+    const fromSrc = JSON.parse(
+      readFileSync(join(tmp, "src/shared/constants/asset-manifest.json"), "utf8")
+    );
+    const fromPublic = JSON.parse(readFileSync(join(tmp, "public/asset-manifest.json"), "utf8"));
+    expect(fromSrc).toEqual(fromPublic);
+    expect(fromSrc.tokens.USDC).toMatch(/\/static\/tokens\/[0-9a-f]{12}\.png$/);
   });
 });
