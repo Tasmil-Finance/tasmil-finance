@@ -6,6 +6,11 @@ export interface NavItem {
   icon?: any;
   badge?: string;
   testnetOnly?: boolean;
+  /**
+   * Mirror the proxy.ts dev-only gate: hide the entry when
+   * NEXT_PUBLIC_APP_ENV !== "development" so the link doesn't 307 to /agents.
+   */
+  devOnly?: boolean;
 }
 
 export interface NavGroup {
@@ -28,12 +33,17 @@ export interface SidebarData {
 }
 
 const isTestnet = process.env["NEXT_PUBLIC_STELLAR_NETWORK"] !== "mainnet";
+const isDev = process.env["NEXT_PUBLIC_APP_ENV"] === "development";
 
 function filterNavGroups(groups: NavGroup[]): NavGroup[] {
   return groups
     .map((group) => ({
       ...group,
-      items: group.items.filter((item) => !item.testnetOnly || isTestnet),
+      items: group.items.filter((item) => {
+        if (item.testnetOnly && !isTestnet) return false;
+        if (item.devOnly && !isDev) return false;
+        return true;
+      }),
     }))
     .filter((group) => group.items.length > 0);
 }
@@ -93,6 +103,8 @@ const _sidebarData: SidebarData = {
           title: "Aggregator",
           url: "/aggregator",
           icon: ArrowLeftRight,
+          // Gated by proxy.ts to NEXT_PUBLIC_APP_ENV=development.
+          devOnly: true,
         },
       ],
     },

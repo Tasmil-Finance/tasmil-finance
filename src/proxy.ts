@@ -28,7 +28,18 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/agents", request.url));
   }
 
-  // Playground, aggregator, dev: development only
+  // Playground, aggregator, dev: development only.
+  //
+  // The aggregator UI (Allbridge multi-chain swap) and the protocol
+  // playgrounds are intentionally gated to non-production environments
+  // while the supported-chain coverage is reverified and the bridge
+  // routing is hardened. Set NEXT_PUBLIC_APP_ENV=development to lift the
+  // gate locally; mainnet/staging containers leave it unset so the route
+  // 307-redirects to /agents.
+  //
+  // To restore the aggregator on mainnet: either set the env var on the
+  // mainnet-frontend container, or remove this branch entirely. Remember
+  // to also un-gate the sidebar entry in shared/layout/sidebar-data.ts.
   const isDev = process.env["NEXT_PUBLIC_APP_ENV"] === "development";
   const isDevOnly =
     pathname === "/playground" || pathname.startsWith("/playground/") ||

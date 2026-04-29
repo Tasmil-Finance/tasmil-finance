@@ -182,9 +182,11 @@ export function WelcomeRewardPage() {
               <Button variant="gradient" onClick={() => router.push("/agents")}>
                 Keep Trading
               </Button>
-              <Button variant="outline" onClick={() => router.push("/aggregator")}>
-                Open Aggregator
-              </Button>
+              {process.env["NEXT_PUBLIC_APP_ENV"] === "development" ? (
+                <Button variant="outline" onClick={() => router.push("/aggregator")}>
+                  Open Aggregator
+                </Button>
+              ) : null}
             </div>
           </CardContent>
         </Card>
