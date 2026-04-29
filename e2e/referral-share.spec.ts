@@ -1,38 +1,27 @@
 /**
- * X-share verify — frontend-to-backend HTTP contract.
+ * X-share verify — frontend dialog → backend HTTP contract.
  *
- * The /profile/referrals page does not yet expose a "Verify share" CTA in
- * the dashboard UI: only the "Share on X" / "Link your X account" entry
- * points exist (referrals-page.tsx). The X-share verify endpoint
- * (`POST /api/referral/verify-share`) is fully wired backend-side; this
- * spec exercises it through the same browser context the user sees.
+ * Drives the `<VerifyShareDialog />` component through the actual DOM:
+ *   1. Mock `/api/referral/me` so the page loads with `xLinked: true`,
+ *      which renders the "Verify your tweet (+30)" button.
+ *   2. Mock `/api/referral/verify-share` to return the scenario-specific
+ *      response (success / X_NOT_LINKED / TWEET_NOT_ELIGIBLE / ALREADY_REDEEMED).
+ *   3. Click the CTA, fill the tweet URL input, click verify, assert the
+ *      visible state (success / error / already-redeemed) inside the dialog.
  *
  * Why mock the BACKEND endpoint (not the AI sidecar):
- *   The plan's first draft proposed `page.route('**\/internal/x/get-tweet')`
- *   to intercept the AI sidecar call. That call fires server-side
- *   (backend → AI HTTP) and never reaches the browser, so `page.route()`
- *   cannot see it. The canonical Playwright pattern for FE flows that
- *   depend on backend logic is to mock the BACKEND endpoint
- *   (`page.route('**\/api/referral/verify-share', ...)`) and let the
- *   upstream chain be covered by lower layers:
+ *   The backend → AI HTTP call fires server-side and never reaches the
+ *   browser, so `page.route('**\/internal/x/get-tweet')` cannot see it.
+ *   Coverage of that upstream chain lives in:
  *     - 9 backend XApiClient unit tests (XV5)
  *     - 9 verifyShare service unit tests (XV8)
  *     - AI sidecar live smoke (XV4)
  *     - Mainnet endpoint smoke (recovery)
- *   That's exactly what this spec does.
- *
- * Why use `page.evaluate(fetch(...))` instead of UI clicks:
- *   No verify-share dialog ships in the FE today. Until the dashboard
- *   adds that surface, we drive the contract from a browser-side fetch
- *   so `page.route()` interception is real (not a `page.request` fake
- *   from Node). When the FE adds a `<VerifyShareDialog />` component,
- *   replace the `evaluate(fetch())` with `getByRole(...).click()` — the
- *   route-handler scaffolding stays identical.
  *
  * Skip behaviour:
  *   `test-login` is gated on `NODE_ENV !== 'production'` in the backend
- *   (auth.controller.ts:57). The mainnet docker stack runs production
- *   so the spec auto-skips there. Locally on dev (NODE_ENV=development,
+ *   (auth.controller.ts:57). The mainnet docker stack runs production so
+ *   the spec auto-skips there. Locally on dev (NODE_ENV=development,
  *   port 6756) it runs and asserts the four scenarios.
  */
 
@@ -51,9 +40,6 @@ interface Session {
 }
 
 async function detectProductionBackend(): Promise<boolean> {
-  // Fire test-login once with a synthetic wallet. The backend rejects with 403
-  // when NODE_ENV=production, regardless of the test runner's own env. This
-  // makes the skip robust against CI environments that forward NODE_ENV.
   try {
     const res = await fetch(`${BACKEND}/api/auth/wallet/test-login`, {
       method: "POST",
@@ -131,48 +117,50 @@ async function loginAsWallet(page: Page, walletAddress: string): Promise<Session
   return { jwt, walletAddress };
 }
 
-interface VerifyShareResult {
-  status: number;
-  ok: boolean;
-  body: unknown;
+interface SnapshotConfig {
+  referralCode: string;
+  totalEarnedCredits: number;
+  joinClaimedAt: string | null;
+  xLinked: boolean;
+  recentEvents: Array<{ kind: string; creditsAwarded: number; occurredAt: string }>;
 }
 
-/**
- * Issue the verify-share request from inside the BROWSER so `page.route()`
- * can intercept it. `page.request.*` would dispatch from Node and bypass
- * route handlers entirely.
- */
-async function callVerifyShareFromBrowser(
-  page: Page,
-  jwt: string,
-  tweetUrl: string
-): Promise<VerifyShareResult> {
-  return page.evaluate(
-    async ({ jwt, tweetUrl }) => {
-      const res = await fetch("/api/referral/verify-share", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          authorization: `Bearer ${jwt}`,
-        },
-        body: JSON.stringify({ tweetUrl }),
-      });
-      let body: unknown;
-      try {
-        body = await res.json();
-      } catch {
-        body = null;
-      }
-      return { status: res.status, ok: res.ok, body };
-    },
-    { jwt, tweetUrl }
-  );
+function buildSnapshotPayload(cfg: SnapshotConfig) {
+  return {
+    success: true,
+    data: cfg,
+  };
 }
 
-test.describe("Referral X-share verify (FE→BE HTTP contract, mocked endpoint)", () => {
-  test("S1: pre-link guard — X_NOT_LINKED returns 403 with reason in body", async ({ page }) => {
-    const { jwt } = await loginAsWallet(page, S1_WALLET);
+async function mockMe(page: Page, getCfg: () => SnapshotConfig) {
+  await page.route("**/api/referral/me", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(buildSnapshotPayload(getCfg())),
+    });
+  });
+}
 
+async function openVerifyShareDialogAndSubmit(page: Page, tweetUrl: string) {
+  await page.getByTestId("referrals-verify-share").click();
+  await expect(page.getByTestId("verify-share-dialog-root")).toBeVisible();
+  await page.getByTestId("verify-share-dialog-tweet-url").fill(tweetUrl);
+  await page.getByTestId("verify-share-dialog-verify").click();
+}
+
+test.describe("Referral X-share verify (FE dialog → BE HTTP contract)", () => {
+  test("S1: backend rejects with X_NOT_LINKED → dialog shows 'Link your X account first'", async ({
+    page,
+  }) => {
+    await loginAsWallet(page, S1_WALLET);
+    await mockMe(page, () => ({
+      referralCode: "XSHARES1",
+      totalEarnedCredits: 0,
+      joinClaimedAt: null,
+      xLinked: true, // CTA must be visible to drive the verify call from the UI
+      recentEvents: [],
+    }));
     await page.route("**/api/referral/verify-share", async (route) => {
       expect(route.request().method()).toBe("POST");
       await route.fulfill({
@@ -188,60 +176,31 @@ test.describe("Referral X-share verify (FE→BE HTTP contract, mocked endpoint)"
     });
 
     await page.goto("/profile/referrals");
-    const result = await callVerifyShareFromBrowser(page, jwt, "https://x.com/me/status/4001");
+    await openVerifyShareDialogAndSubmit(page, "https://x.com/me/status/4001");
 
-    expect(result.status).toBe(403);
-    expect(result.ok).toBe(false);
-    const body = result.body as { message?: string };
-    expect(body.message).toBe("X_NOT_LINKED");
+    const error = page.getByTestId("verify-share-dialog-error");
+    await expect(error).toBeVisible();
+    await expect(error).toContainText(/link your x account/i);
   });
 
-  test("S2: happy path — verify returns credited:true and /me reflects +30 credits", async ({
+  test("S2: happy path — dialog shows '+30 credits earned' and snapshot reflects new event", async ({
     page,
   }) => {
-    const { jwt } = await loginAsWallet(page, S2_WALLET);
+    await loginAsWallet(page, S2_WALLET);
 
-    // The /me endpoint is hit multiple times during page load (React Query
-    // refetch, Strict-Mode double-mount). To assert the post-verify state we
-    // gate the snapshot on a flag that flips only after verify-share resolves.
     let verifyDidSucceed = false;
-    const referralCode = "XSHARES2";
-    const updatedSnapshot = {
-      success: true,
-      data: {
-        referralCode,
-        totalEarnedCredits: 30,
-        joinClaimedAt: new Date().toISOString(),
-        xLinked: true,
-        recentEvents: [
-          {
-            kind: "X_SHARE",
-            creditsAwarded: 30,
-            occurredAt: new Date().toISOString(),
-          },
-        ],
-      },
+    const baseEvent = {
+      kind: "X_SHARE",
+      creditsAwarded: 30,
+      occurredAt: new Date().toISOString(),
     };
-    const initialSnapshot = {
-      success: true,
-      data: {
-        referralCode,
-        totalEarnedCredits: 0,
-        joinClaimedAt: null,
-        xLinked: true,
-        recentEvents: [],
-      },
-    };
-
-    await page.route("**/api/referral/me", async (route) => {
-      const payload = verifyDidSucceed ? updatedSnapshot : initialSnapshot;
-      await route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(payload),
-      });
-    });
-
+    await mockMe(page, () => ({
+      referralCode: "XSHARES2",
+      totalEarnedCredits: verifyDidSucceed ? 30 : 0,
+      joinClaimedAt: new Date().toISOString(),
+      xLinked: true,
+      recentEvents: verifyDidSucceed ? [baseEvent] : [],
+    }));
     await page.route("**/api/referral/verify-share", async (route) => {
       const post = route.request();
       expect(post.method()).toBe("POST");
@@ -250,45 +209,33 @@ test.describe("Referral X-share verify (FE→BE HTTP contract, mocked endpoint)"
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({
-          success: true,
-          data: { credited: true },
-        }),
+        body: JSON.stringify({ success: true, data: { credited: true } }),
       });
       verifyDidSucceed = true;
     });
 
     await page.goto("/profile/referrals");
-    const result = await callVerifyShareFromBrowser(page, jwt, "https://x.com/tester/status/5000");
+    await openVerifyShareDialogAndSubmit(page, "https://x.com/tester/status/5000");
 
-    expect(result.status).toBe(200);
-    expect(result.ok).toBe(true);
-    const body = result.body as { success: boolean; data: { credited: boolean } };
-    expect(body.success).toBe(true);
-    expect(body.data.credited).toBe(true);
+    const success = page.getByTestId("verify-share-dialog-success");
+    await expect(success).toBeVisible();
+    await expect(success).toContainText(/\+30 credits/i);
 
-    // Drive a /me re-fetch from the browser to assert the FE consumes the
-    // updated snapshot (route handler returns +30 on the second call).
-    const meAfter = await page.evaluate(async (jwt) => {
-      const res = await fetch("/api/referral/me", {
-        headers: { authorization: `Bearer ${jwt}` },
-      });
-      return res.json();
-    }, jwt);
-    const meBody = meAfter as {
-      success: boolean;
-      data: {
-        totalEarnedCredits: number;
-        recentEvents: Array<{ kind: string; creditsAwarded: number }>;
-      };
-    };
-    expect(meBody.data.totalEarnedCredits).toBe(30);
-    expect(meBody.data.recentEvents.some((e) => e.kind === "X_SHARE")).toBe(true);
+    // After the dialog invalidates the snapshot query, the page should render
+    // the new total + an X_SHARE row in the events table.
+    await expect(page.getByTestId("referrals-total-credits")).toContainText(/30/);
+    await expect(page.getByTestId("referrals-events-row-X_SHARE")).toBeVisible();
   });
 
-  test("S3: reply rejection — TWEET_NOT_ELIGIBLE returns 403", async ({ page }) => {
-    const { jwt } = await loginAsWallet(page, S3_WALLET);
-
+  test("S3: reply rejection — dialog shows 'replies not allowed' message", async ({ page }) => {
+    await loginAsWallet(page, S3_WALLET);
+    await mockMe(page, () => ({
+      referralCode: "XSHARES3",
+      totalEarnedCredits: 0,
+      joinClaimedAt: null,
+      xLinked: true,
+      recentEvents: [],
+    }));
     await page.route("**/api/referral/verify-share", async (route) => {
       await route.fulfill({
         status: 403,
@@ -296,32 +243,35 @@ test.describe("Referral X-share verify (FE→BE HTTP contract, mocked endpoint)"
         body: JSON.stringify({
           success: false,
           statusCode: 403,
-          message: "TWEET_NOT_ELIGIBLE",
+          message: "TWEET_NOT_ELIGIBLE: replies not allowed",
           path: "/api/referral/verify-share",
         }),
       });
     });
 
     await page.goto("/profile/referrals");
-    const result = await callVerifyShareFromBrowser(page, jwt, "https://x.com/tester/status/6000");
+    await openVerifyShareDialogAndSubmit(page, "https://x.com/tester/status/6000");
 
-    expect(result.status).toBe(403);
-    expect(result.ok).toBe(false);
-    const body = result.body as { message?: string };
-    expect(body.message).toBe("TWEET_NOT_ELIGIBLE");
+    const error = page.getByTestId("verify-share-dialog-error");
+    await expect(error).toBeVisible();
+    await expect(error).toContainText(/replies are not allowed/i);
   });
 
-  test("S4: idempotent replay — second call returns credited:false, reason ALREADY_REDEEMED", async ({
-    page,
-  }) => {
+  test("S4: idempotent replay — second submit shows 'already used' message", async ({ page }) => {
     /**
      * Backend semantics (referral.service.ts:185-198): on unique-constraint
      * violation against `ReferralEvent (userId, sourceId)`, the service
      * RETURNS `{ credited: false, reason: 'ALREADY_REDEEMED' }` with HTTP 200
-     * (not 409). The plan's "409" hint pre-dated the implementation; we
-     * match the shipped contract here.
+     * (not 409).
      */
-    const { jwt } = await loginAsWallet(page, S4_WALLET);
+    await loginAsWallet(page, S4_WALLET);
+    await mockMe(page, () => ({
+      referralCode: "XSHARES4",
+      totalEarnedCredits: 0,
+      joinClaimedAt: null,
+      xLinked: true,
+      recentEvents: [],
+    }));
 
     let verifyCallCount = 0;
     await page.route("**/api/referral/verify-share", async (route) => {
@@ -329,10 +279,7 @@ test.describe("Referral X-share verify (FE→BE HTTP contract, mocked endpoint)"
       const payload =
         verifyCallCount === 1
           ? { success: true, data: { credited: true } }
-          : {
-              success: true,
-              data: { credited: false, reason: "ALREADY_REDEEMED" },
-            };
+          : { success: true, data: { credited: false, reason: "ALREADY_REDEEMED" } };
       await route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -342,18 +289,16 @@ test.describe("Referral X-share verify (FE→BE HTTP contract, mocked endpoint)"
 
     await page.goto("/profile/referrals");
 
-    const tweetUrl = "https://x.com/tester/status/7000";
-    const first = await callVerifyShareFromBrowser(page, jwt, tweetUrl);
-    expect(first.status).toBe(200);
-    expect((first.body as { data: { credited: boolean } }).data.credited).toBe(true);
+    // First submit → success
+    await openVerifyShareDialogAndSubmit(page, "https://x.com/tester/status/7000");
+    await expect(page.getByTestId("verify-share-dialog-success")).toBeVisible();
 
-    const second = await callVerifyShareFromBrowser(page, jwt, tweetUrl);
-    expect(second.status).toBe(200);
-    const secondBody = second.body as {
-      data: { credited: boolean; reason?: string };
-    };
-    expect(secondBody.data.credited).toBe(false);
-    expect(secondBody.data.reason).toBe("ALREADY_REDEEMED");
+    // Close, reopen, submit same URL → already-redeemed
+    await page.getByTestId("verify-share-dialog-close").click();
+    await openVerifyShareDialogAndSubmit(page, "https://x.com/tester/status/7000");
+    const alreadyRedeemed = page.getByTestId("verify-share-dialog-already-redeemed");
+    await expect(alreadyRedeemed).toBeVisible();
+    await expect(alreadyRedeemed).toContainText(/already used/i);
     expect(verifyCallCount).toBe(2);
   });
 });

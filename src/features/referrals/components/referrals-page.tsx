@@ -11,6 +11,7 @@ import { useAuthStore } from "@/store/use-auth";
 import { useReferralSnapshot } from "../hooks/use-referral-snapshot";
 import type { ReferralEvent } from "../lib/fetch-referral";
 import { LinkXDialog } from "./link-x-dialog";
+import { VerifyShareDialog } from "./verify-share-dialog";
 
 const SHARE_BASE_URL = "https://tasmil.finance/r";
 
@@ -59,6 +60,7 @@ export function ReferralsPage() {
   const snapshot = useReferralSnapshot();
   const [copied, setCopied] = useState(false);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [verifyShareDialogOpen, setVerifyShareDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!isAuthed) {
@@ -183,14 +185,24 @@ export function ReferralsPage() {
                   {copied ? "Copied" : "Copy link"}
                 </Button>
                 {xLinked ? (
-                  <Button
-                    data-testid="referrals-share-x"
-                    onClick={handleShareOnX}
-                    disabled={!hasCode}
-                  >
-                    <Share2 />
-                    Share on X
-                  </Button>
+                  <>
+                    <Button
+                      data-testid="referrals-share-x"
+                      onClick={handleShareOnX}
+                      disabled={!hasCode}
+                    >
+                      <Share2 />
+                      Share on X
+                    </Button>
+                    <Button
+                      data-testid="referrals-verify-share"
+                      variant="outline"
+                      onClick={() => setVerifyShareDialogOpen(true)}
+                      disabled={!hasCode}
+                    >
+                      Verify your tweet (+30)
+                    </Button>
+                  </>
                 ) : (
                   <Button
                     data-testid="referrals-link-x"
@@ -280,6 +292,10 @@ export function ReferralsPage() {
       </Card>
 
       <LinkXDialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen} />
+      <VerifyShareDialog
+        open={verifyShareDialogOpen}
+        onOpenChange={setVerifyShareDialogOpen}
+      />
     </main>
   );
 }
