@@ -133,6 +133,7 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.1038.0",
     "@biomejs/biome": "2.2.2",
     "@kubb/cli": "^4.9.3",
     "@kubb/core": "^4.9.3",
