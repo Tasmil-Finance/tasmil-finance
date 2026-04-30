@@ -83,7 +83,7 @@ function NavMenuItem({
 function checkIsActive(pathname: string, item: NavItem) {
   if (pathname === item.url || pathname.split("?")[0] === item.url) return true;
   if (item.url && pathname.startsWith(`${item.url}/`)) return true;
-  // /chat/* routes should highlight Chat menu item
-  if (item.url === "/chat/new" && pathname.startsWith("/chat/")) return true;
+  // /chat/* routes should highlight Agents menu item
+  if (item.url === "/agents" && pathname.startsWith("/chat/")) return true;
   return false;
 }

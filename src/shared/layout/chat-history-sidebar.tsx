@@ -16,9 +16,8 @@ export function ChatHistorySidebar() {
   const params = useParams();
   const { rightSidebarOpen, setRightSidebarOpen } = useMultiSidebar();
 
-  // Get current agent ID from URL (default to supervisor for one-chat-interface)
-  const slug = params.slug as string[] | undefined;
-  const currentAgentId = slug && slug.length === 2 ? slug[0] : "supervisor";
+  // Get current agent ID from URL
+  const currentAgentId = (params.agentId as string) || "staking";
 
   // Use threads from provider
   const { getThreads, threads, setThreads, threadsLoading, setThreadsLoading } = useThreads();
@@ -94,12 +93,12 @@ export function ChatHistorySidebar() {
 
   const handleNewChat = () => {
     setSelectedThreadId(null);
-    router.push("/chat/new");
+    router.push(`/chat/${currentAgentId}/new`);
   };
 
   const handleSelectChat = (chatId: string) => {
     setSelectedThreadId(chatId);
-    router.push(`/chat/${chatId}`);
+    router.push(`/chat/${currentAgentId}/${chatId}`);
   };
 
   const handleRefresh = () => {

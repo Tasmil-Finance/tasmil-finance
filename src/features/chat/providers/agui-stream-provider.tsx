@@ -52,7 +52,7 @@ function AguiStreamSession({
     fetchStateHistory: true,
     onThreadId: (id) => {
       setThreadId(id);
-      window.history.replaceState(null, "", `/chat/${id}`);
+      window.history.replaceState(null, "", `/chat/${assistantId}/${id}`);
 
       // Refresh thread list after a short delay
       setTimeout(() => {

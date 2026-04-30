@@ -62,18 +62,6 @@ import {
   normalizeAllbridgeRoutesFromMcp,
   normalizeAllbridgeTxFromMcp,
 } from "../adapters/allbridge-from-mcp";
-import {
-  normalizeDefindexVaultsFromMcp,
-  normalizeDefindexVaultDetailFromMcp,
-  normalizeDefindexBalanceFromMcp,
-  normalizeDefindexYieldFromMcp,
-  normalizeDefindexTxFromMcp,
-} from "../adapters/defindex-from-mcp";
-import {
-  normalizeVaultsFromSdk,
-  normalizeVaultDetailFromSdk,
-  normalizeVaultBalanceFromSdk,
-} from "../adapters/defindex-from-sdk";
 
 // ─── Registry entry types ───────────────────────────────────────
 
@@ -270,8 +258,6 @@ export const BLEND_OPERATION_CARDS: OperationCardEntry[] = [
   { toolName: "blend_backstop_queue_withdrawal", operation: "backstop_queue", get component() { return getBlendTxCard(); }, fromMcp: normalizeTxFromMcp },
   { toolName: "blend_backstop_dequeue_withdrawal", operation: "backstop_dequeue", get component() { return getBlendTxCard(); }, fromMcp: normalizeTxFromMcp },
   { toolName: "blend_backstop_withdraw", operation: "backstop_withdraw", get component() { return getBlendTxCard(); }, fromMcp: normalizeTxFromMcp },
-  { toolName: "blend_join_comet", operation: "join_comet_pool", get component() { return getBlendTxCard(); }, fromMcp: normalizeTxFromMcp },
-  { toolName: "blend_exit_comet", operation: "exit_comet_pool", get component() { return getBlendTxCard(); }, fromMcp: normalizeTxFromMcp },
 ];
 
 // ─── Aquarius info card registry ────────────────────────────────
@@ -313,7 +299,6 @@ export const AQUARIUS_OPERATION_CARDS: OperationCardEntry[] = [
   { toolName: "aquarius_withdraw_liquidity", operation: "withdraw_liquidity", get component() { return getAquaTxCard(); }, fromMcp: normalizeAquaTxFromMcp },
   { toolName: "aquarius_swap", operation: "swap", get component() { return getAquaTxCard(); }, fromMcp: normalizeAquaTxFromMcp },
   { toolName: "aquarius_claim_rewards", operation: "claim_rewards", get component() { return getAquaTxCard(); }, fromMcp: normalizeAquaTxFromMcp },
-  { toolName: "aquarius_lock_aqua", operation: "lock_aqua", get component() { return getAquaTxCard(); }, fromMcp: normalizeAquaTxFromMcp },
 ];
 
 // ─── Soroswap lazy imports ─────────────────────────────────────
@@ -473,92 +458,10 @@ export const ALLBRIDGE_OPERATION_CARDS: OperationCardEntry[] = [
   { toolName: "allbridge_pool_claim_rewards", operation: "claim-rewards", get component() { return getAllbridgeTxCard(); }, fromMcp: normalizeAllbridgeTxFromMcp },
 ];
 
-// ─── DeFindex lazy imports ──────────────────────────────────────
-
-let _DefindexVaultsCard: ComponentType<any> | null = null;
-let _DefindexVaultDetailCard: ComponentType<any> | null = null;
-let _DefindexBalanceCard: ComponentType<any> | null = null;
-let _DefindexTxCard: ComponentType<any> | null = null;
-let _DefindexYieldCard: ComponentType<any> | null = null;
-
-function getDefindexVaultsCard() {
-  if (!_DefindexVaultsCard) _DefindexVaultsCard = require("../cards/defindex/defindex-vaults-card").DefindexVaultsCard;
-  return _DefindexVaultsCard!;
-}
-function getDefindexVaultDetailCard() {
-  if (!_DefindexVaultDetailCard) _DefindexVaultDetailCard = require("../cards/defindex/defindex-vault-detail-card").DefindexVaultDetailCard;
-  return _DefindexVaultDetailCard!;
-}
-function getDefindexBalanceCard() {
-  if (!_DefindexBalanceCard) _DefindexBalanceCard = require("../cards/defindex/defindex-balance-card").DefindexBalanceCard;
-  return _DefindexBalanceCard!;
-}
-function getDefindexTxCard() {
-  if (!_DefindexTxCard) _DefindexTxCard = require("../cards/defindex/defindex-tx-card").DefindexTxCard;
-  return _DefindexTxCard!;
-}
-function getDefindexYieldCard() {
-  if (!_DefindexYieldCard) _DefindexYieldCard = require("../cards/defindex/defindex-yield-card").DefindexYieldCard;
-  return _DefindexYieldCard!;
-}
-
-// ─── DeFindex info card registry ────────────────────────────────
-
-export const DEFINDEX_INFO_CARDS: InfoCardEntry[] = [
-  {
-    toolName: "vault_list_vaults",
-    type: "defindex_vaults",
-    panelId: "defindex-vaults",
-    get component() { return getDefindexVaultsCard(); },
-    fromSdk: (data) => normalizeVaultsFromSdk(data),
-    fromMcp: (result) => normalizeDefindexVaultsFromMcp(result),
-    cardPropName: "vaults",
-  },
-  {
-    toolName: "vault_get_status",
-    type: "defindex_vault_detail",
-    panelId: "defindex-vault-detail",
-    get component() { return getDefindexVaultDetailCard(); },
-    fromSdk: (data) => normalizeVaultDetailFromSdk(data),
-    fromMcp: (result) => normalizeDefindexVaultDetailFromMcp(result),
-    cardPropName: "vault",
-  },
-  {
-    toolName: "vault_get_user_shares",
-    type: "defindex_balance",
-    panelId: "defindex-balance",
-    get component() { return getDefindexBalanceCard(); },
-    fromSdk: (data) => normalizeVaultBalanceFromSdk(data),
-    fromMcp: (result) => normalizeDefindexBalanceFromMcp(result),
-    cardPropName: "balance",
-  },
-  {
-    toolName: "vault_get_apy",
-    type: "defindex_yield",
-    panelId: "defindex-yield",
-    get component() { return getDefindexYieldCard(); },
-    fromSdk: (data) => {
-      const raw = data as Record<string, unknown>;
-      const opportunities = (raw.opportunities ?? raw.pools ?? raw.vaults ?? []) as unknown[];
-      return Array.isArray(opportunities) ? opportunities : [];
-    },
-    fromMcp: (result) => normalizeDefindexYieldFromMcp(result),
-    cardPropName: "opportunities",
-  },
-];
-
-// ─── DeFindex operation card registry ───────────────────────────
-
-export const DEFINDEX_OPERATION_CARDS: OperationCardEntry[] = [
-  { toolName: "vault_deposit", operation: "vault_deposit", get component() { return getDefindexTxCard(); }, fromMcp: normalizeDefindexTxFromMcp },
-  { toolName: "vault_withdraw", operation: "vault_withdraw", get component() { return getDefindexTxCard(); }, fromMcp: normalizeDefindexTxFromMcp },
-  { toolName: "vault_withdraw_by_amounts", operation: "vault_withdraw_amounts", get component() { return getDefindexTxCard(); }, fromMcp: normalizeDefindexTxFromMcp },
-];
-
 // ─── Combined registries ────────────────────────────────────────
 
-const ALL_INFO_CARDS = [...BLEND_INFO_CARDS, ...AQUARIUS_INFO_CARDS, ...SOROSWAP_INFO_CARDS, ...ALLBRIDGE_INFO_CARDS, ...DEFINDEX_INFO_CARDS];
-const ALL_OPERATION_CARDS = [...BLEND_OPERATION_CARDS, ...AQUARIUS_OPERATION_CARDS, ...SOROSWAP_OPERATION_CARDS, ...ALLBRIDGE_OPERATION_CARDS, ...DEFINDEX_OPERATION_CARDS];
+const ALL_INFO_CARDS = [...BLEND_INFO_CARDS, ...AQUARIUS_INFO_CARDS, ...SOROSWAP_INFO_CARDS, ...ALLBRIDGE_INFO_CARDS];
+const ALL_OPERATION_CARDS = [...BLEND_OPERATION_CARDS, ...AQUARIUS_OPERATION_CARDS, ...SOROSWAP_OPERATION_CARDS, ...ALLBRIDGE_OPERATION_CARDS];
 
 // ─── Lookup helpers ─────────────────────────────────────────────
 

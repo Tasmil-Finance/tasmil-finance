@@ -304,53 +304,6 @@ export const BLEND_RESOLVE_POOL_V2 = [
   },
 ];
 
-// ─── DeFindex ────────────────────────────────────────────────
-
-/** DeFindex vault_list_vaults — list of vaults */
-export const DEFINDEX_VAULT_LIST = [
-  {
-    type: "text",
-    text: JSON.stringify({
-      success: true,
-      protocol: "defindex",
-      vaults: [
-        {
-          address: "CDEF1234567890ABCDEF1234567890ABCDEF1234567890ABCDEF12345",
-          name: "USDC Yield Vault",
-          asset: "USDC",
-          totalSupply: "1500000",
-          tvl: 1500000,
-          apy: 8.5,
-          status: "ok",
-        },
-      ],
-      count: 1,
-    }),
-  },
-];
-
-// ─── SwapBridge ──────────────────────────────────────────────
-
-/** Swap operation result from any protocol */
-export const SWAP_EXECUTE_RESULT = [
-  {
-    type: "text",
-    text: JSON.stringify({
-      success: true,
-      operation: "swap",
-      protocol: "soroswap",
-      tokenIn: "XLM",
-      tokenOut: "USDC",
-      amountIn: "100",
-      amountOut: "27.85",
-      fee: "0.30%",
-      gasEstimate: "0.01 XLM",
-      estimatedTime: "~5 seconds",
-      xdr: "AAAAAgAAAADgj63GHGEWddciCY...",
-    }),
-  },
-];
-
 // ─── Error / edge cases ───────────────────────────────────────
 
 /** MCP error response — no pools found */

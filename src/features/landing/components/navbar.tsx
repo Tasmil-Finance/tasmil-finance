@@ -33,7 +33,7 @@ type SectionId =
   | "faq"
   | "support";
 
-type TabName = "DEMO" | "CHAT" | "DOCS";
+type TabName = "DEMO" | "AGENTS" | "DOCS";
 
 type MainNavbarProps = {
   isMobileMenuOpen: boolean;
@@ -74,7 +74,7 @@ const MainNavbar = ({
     switch (activeTab) {
       case "DEMO":
         return frameworkRef;
-      case "CHAT":
+      case "AGENTS":
         return useCaseRef;
       case "DOCS":
         return rewardRef;
@@ -144,8 +144,8 @@ const MainNavbar = ({
         }
         break;
       }
-      case "CHAT":
-        router.push(PATHS.CHAT_NEW);
+      case "AGENTS":
+        router.push(PATHS.AGENTS);
         break;
       case "DOCS":
         router.push(PATHS.DOCS);
@@ -156,7 +156,7 @@ const MainNavbar = ({
   // Navigation menu items data
   const menuItems = [
     { label: "DEMO" as const, icon: <ArrowUpRight className="h-5 w-5" /> },
-    { label: "CHAT" as const, icon: <ArrowUpRight className="h-5 w-5" /> },
+    { label: "AGENTS" as const, icon: <ArrowUpRight className="h-5 w-5" /> },
     { label: "DOCS" as const, icon: <ArrowUpRight className="h-5 w-5" /> },
   ];
 
@@ -218,22 +218,22 @@ const MainNavbar = ({
           <div className="relative" ref={useCaseRef}>
             <Link
               className="group flex items-center px-4 py-3 transition-all duration-300 hover:bg-white/10"
-              href={`${PATHS.CHAT_NEW}`}
+              href={`${PATHS.AGENTS}`}
               onClick={(e) => {
                 e.preventDefault();
-                handleTabClick("CHAT");
+                handleTabClick("AGENTS");
               }}
             >
               <Typography
                 className={cn(
-                  activeTab === "CHAT"
+                  activeTab === "AGENTS"
                     ? "text-embossed"
                     : "text-submerged group-hover:text-embossed/80",
                   "text-white"
                 )}
                 size="sm"
               >
-                <span className="uppercase transition-colors duration-300">CHAT</span>
+                <span className="uppercase transition-colors duration-300">AGENTS</span>
               </Typography>
             </Link>
           </div>
@@ -293,7 +293,7 @@ const MainNavbar = ({
         <Link
           aria-label="Launch Tasmil Finance"
           className="cursor-pointer"
-          href={PATHS.CHAT_NEW}
+          href={PATHS.AGENTS}
           rel="noopener noreferrer"
           tabIndex={0}
         >

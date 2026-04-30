@@ -13,7 +13,6 @@ import { useWelcomeReward } from "@/features/welcome-reward/hooks/use-welcome-re
 import { useUserStatus, USER_STATUS_KEY, type UserStatus } from "@/shared/hooks/use-user-status";
 import { useSearchAssistantsAssistantsSearchPost } from "@/gen-ai/hooks/use-search-assistants-assistants-search-post";
 import { DO_NOT_RENDER_ID_PREFIX, ensureToolCallsHaveResponses } from "@/lib/ensure-tool-responses";
-import { cancelPendingTxCards } from "@/features/protocols/hooks/use-tx-signing";
 import { kubbClient } from "@/lib/kubb";
 import { cn } from "@/lib/utils";
 import { useWallet } from "@/shared/context/wallet-context";
@@ -226,11 +225,37 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
   const chatTitle = chatId === "new" ? "New Chat" : `Chat with ${config.name}`;
   const isNewChat = messages.length === 0;
 
-  // Use stream.isLoading directly for the stop button. Previous heuristics
-  // (isAiResponseComplete) tried to hide the stop button early but caused
-  // confusing flicker during ReAct loops where text → tool calls → text
-  // alternates rapidly.
-  const effectiveIsLoading = isLoading;
+  // Check if the last AI message is complete (has content and no pending tool calls).
+  // ONLY use this heuristic AFTER firstTokenReceived has been stable for a bit —
+  // during active streaming the last AI message flickers between "has content / no
+  // tool calls" and "has tool calls" as model calls interleave, which causes the
+  // stop button to disappear and reappear confusingly.
+  const lastAiMessage = messages.filter((m) => m.type === "ai").pop();
+  const hasToolCalls =
+    lastAiMessage &&
+    "tool_calls" in lastAiMessage &&
+    Array.isArray(lastAiMessage.tool_calls) &&
+    lastAiMessage.tool_calls.length > 0;
+
+  // Only consider "complete" when the last AI message has content, NO tool calls,
+  // AND there are no in-flight tool results (which would trigger another model call).
+  const hasPendingToolResults = messages.some(
+    (m) => m.type === "ai" && (m as any).tool_calls?.length > 0
+      && !messages.some(
+        (tm) => tm.type === "tool" && (m as any).tool_calls?.some(
+          (tc: any) => tc.id === (tm as any).tool_call_id,
+        ),
+      ),
+  );
+  const isAiResponseComplete =
+    lastAiMessage &&
+    !hasToolCalls &&
+    !hasPendingToolResults &&
+    (typeof lastAiMessage.content === "string" ? lastAiMessage.content.length > 0 : true);
+
+  // Effective loading state - consider AI response complete as "not loading" for UI purposes
+  // This helps avoid the 3-5s delay where stream.isLoading is still true after AI finishes
+  const effectiveIsLoading = isLoading && !(isAiResponseComplete && firstTokenReceived);
 
   // Show greeting only before the first user message.
   // Let exit animation handle the transition out on first submit.
@@ -425,11 +450,6 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if ((input.trim().length === 0 && contentBlocks.length === 0) || composerBlocked || effectiveIsLoading) return;
-
-    // Auto-cancel any pending TX cards — user moved on without signing.
-    // Only writes to sessionStorage (local UI state), no backend message.
-    cancelPendingTxCards(messages as any);
-
     setFirstTokenReceived(false);
     setIsSubmitting(true);
 
@@ -564,9 +584,6 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
 
   const handleSendSuggestion = (text: string) => {
     if (!text.trim() || composerBlocked || effectiveIsLoading) return;
-
-    cancelPendingTxCards(messages as any);
-
     setFirstTokenReceived(false);
     setIsSubmitting(true);
 
@@ -630,7 +647,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
 
       {/* Header - no border */}
       <header className="relative z-10 flex shrink-0 items-center gap-3 px-4 py-3">
-        <Button className="h-8 w-8 p-0" onClick={() => router.push("/chat/new")} variant="outline">
+        <Button className="h-8 w-8 p-0" onClick={() => router.push("/agents")} variant="outline">
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <span className="font-semibold text-foreground text-lg">{chatTitle}</span>

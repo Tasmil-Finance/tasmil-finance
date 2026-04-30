@@ -497,31 +497,16 @@ export function useAguiStream(config: AguiStreamConfig): StreamContextType {
               }
             },
             onToolCallResultEvent: ({ event }) => {
-              // Deduplicate: skip if we already have a meaningful result.
-              // If existing result is empty but new one has content, replace it.
-              const existingIdx = messagesRef.current.findIndex(
+              // Deduplicate: skip if we already have a tool result for this tool_call_id
+              const alreadyHasResult = messagesRef.current.some(
                 (m) => m.type === "tool" && (m as any).tool_call_id === event.toolCallId,
               );
-              const newContent = event.content ?? "";
-
-              if (existingIdx >= 0) {
-                const existing = messagesRef.current[existingIdx] as any;
-                const existingContent = existing.content ?? "";
-                // Only replace if existing is empty/short and new has real data
-                if (existingContent.length >= newContent.length) return;
-                messagesRef.current[existingIdx] = {
-                  ...existing,
-                  content: newContent,
-                  id: event.messageId || existing.id,
-                } as unknown as Message;
-                setMessages([...messagesRef.current]);
-                return;
-              }
+              if (alreadyHasResult) return;
 
               const toolMsg: Message = {
                 id: event.messageId || `tool-${event.toolCallId}`,
                 type: "tool",
-                content: newContent,
+                content: event.content ?? "",
                 tool_call_id: event.toolCallId,
               } as unknown as Message;
               messagesRef.current.push(toolMsg);

@@ -69,7 +69,7 @@ export function WelcomeRewardPage() {
               <Button onClick={() => void refetch()} variant="outline">
                 Retry
               </Button>
-              <Link href="/chat/new">
+              <Link href="/agents">
                 <Button>Back To Chat</Button>
               </Link>
             </div>
@@ -83,7 +83,7 @@ export function WelcomeRewardPage() {
     <div className="mx-auto max-w-5xl px-4 py-8 lg:px-6 lg:py-10">
       <div className="mb-6 space-y-3">
         <Link
-          href="/chat/new"
+          href="/agents"
           className="inline-flex items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -179,7 +179,7 @@ export function WelcomeRewardPage() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <Button variant="gradient" onClick={() => router.push("/chat/new")}>
+              <Button variant="gradient" onClick={() => router.push("/agents")}>
                 Keep Trading
               </Button>
               {process.env["NEXT_PUBLIC_APP_ENV"] === "development" ? (

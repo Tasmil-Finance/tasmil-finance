@@ -118,8 +118,6 @@ export const INFO_TOOL_RENDERERS: Array<{
   // Allbridge
   { toolName: "allbridge_get_routes", type: "allbridge_routes", component: BridgeDiscoveryCard },
   { toolName: "allbridge_get_quote", type: "allbridge_quote", component: BridgeDiscoveryCard },
-  { toolName: "allbridge_pool_deposit_quote", type: "allbridge_deposit_quote", component: PoolInfoCard },
-  { toolName: "allbridge_pool_withdraw_quote", type: "allbridge_withdraw_quote", component: PoolInfoCard },
 
   // Templar
   { toolName: "templar_get_markets", type: "market_list", component: PoolInfoCard },
@@ -133,14 +131,10 @@ export const INFO_TOOL_RENDERERS: Array<{
   },
   { toolName: "templar_get_pending_yield", type: "pending_yield", component: AccountInfoCard },
 
-  // Blend (additional)
-  { toolName: "blend_get_borrow_capacity", type: "blend_borrow_cap", component: PoolInfoCard },
-
   // DeFindex
   { toolName: "vault_get_status", type: "vault_info", component: PoolInfoCard },
   { toolName: "vault_get_user_shares", type: "user_shares", component: AccountInfoCard },
   { toolName: "vault_list_vaults", type: "vault_list", component: PoolInfoCard },
-  { toolName: "vault_get_apy", type: "vault_apy", component: PoolInfoCard },
 
   // Yield / Research
   { toolName: "discover", type: "earn_discovery", component: EarnDiscoveryCard },
@@ -227,7 +221,6 @@ export const OPERATION_TOOL_RENDERERS: Array<{
   // DeFindex
   { toolName: "vault_deposit", operation: "vault_deposit", component: StellarExecuteCard },
   { toolName: "vault_withdraw", operation: "vault_withdraw", component: StellarExecuteCard },
-  { toolName: "vault_withdraw_by_amounts", operation: "vault_withdraw_by_amounts", component: StellarExecuteCard },
 ];
 
 // ---------------------------------------------------------------------------
@@ -374,8 +367,6 @@ const BLEND_OPS_RAW = [
   { toolName: "blend_backstop_queue_withdrawal", operation: "backstop_queue" },
   { toolName: "blend_backstop_dequeue_withdrawal", operation: "backstop_dequeue" },
   { toolName: "blend_backstop_withdraw", operation: "backstop_withdraw" },
-  { toolName: "blend_join_comet", operation: "join_comet_pool" },
-  { toolName: "blend_exit_comet", operation: "exit_comet_pool" },
 ] as const;
 
 export const BLEND_SHARED_OPERATIONS = BLEND_OPS_RAW.map((op) => ({
@@ -559,27 +550,14 @@ export const EXECUTE_DISPATCHER = {
 // `stream.submit`. This starts a new agent turn with the selection context.
 // ---------------------------------------------------------------------------
 
-/** Try to find a clarify_response message AFTER this tool call to restore selection state. */
+/** Try to find a clarify_response message in the stream to restore selection state. */
 function usePreviousClarifyResponse(
   questions: { field_name: string; input_type: string; suggestions?: { label: string; value: Record<string, unknown> }[] }[],
-  toolCallId?: string,
 ) {
   const stream = useStreamContext();
   return useMemo(() => {
-    const msgs = stream.messages ?? [];
-
-    // Find the index of the tool message for this specific tool call.
-    // Only match clarify_response messages that come AFTER it.
-    let startIdx = 0;
-    if (toolCallId) {
-      const toolIdx = msgs.findIndex(
-        (m) => m.type === "tool" && (m as any).tool_call_id === toolCallId,
-      );
-      if (toolIdx >= 0) startIdx = toolIdx + 1;
-    }
-
-    for (let i = startIdx; i < msgs.length; i++) {
-      const m = msgs[i]!;
+    // Scan messages for a human message containing clarify_response JSON
+    for (const m of (stream.messages ?? [])) {
       if (m.type !== "human") continue;
       const content = typeof m.content === "string" ? m.content : "";
       if (!content.includes("clarify_response")) continue;
@@ -590,6 +568,7 @@ function usePreviousClarifyResponse(
         const answers: Record<string, unknown> = {};
         for (const q of questions) {
           if (q.input_type === "select" && q.suggestions) {
+            // Find which suggestion matches the payload values
             const match = q.suggestions.find((s) =>
               Object.entries(s.value).every(([k, v]) => parsed[k] === v),
             );
@@ -604,14 +583,13 @@ function usePreviousClarifyResponse(
       }
     }
     return null;
-  }, [stream.messages, questions, toolCallId]);
+  }, [stream.messages, questions]);
 }
 
 /** Unified ClarifyCard wrapper — handles both single and multi-question flows. */
 function FlowClarifyCardWithStream({
   questions,
   context,
-  toolCallId,
 }: {
   questions: {
     field_name: string;
@@ -621,11 +599,10 @@ function FlowClarifyCardWithStream({
     placeholder?: string;
   }[];
   context?: Record<string, unknown>;
-  toolCallId?: string;
 }) {
   const stream = useStreamContext();
   const walletAddress = useWalletStore((s) => s.account);
-  const previousAnswers = usePreviousClarifyResponse(questions, toolCallId);
+  const previousAnswers = usePreviousClarifyResponse(questions);
   const [sent, setSent] = useState(!!previousAnswers);
 
   const handleSubmit = useCallback(
@@ -803,7 +780,7 @@ export const FLOW_TOOL_RENDERERS: Array<{
       }
 
       const context = (data._context ?? {}) as Record<string, unknown>;
-      return <FlowClarifyCardWithStream questions={questions} context={context} toolCallId={props.toolCallId} />;
+      return <FlowClarifyCardWithStream questions={questions} context={context} />;
     },
   },
   {

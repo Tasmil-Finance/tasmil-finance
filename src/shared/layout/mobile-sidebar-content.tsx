@@ -59,7 +59,7 @@ export function MobileSidebarContent({ onClose }: { onClose?: () => void }) {
       {/* Header */}
       <div className="flex-shrink-0 p-4">
         <Link
-          href="/chat/new"
+          href="/agents"
           className="flex items-center gap-2"
           {...(onClose && { onClick: onClose })}
         >
@@ -96,7 +96,7 @@ export function MobileSidebarContent({ onClose }: { onClose?: () => void }) {
                 const isActive =
                   pathname === item.url ||
                   pathname.startsWith(`${item.url}/`) ||
-                  (item.url === "/chat/new" && pathname.startsWith("/chat/"));
+                  (item.url === "/agents" && pathname.startsWith("/chat/"));
                 return (
                   <Link
                     key={item.url}

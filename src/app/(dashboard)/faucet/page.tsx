@@ -17,7 +17,7 @@ const STELLAR_EXPERT = "https://stellar.expert/explorer";
 
 export default function FaucetPage() {
   if (!isTestnet) {
-    redirect("/chat/new");
+    redirect("/agents");
   }
   const { address, isConnected, displayAddress, disconnect } = useWallet();
   const [loading, setLoading] = useState(false);

@@ -131,7 +131,7 @@ export const HeroSection = () => {
               <Link
                 aria-label="Launch Tasmil Finance"
                 className="cursor-pointer"
-                href={PATHS.CHAT_NEW}
+                href={PATHS.AGENTS}
                 rel="noopener noreferrer"
                 tabIndex={0}
               >
@@ -183,7 +183,7 @@ export const HeroSection = () => {
                 <Link
                   aria-label="Launch Tasmil Finance"
                   className="cursor-pointer"
-                  href={PATHS.CHAT_NEW}
+                  href={PATHS.AGENTS}
                   rel="noopener noreferrer"
                   tabIndex={0}
                 >

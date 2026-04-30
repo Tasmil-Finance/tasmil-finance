@@ -25,7 +25,7 @@ export function proxy(request: NextRequest) {
   // Faucet: testnet only
   const isTestnet = process.env["NEXT_PUBLIC_STELLAR_NETWORK"] === "testnet";
   if ((pathname === "/faucet" || pathname.startsWith("/faucet/")) && !isTestnet) {
-    return NextResponse.redirect(new URL("/chat/new", request.url));
+    return NextResponse.redirect(new URL("/agents", request.url));
   }
 
   // Playground, aggregator, dev: development only.
@@ -47,7 +47,7 @@ export function proxy(request: NextRequest) {
     pathname === "/dev" || pathname.startsWith("/dev/");
 
   if (isDevOnly && !isDev) {
-    return NextResponse.redirect(new URL("/chat/new", request.url));
+    return NextResponse.redirect(new URL("/agents", request.url));
   }
 
   return NextResponse.next();

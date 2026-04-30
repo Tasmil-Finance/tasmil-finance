@@ -33,44 +33,6 @@ const sessionTxCache = {
   },
 };
 
-/**
- * Auto-cancel all pending TX cards by scanning messages for operation tool
- * calls that haven't been resolved yet. Writes "cancelled" to sessionStorage
- * so cards show "Transaction cancelled" on next render. Does NOT send any
- * message to the backend — purely local UI state.
- */
-export function cancelPendingTxCards(messages: Array<{ type: string; tool_calls?: Array<{ id: string; name: string }> }>): void {
-  // Known operation tool names that produce TX cards
-  const TX_TOOL_NAMES = new Set([
-    "blend_deposit", "blend_borrow", "blend_repay", "blend_withdraw",
-    "blend_toggle_collateral", "blend_claim_emissions",
-    "blend_backstop_deposit", "blend_backstop_queue_withdrawal",
-    "blend_backstop_dequeue_withdrawal", "blend_backstop_withdraw",
-    "blend_join_comet", "blend_exit_comet",
-    "aquarius_add_liquidity", "aquarius_withdraw_liquidity",
-    "aquarius_swap", "aquarius_claim_rewards", "aquarius_lock_aqua",
-    "execute", "flow_compose_and_execute",
-    "swap_build_transaction", "swap_add_liquidity", "swap_remove_liquidity",
-    "sdex_swap", "phoenix_swap", "phoenix_provide_liquidity",
-    "phoenix_withdraw_liquidity", "phoenix_stake_bond", "phoenix_stake_unbond",
-    "phoenix_stake_claim_rewards",
-    "vault_deposit", "vault_withdraw",
-    "bridge_build_transaction", "allbridge_build_transaction",
-    "execute_swap", "execute_bridge", "execute_earn", "execute_lending",
-  ]);
-
-  for (const msg of messages) {
-    if (msg.type !== "ai" || !msg.tool_calls?.length) continue;
-    for (const tc of msg.tool_calls) {
-      if (!TX_TOOL_NAMES.has(tc.name)) continue;
-      // Skip if already resolved (success or cancelled)
-      if (sessionTxCache.has(tc.id)) continue;
-      // Mark as cancelled in local cache
-      sessionTxCache.set(tc.id, { success: false, message: "Transaction cancelled" });
-    }
-  }
-}
-
 interface TxSigningOptions {
   mode: CardMode;
   /** LangGraph stream context (chat mode only). */

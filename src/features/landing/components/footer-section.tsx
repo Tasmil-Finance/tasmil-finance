@@ -93,7 +93,7 @@ export function FooterSection() {
 
           <Button
             className="group relative flex transform items-center overflow-hidden rounded-lg bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] p-1 transition-all duration-300 hover:scale-105 hover:from-[#C5F0FF] hover:to-[#1CCFFF]"
-            onClick={() => router.push(PATHS.CHAT_NEW)}
+            onClick={() => router.push(PATHS.AGENTS)}
             style={{
               boxShadow: "0 0 15px rgba(181, 234, 255, 0.5)",
             }}
