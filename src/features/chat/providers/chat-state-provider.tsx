@@ -14,6 +14,8 @@ interface ChatStateContextType {
   setAssistantInfo: (info: AssistantInfo | null) => void;
   agentId: string | undefined;
   setAgentId: (id: string | undefined) => void;
+  threadTitle: string | null;
+  setThreadTitle: (title: string | null) => void;
 }
 
 const ChatStateContext = createContext<ChatStateContextType | undefined>(undefined);
@@ -34,6 +36,7 @@ export function ChatStateProvider({
   const [chatHistoryOpen, setChatHistoryOpen] = useState(false);
   const [assistantInfo, setAssistantInfo] = useState<AssistantInfo | null>(null);
   const [agentId, setAgentId] = useState<string | undefined>(initialAgentId);
+  const [threadTitle, setThreadTitle] = useState<string | null>(null);
 
   const handleSetChatHistoryOpen = useCallback((value: boolean | ((prev: boolean) => boolean)) => {
     if (typeof value === "function") {
@@ -56,6 +59,8 @@ export function ChatStateProvider({
         setAssistantInfo,
         agentId,
         setAgentId,
+        threadTitle,
+        setThreadTitle,
       }}
     >
       {children}

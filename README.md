@@ -15,7 +15,7 @@ Frontend application for Tasmil Finance.
 - TailwindCSS 4
 - Radix UI
 - TanStack Query
-- CopilotKit
+- AG-UI
 - Kubb-generated API hooks
 
 ## Directory Highlights

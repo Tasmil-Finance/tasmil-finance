@@ -4,7 +4,7 @@
  *
  * Used by both:
  *   - Playground: query-panel.tsx result rendering
- *   - Chat: use-defi-tool-renderers.tsx CopilotKit registration
+ *   - Chat: use-defi-tool-renderers.tsx tool registration
  */
 
 import type { ComponentType } from "react";

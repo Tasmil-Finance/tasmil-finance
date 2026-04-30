@@ -7,8 +7,10 @@ const nextConfig: NextConfig = {
     "@blend-capital/blend-sdk",
     "@stellar/stellar-sdk",
   ],
+  compress: false,
   reactStrictMode: false,
   images: {
+    qualities: [75, 80, 85, 90],
     remotePatterns: [
       {
         protocol: "https",

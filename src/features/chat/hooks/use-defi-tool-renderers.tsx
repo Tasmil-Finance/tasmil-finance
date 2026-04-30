@@ -49,7 +49,7 @@ import {
  */
 
 // ---------------------------------------------------------------------------
-// Helper to adapt CopilotKit render props to our card component props
+// Helper to adapt render props to our card component props
 // ---------------------------------------------------------------------------
 
 type RenderProps = {

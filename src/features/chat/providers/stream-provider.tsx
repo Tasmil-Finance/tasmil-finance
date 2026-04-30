@@ -157,7 +157,8 @@ const StreamSession = ({
   return <StreamContext.Provider value={streamValue}>{children}</StreamContext.Provider>;
 };
 
-export const StreamProvider: React.FC<{
+/** @deprecated Use StreamProvider from agui-stream-provider instead. */
+export const LangGraphStreamProvider: React.FC<{
   children: ReactNode;
   agentId?: string;
 }> = ({ children, agentId }) => {

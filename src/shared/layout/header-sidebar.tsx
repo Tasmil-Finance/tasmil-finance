@@ -39,9 +39,9 @@ export function HeaderSidebar({
         {!isCollapsed && (
           <div className="ml-1 grid flex-1 gap-1 text-left leading-tight">
             <div className="flex items-center gap-2">
-              <Typography className="font-semibold text-xl" gradient>
+              <span className="animate-shimmer-text bg-gradient-to-r from-[#b5eaff] via-white to-[#00bfff] bg-clip-text text-transparent bg-[length:200%_100%] font-semibold text-xl">
                 {header.brand_name}
-              </Typography>
+              </span>
               <Badge
                 className="h-4 rounded-full border-0 bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] px-1.5 py-0 font-bold text-[8px] text-black"
                 variant="outline"

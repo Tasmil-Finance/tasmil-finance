@@ -9,6 +9,7 @@ export const PATHS = {
   PROFILE: "/profile",
   COMMUNITY: "/community",
   AGENTS: "/agents",
+  CHAT_NEW: "/chat/new",
   STRATEGIES: "/strategies",
   DEMO: "/demo",
   DEFI_AGENT: "/defi-agent",

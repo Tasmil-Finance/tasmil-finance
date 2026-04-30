@@ -13,8 +13,10 @@ interface ChatProviderProps {
 }
 
 /**
- * Main chat provider that combines all chat-related providers
+ * Main chat provider that combines all chat-related providers.
  * Order matters: ChatState → Thread → Stream → Artifact
+ *
+ * Uses AG-UI protocol for streaming (HttpAgent → /agui/{graphId}).
  */
 export function ChatProvider({ children, agentId, chatId }: ChatProviderProps) {
   const initialThreadId = chatId === null ? null : chatId;

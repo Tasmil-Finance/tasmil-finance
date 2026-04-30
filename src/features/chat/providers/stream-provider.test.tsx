@@ -1,5 +1,5 @@
 import { render } from "@testing-library/react";
-import { StreamProvider } from "./stream-provider";
+import { LangGraphStreamProvider } from "./stream-provider";
 
 const useStreamMock = jest.fn((_config?: unknown) => ({
   messages: [],
@@ -54,7 +54,7 @@ jest.mock("../lib/client", () => ({
   }),
 }));
 
-describe("StreamProvider", () => {
+describe("LangGraphStreamProvider", () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_AI_URL = "http://ai.local";
     useStreamMock.mockClear();
@@ -63,9 +63,9 @@ describe("StreamProvider", () => {
 
   it("passes JWT and wallet headers into useStream", () => {
     render(
-      <StreamProvider agentId="supervisor">
+      <LangGraphStreamProvider agentId="supervisor">
         <div>child</div>
-      </StreamProvider>
+      </LangGraphStreamProvider>
     );
 
     expect(useStreamMock).toHaveBeenCalledWith(
@@ -81,9 +81,9 @@ describe("StreamProvider", () => {
 
   it("checks graph status through the same-origin info route", () => {
     render(
-      <StreamProvider agentId="supervisor">
+      <LangGraphStreamProvider agentId="supervisor">
         <div>child</div>
-      </StreamProvider>
+      </LangGraphStreamProvider>
     );
 
     expect(global.fetch).toHaveBeenCalledWith(

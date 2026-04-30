@@ -41,7 +41,7 @@ interface TxSigningOptions {
   toolCallId?: string;
   /** Operation name for logging/persistence. */
   operation?: string;
-  /** CopilotKit respond callback (chat mode only). */
+  /** Respond callback for chat mode (notifies the agent of TX result). */
   respond?: (result: Record<string, unknown>) => void;
   /** Volume tracking context — protocol, asset, amount for reward tracking. */
   volumeContext?: TrackVolumeContext;
@@ -126,7 +126,7 @@ export function useTxSigning(options: TxSigningOptions): TxSigningResult {
             const hash = submitData.hash ?? "Submitted";
             cacheTxResult({ success: true, hash, message: "Transaction successful!" });
             reportTransaction(hash, volumeContext);
-            // Notify CopilotKit that the TX was already submitted (prevents agent re-submit)
+            // Notify the agent that the TX was already submitted (prevents agent re-submit)
             respond?.({ success: true, hash });
             return { success: true, hash };
           }

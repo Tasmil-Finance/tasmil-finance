@@ -45,7 +45,7 @@ export const shouldFilterMessage = (
   }
 
   // Filter intermediate tool-only messages, BUT keep them if a tool result
-  // exists in the messages (so the CopilotKitToolCallRenderer can show cards).
+  // exists in the messages (so the ToolCallRenderer can show cards).
   if (hasToolCalls && !content) {
     // Check if any tool result exists for these tool calls — if so, keep for card rendering.
     // Use fullMessages (includes tool-type messages) since allMessages has them filtered out.

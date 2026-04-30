@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
       sdk.aquarius.getShareInfo(poolAddress),
     ]);
 
-    console.log("Aquarius position data", { sharesRaw, shareInfo, tokensStr, reserves });
+    // Position data fetched from on-chain
     const sharesBig = sharesRaw ?? 0n;
     const totalSharesBig = shareInfo.totalShares ?? 0n;
     const hasPosition = sharesBig > 0n;

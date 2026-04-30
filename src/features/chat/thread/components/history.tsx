@@ -20,8 +20,13 @@ function ThreadList({
   return (
     <div className="flex h-full w-full flex-col items-start justify-start gap-2 overflow-y-scroll [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5">
       {threads.map((t) => {
-        let itemText = t.thread_id;
+        const metadataTitle =
+          t.metadata && typeof t.metadata === "object" && "title" in t.metadata
+            ? String((t.metadata as Record<string, unknown>).title)
+            : null;
+        let itemText = metadataTitle || t.thread_id;
         if (
+          !metadataTitle &&
           typeof t.values === "object" &&
           t.values &&
           "messages" in t.values &&

@@ -35,7 +35,11 @@ export function ChatHistorySidebar() {
 
   // Convert threads to chat history format
   const chatHistory = threads.map((t: Thread) => {
-    let title = t.thread_id;
+    const metadataTitle =
+      t.metadata && typeof t.metadata === "object" && "title" in t.metadata
+        ? String((t.metadata as Record<string, unknown>).title)
+        : null;
+    let title = metadataTitle || t.thread_id;
     let lastMessage = "";
 
     if (
@@ -45,8 +49,10 @@ export function ChatHistorySidebar() {
       Array.isArray(t.values.messages) &&
       t.values.messages?.length > 0
     ) {
-      const firstMessage = t.values.messages[0];
-      title = getContentString(firstMessage.content);
+      if (!metadataTitle) {
+        const firstMessage = t.values.messages[0];
+        title = getContentString(firstMessage.content);
+      }
 
       const lastMsg = t.values.messages[t.values.messages.length - 1];
       lastMessage = getContentString(lastMsg.content);
