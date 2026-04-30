@@ -6,21 +6,22 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { TokenImage } from "@/shared/components/token-image";
+import { PROTOCOL_ICONS as CDN_PROTOCOL_ICONS } from "@/shared/constants/asset-manifest";
 import { cn } from "@/lib/utils";
 import type { ProtocolPositionGroup, PositionItem } from "../hooks/use-defi-positions";
 
 // ─── Protocol icon mapping ───────────────────────────────────────────────────
 
 const PROTOCOL_ICONS: Record<string, string> = {
-  "tasmil-vault": "/protocols/tasmil.png",
-  blend:      "/protocols/blend.svg",
-  soroswap:   "/protocols/soroswap.svg",
-  aquarius:   "/protocols/aquarius.svg",
-  phoenix:    "/protocols/phoenix.svg",
-  defindex:   "/protocols/defindex.svg",
-  sdex:       "/protocols/sdex.svg",
-  templar:    "/protocols/templar.svg",
-  allbridge:  "/protocols/allbridge.svg",
+  "tasmil-vault": CDN_PROTOCOL_ICONS.tasmil!,
+  blend:      CDN_PROTOCOL_ICONS.blend!,
+  soroswap:   CDN_PROTOCOL_ICONS.soroswap!,
+  aquarius:   CDN_PROTOCOL_ICONS.aquarius!,
+  phoenix:    CDN_PROTOCOL_ICONS.phoenix!,
+  defindex:   CDN_PROTOCOL_ICONS.defindex!,
+  sdex:       CDN_PROTOCOL_ICONS.sdex!,
+  templar:    CDN_PROTOCOL_ICONS.templar!,
+  allbridge:  CDN_PROTOCOL_ICONS.allbridge!,
 };
 
 function getProtocolIcon(protocol: string): string | null {

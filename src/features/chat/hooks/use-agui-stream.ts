@@ -384,7 +384,18 @@ export function useAguiStream(config: AguiStreamConfig): StreamContextType {
                 threadIdRef.current = threadId;
                 config.onThreadId?.(threadId);
               }
-              config.onFirstResponse?.();
+
+              // Generate conversation title from first human message
+              if (config.onFirstResponse) {
+                const firstHuman = messagesRef.current.find((m) => m.type === "human");
+                if (firstHuman) {
+                  const text = typeof firstHuman.content === "string" ? firstHuman.content : "";
+                  const cleaned = text.replace(/\s+/g, " ").trim();
+                  if (cleaned) {
+                    config.onFirstResponse(cleaned.slice(0, 50) + (cleaned.length > 50 ? "..." : ""));
+                  }
+                }
+              }
             },
             onRunFailed: ({ error: err }) => {
               setIsLoading(false);

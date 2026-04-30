@@ -70,7 +70,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const { toggleRightSidebar } = useMultiSidebar();
+  const { toggleRightSidebar, rightSidebarOpen } = useMultiSidebar();
   const [firstTokenReceived, setFirstTokenReceived] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [userScrolledUp, setUserScrolledUp] = useState(false);
@@ -207,7 +207,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
   }, [agentId, searchAssistants, setAssistantInfo]);
 
   const agentConfig = getAgentConfig(agentId);
-  const { threadTitle, setThreadTitle } = useChatState();
+  const { threadTitle } = useChatState();
 
   // Derive chat title: thread metadata title > agent name
   const targetTitle = threadTitle ?? agentConfig.name;
@@ -465,12 +465,6 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
     // Add user message to cache immediately for instant display
     messagesCache.current = [...messagesCache.current, newHumanMessage];
 
-    // Set conversation title from first user message immediately
-    if (messagesCache.current.filter((m) => m.type === "human").length === 1 && input.trim()) {
-      const title = input.trim().replace(/\s+/g, " ").slice(0, 50);
-      setThreadTitle(title);
-    }
-
     // Force re-render to show user message immediately
     forceUpdate({});
 
@@ -587,12 +581,6 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
     // Add user message to cache immediately for instant display
     messagesCache.current = [...messagesCache.current, newHumanMessage];
 
-    // Set conversation title from first user message immediately
-    if (messagesCache.current.filter((m) => m.type === "human").length === 1 && text.trim()) {
-      const title = text.trim().replace(/\s+/g, " ").slice(0, 50);
-      setThreadTitle(title);
-    }
-
     // Force re-render to show user message immediately
     forceUpdate({});
 
@@ -636,36 +624,40 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
         </Button>
         <span className="font-semibold text-foreground text-lg">{displayTitle}</span>
         <div className="ml-auto flex items-center gap-1">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                className="h-9 w-9 p-0"
-                onClick={() => {
-                  useRightSidebarTab.getState().setTab("positions");
-                  toggleRightSidebar();
-                }}
-                variant="ghost"
-              >
-                <Layers className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Positions</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                className="h-9 w-9 p-0"
-                onClick={() => {
-                  useRightSidebarTab.getState().setTab("history");
-                  toggleRightSidebar();
-                }}
-                variant="ghost"
-              >
-                <Clock className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Chat History</TooltipContent>
-          </Tooltip>
+          {!rightSidebarOpen && (
+            <>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    className="h-9 w-9 p-0"
+                    onClick={() => {
+                      useRightSidebarTab.getState().setTab("positions");
+                      toggleRightSidebar();
+                    }}
+                    variant="ghost"
+                  >
+                    <Layers className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">Positions</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    className="h-9 w-9 p-0"
+                    onClick={() => {
+                      useRightSidebarTab.getState().setTab("history");
+                      toggleRightSidebar();
+                    }}
+                    variant="ghost"
+                  >
+                    <Clock className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">Chat History</TooltipContent>
+              </Tooltip>
+            </>
+          )}
         </div>
       </header>
 
@@ -758,8 +750,8 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
                   return null;
                 }
 
-                // Check if there's a NEW AI message after the last human message.
-                // If yes, don't show separate "Thinking..." — it's already being rendered.
+                // Check if there's a NEW AI message after the last human message
+                // If yes, don't show "Thinking..." - the response is already rendering
                 const lastHumanIdx = messages.findLastIndex((m) => m.type === "human");
                 const hasNewAIMessage = messages.slice(lastHumanIdx + 1).some((m) => m.type === "ai");
                 if (hasNewAIMessage) {

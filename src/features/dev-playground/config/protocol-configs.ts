@@ -1,3 +1,5 @@
+import { PROTOCOL_ICONS } from "@/shared/constants/asset-manifest";
+
 export type PanelType =
   | "pools"
   | "pool"
@@ -91,42 +93,42 @@ const ORDERBOOK_PANEL: PanelConfig = {
 
 export const PROTOCOL_CONFIGS: ProtocolConfig[] = [
   {
-    id: "blend", name: "Blend Protocol", icon: "/protocols/blend.svg",
+    id: "blend", name: "Blend Protocol", icon: PROTOCOL_ICONS.blend!,
     category: "lending", color: "#8b5cf6",
     panels: [POOLS_PANEL, POOL_PANEL, YIELD_PANEL, POSITIONS_BLEND, MARKETS_PANEL],
   },
   {
-    id: "aquarius", name: "Aquarius", icon: "/protocols/aquarius.svg",
+    id: "aquarius", name: "Aquarius", icon: PROTOCOL_ICONS.aquarius!,
     category: "dex", color: "#00B4D8",
     panels: [POOLS_PANEL, POOL_PANEL, YIELD_PANEL, QUOTE_PANEL],
   },
   {
-    id: "soroswap", name: "Soroswap", icon: "/protocols/soroswap.svg",
+    id: "soroswap", name: "Soroswap", icon: PROTOCOL_ICONS.soroswap!,
     category: "dex", color: "#7B61FF",
     panels: [POOLS_PANEL, YIELD_PANEL, QUOTE_PANEL],
   },
   {
-    id: "phoenix", name: "Phoenix", icon: "/protocols/phoenix.svg",
+    id: "phoenix", name: "Phoenix", icon: PROTOCOL_ICONS.phoenix!,
     category: "dex", color: "#FF6B35",
     panels: [POOLS_PANEL, POOL_PANEL, YIELD_PANEL, QUOTE_PANEL],
   },
   {
-    id: "sdex", name: "Stellar DEX", icon: "/protocols/sdex.svg",
+    id: "sdex", name: "Stellar DEX", icon: PROTOCOL_ICONS.sdex!,
     category: "dex", color: "#00C2FF",
     panels: [YIELD_PANEL, QUOTE_PANEL, ORDERBOOK_PANEL],
   },
   {
-    id: "allbridge", name: "Allbridge", icon: "/protocols/allbridge.svg",
+    id: "allbridge", name: "Allbridge", icon: PROTOCOL_ICONS.allbridge!,
     category: "bridge", color: "#3B82F6",
     panels: [YIELD_PANEL, QUOTE_PANEL],
   },
   {
-    id: "defindex", name: "DeFindex", icon: "/protocols/defindex.svg",
+    id: "defindex", name: "DeFindex", icon: PROTOCOL_ICONS.defindex!,
     category: "vault", color: "#10B981",
     panels: [POOLS_PANEL, POOL_PANEL, YIELD_PANEL],
   },
   {
-    id: "templar", name: "Templar", icon: "/protocols/templar.svg",
+    id: "templar", name: "Templar", icon: PROTOCOL_ICONS.templar!,
     category: "lending", color: "#10B981",
     panels: [YIELD_PANEL, POSITIONS_TEMPLAR, QUOTE_PANEL, MARKETS_PANEL],
   },

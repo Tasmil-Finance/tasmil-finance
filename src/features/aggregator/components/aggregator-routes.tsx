@@ -6,17 +6,18 @@ import { useState, useEffect, useRef } from "react";
 import type { RouteQuote } from "@/features/aggregator/hooks/use-aggregator";
 import BorderGlow from "@/shared/ui/border-glow";
 import { TokenImage } from "@/shared/components/token-image";
+import { PROTOCOL_ICONS as CDN_PROTOCOL_ICONS } from "@/shared/constants/asset-manifest";
 import { cn } from "@/lib/utils";
 
 // ─── Protocol branding ──────────────────────────────────────────
 
 const PROTOCOL_META: Record<string, { label: string; icon: string; color: string }> = {
-  soroswap: { label: "Soroswap", icon: "/protocols/soroswap.svg", color: "#7B61FF" },
-  aquarius: { label: "Aquarius", icon: "/protocols/aquarius.svg", color: "#00B4D8" },
-  phoenix:  { label: "Phoenix",  icon: "/protocols/phoenix.svg",  color: "#FF6B35" },
-  sdex:     { label: "SDEX",     icon: "/protocols/sdex.svg",     color: "#00C2FF" },
-  templar:  { label: "Templar",  icon: "/protocols/templar.svg",  color: "#10B981" },
-  allbridge: { label: "Allbridge", icon: "/protocols/allbridge.svg", color: "#3B82F6" },
+  soroswap: { label: "Soroswap", icon: CDN_PROTOCOL_ICONS.soroswap!, color: "#7B61FF" },
+  aquarius: { label: "Aquarius", icon: CDN_PROTOCOL_ICONS.aquarius!, color: "#00B4D8" },
+  phoenix:  { label: "Phoenix",  icon: CDN_PROTOCOL_ICONS.phoenix!,  color: "#FF6B35" },
+  sdex:     { label: "SDEX",     icon: CDN_PROTOCOL_ICONS.sdex!,     color: "#00C2FF" },
+  templar:  { label: "Templar",  icon: CDN_PROTOCOL_ICONS.templar!,  color: "#10B981" },
+  allbridge: { label: "Allbridge", icon: CDN_PROTOCOL_ICONS.allbridge!, color: "#3B82F6" },
 };
 
 function getProto(quote: RouteQuote) {

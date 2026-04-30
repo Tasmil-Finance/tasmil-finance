@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
   ],
   compress: false,
   reactStrictMode: false,
+  // Disable built-in compression — SSE (text/event-stream) responses get
+  // gzip'd which forces the browser to buffer the entire response before
+  // decompressing, killing real-time streaming.  In production, nginx/CDN
+  // handles compression and knows to skip SSE.
+  compress: false,
   images: {
     qualities: [75, 80, 85, 90],
     remotePatterns: [

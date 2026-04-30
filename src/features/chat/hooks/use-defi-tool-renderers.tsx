@@ -422,7 +422,7 @@ function parseFlowResult(result: unknown): Record<string, unknown> | null {
   // Already an object with expected fields
   if (typeof result === "object" && !Array.isArray(result) && result !== null) {
     const obj = result as Record<string, unknown>;
-    if ("kind" in obj || "question" in obj || "plan" in obj || "step" in obj) {
+    if ("kind" in obj || "question" in obj || "questions" in obj || "plan" in obj || "step" in obj) {
       return obj;
     }
   }

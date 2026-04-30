@@ -57,7 +57,28 @@ export const shouldFilterMessage = (
       (m: any) => m.type === 'tool' && toolCallIds.has(m.tool_call_id)
     );
 
-    if (hasToolResult) return false; // Keep — tool UI needs this message
+    if (hasToolResult) {
+      // Even with a result, filter if this is a duplicate tool call — an earlier
+      // AI message already called the same tool(s) with results.  DeepSeek
+      // sometimes re-calls parse_user_intent in the same turn; the backend
+      // returns _duplicate:true but both AI messages survive to the frontend.
+      const myToolNames = new Set(aiMsg.tool_calls.map((tc: any) => tc.name));
+      for (let i = 0; i < index; i++) {
+        const earlier = allMessages[i] as any;
+        if (earlier.type !== 'ai' || !earlier.tool_calls?.length) continue;
+        const earlierNames = new Set(earlier.tool_calls.map((tc: any) => tc.name));
+        // If all my tool names already appear in an earlier AI message, I'm a duplicate
+        if ([...myToolNames].every((n) => earlierNames.has(n))) {
+          // Verify the earlier message's tool calls also have results
+          const earlierIds = new Set(earlier.tool_calls.map((tc: any) => tc.id).filter(Boolean));
+          const earlierHasResults = searchIn.some(
+            (m: any) => m.type === 'tool' && earlierIds.has(m.tool_call_id)
+          );
+          if (earlierHasResults) return true; // Filter — earlier message already shows this tool
+        }
+      }
+      return false; // Keep — tool UI needs this message
+    }
 
     // Only filter supervisor-internal tool calls (call_*_agent) without results
     const allAreSupervisorCalls = aiMsg.tool_calls.every(

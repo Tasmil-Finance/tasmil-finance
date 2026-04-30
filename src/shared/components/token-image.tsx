@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { TOKEN_ICONS } from "@/shared/constants/asset-manifest";
+import { TOKEN_ICONS, PROTOCOL_ICONS } from "@/shared/constants/asset-manifest";
 
 // CDN host that powers the optimized pipeline (must match next.config.ts).
 const CDN_HOST = "tasmil-assets.sgp1.cdn.digitaloceanspaces.com";
@@ -49,8 +49,9 @@ function colorFor(label: string): string {
 
 /** Resolve the manifest CDN URL or local fallback for the given alt label. */
 function localImageFor(alt: string): string | null {
-  const key = alt?.toUpperCase() ?? "";
-  return TOKEN_ICONS[key] ?? CHAIN_IMAGES[key] ?? null;
+  const upperKey = alt?.toUpperCase() ?? "";
+  const lowerKey = alt?.toLowerCase() ?? "";
+  return TOKEN_ICONS[upperKey] ?? CHAIN_IMAGES[upperKey] ?? PROTOCOL_ICONS[lowerKey] ?? null;
 }
 
 /** Whether the given URL points at an absolute remote host (vs. a /public path). */

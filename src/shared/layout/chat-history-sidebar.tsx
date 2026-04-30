@@ -1,7 +1,7 @@
 "use client";
 
 import type { Thread } from "@langchain/langgraph-sdk";
-import { MessageSquare, Plus, RefreshCw, Search, X } from "lucide-react";
+import { MessageSquare, Plus, RefreshCw, Search } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getContentString } from "@/features/chat/lib/thread-utils";
@@ -118,10 +118,18 @@ export function ChatHistorySidebar() {
   return (
     <div className="flex h-full w-full flex-col bg-sidebar">
       {/* Header */}
-      <div className="shrink-0 p-4">
-        <div className="flex items-center justify-between">
-          <span className="font-semibold text-sm">Chat History</span>
-          <div className="flex items-center gap-1">
+      <div className="shrink-0 px-4 pt-2 pb-3">
+        <div className="flex items-center justify-between gap-2">
+          <div className="relative flex-1">
+            <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-sidebar-foreground/50" />
+            <input
+              placeholder="Search chats..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full rounded-md border border-sidebar-border bg-sidebar-accent/50 py-2 pr-3 pl-9 text-sm"
+            />
+          </div>
+          <div className="flex items-center gap-0.5">
             <button
               onClick={handleRefresh}
               disabled={threadsLoading}
@@ -135,22 +143,7 @@ export function ChatHistorySidebar() {
             >
               <Plus className="h-3.5 w-3.5" />
             </button>
-            <button
-              onClick={() => setRightSidebarOpen(false)}
-              className="flex h-7 w-7 items-center justify-center rounded hover:bg-sidebar-accent"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
           </div>
-        </div>
-        <div className="relative mt-3">
-          <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-sidebar-foreground/50" />
-          <input
-            placeholder="Search chats..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-md border border-sidebar-border bg-sidebar-accent/50 py-2 pr-3 pl-9 text-sm"
-          />
         </div>
       </div>
 
