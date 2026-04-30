@@ -336,15 +336,8 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
         ((typeof lastAiMsg.content === "string" && lastAiMsg.content.trim().length > 0) ||
           (Array.isArray(lastAiMsg.content) && lastAiMsg.content.length > 0));
 
-      // Also count native reasoning tokens (DeepSeek) as "first token"
-      const hasReasoning =
-        lastAiMsg &&
-        "additional_kwargs" in lastAiMsg &&
-        typeof (lastAiMsg.additional_kwargs as Record<string, unknown>)?.reasoning_content === "string" &&
-        ((lastAiMsg.additional_kwargs as Record<string, unknown>).reasoning_content as string).trim().length > 0;
-
-      // Mark firstTokenReceived when content OR reasoning tokens arrive
-      if ((hasContent || hasReasoning) && !firstTokenReceived) {
+      // Only mark firstTokenReceived when CURRENT AI message actually has content
+      if (hasContent && !firstTokenReceived) {
         setFirstTokenReceived(true);
       }
     }
@@ -461,9 +454,9 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
         charge_usage: true,
       },
       {
-        streamMode: ["values", "custom"],
+        streamMode: ["messages-tuple", "values", "custom"],
         streamSubgraphs: false,
-        streamResumable: false,
+        streamResumable: true,
         optimisticValues: (prev: any) => ({
           ...prev,
           messages: [...(prev?.messages ?? []), ...toolMessages, newHumanMessage],
@@ -526,9 +519,9 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
         // After onFinish fires and history.data is refreshed, getMessagesMetadata returns
         // a valid parent_checkpoint for the fork to work correctly.
         checkpoint: parentCheckpoint ?? undefined,
-        streamMode: ["values", "custom"],
+        streamMode: ["messages-tuple", "values", "custom"],
         streamSubgraphs: false,
-        streamResumable: false,
+        streamResumable: true,
         optimisticValues: () => ({
           messages: [...safeMessagesBeforeCurrent, newHumanMessage],
         }),
@@ -551,7 +544,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
 
     stream.submit(undefined, {
       checkpoint: parentCheckpoint || null,
-      streamMode: ["values", "custom"],
+      streamMode: ["messages-tuple", "values", "custom"],
       streamSubgraphs: true,
       streamResumable: true,
       optimisticValues: (prev: any) => {
@@ -591,9 +584,9 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
         charge_usage: true,
       },
       {
-        streamMode: ["values", "custom"],
+        streamMode: ["messages-tuple", "values", "custom"],
         streamSubgraphs: false,
-        streamResumable: false,
+        streamResumable: true,
         optimisticValues: (prev: any) => ({
           ...prev,
           messages: [...(prev?.messages ?? []), ...toolMessages, newHumanMessage],
@@ -666,9 +659,9 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
 
               return filtered.map((message, index, arr) => {
                 const prevMessage = index > 0 ? arr[index - 1] : undefined;
-                // Check if there's ANY human message between prev and current
-                // in the FULL unfiltered thread. If so, treat as new turn → show avatar.
-                const hasHumanBetween =
+                // Check if there's a hidden human message between prev and current
+                // in the unfiltered thread. If so, treat as new turn → show avatar.
+                const hasHiddenHumanBetween =
                   prevMessage && message
                     ? (() => {
                         const prevIdx = messages.findIndex((m) => m.id === prevMessage.id);
@@ -676,11 +669,11 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
                         if (prevIdx === -1 || currIdx === -1) return false;
                         return messages
                           .slice(prevIdx + 1, currIdx)
-                          .some((m) => m.type === "human");
+                          .some((m) => m.type === "human" && !!m.id?.startsWith("__hidden__"));
                       })()
                     : false;
                 const isConsecutiveAi =
-                  !hasHumanBetween &&
+                  !hasHiddenHumanBetween &&
                   message.type !== "human" &&
                   prevMessage?.type !== "human" &&
                   !!prevMessage;

@@ -13,7 +13,7 @@ import { ThreadView } from "@/features/chat/thread/agent-inbox";
 import { MarkdownText } from "@/features/chat/thread/components/markdown-text";
 import { isAgentInboxInterruptSchema } from "@/lib/agent-inbox-interrupt";
 import { Loader } from "@/shared/ui/loader";
-import { ToolCallRenderer } from "./tool-call-renderer";
+import { CopilotKitToolCallRenderer } from "./copilotkit-tool-renderer";
 import { GenericInterruptView } from "./generic-interrupt";
 import { BranchSwitcher, CommandBar } from "./shared";
 import { ToolResult } from "./tool-calls";
@@ -102,38 +102,16 @@ export function AssistantMessage({
     message && "additional_kwargs" in message
       ? (message.additional_kwargs as Record<string, unknown>)?.reasoning_content
       : undefined;
-  const hasTagStreaming = hasIncompleteReasoningTags(rawContentString);
-  // Native reasoning is still streaming when: loading + reasoning exists + no text content yet
-  const hasNativeReasoningStreaming =
-    isLoading &&
-    typeof nativeReasoning === "string" &&
-    nativeReasoning.trim().length > 0 &&
-    contentString.length === 0;
-  const isReasoningStreaming = hasTagStreaming || hasNativeReasoningStreaming;
-  const tagReasoning = hasTagStreaming
+  const isReasoningStreaming = hasIncompleteReasoningTags(rawContentString);
+  const tagReasoning = isReasoningStreaming
     ? extractIncompleteReasoningContent(rawContentString)
     : extractReasoningContent(rawContentString);
   const reasoningContent = (typeof nativeReasoning === "string" && nativeReasoning.trim())
     ? nativeReasoning.trim()
     : tagReasoning;
-  // Only show reasoning for the FIRST AI message in the current turn.
-  // Subsequent model calls (parse_intent → clarify → resolve) have their
-  // own reasoning but it's internal — user only needs the initial "thinking".
-  const thread = useStreamContext();
-  const isFirstAiInTurn = (() => {
-    if (!message) return true;
-    const msgIdx = thread.messages.findIndex((m) => m.id === message.id);
-    if (msgIdx <= 0) return true;
-    // Walk backwards — if we hit a human message before another AI, we're first
-    for (let i = msgIdx - 1; i >= 0; i--) {
-      const m = thread.messages[i];
-      if (m.type === "human") return true;
-      if (m.type === "ai") return false;
-    }
-    return true;
-  })();
+  const hasReasoning = !!reasoningContent;
 
-  const hasReasoning = !!reasoningContent && isFirstAiInTurn;
+  const thread = useStreamContext();
   const isLastMessage =
     thread.messages.length > 0 && thread.messages[thread.messages.length - 1]?.id === message?.id;
   const hasNoAIOrToolMessages = !thread.messages.find((m) => m.type === "ai" || m.type === "tool");
@@ -166,7 +144,16 @@ export function AssistantMessage({
     return null;
   }
 
-  // parse_user_intent is now shown as a visible step (like demo-ai)
+  // Hide AI messages that ONLY contain parse_user_intent (internal routing step)
+  // These produce no visible UI and would show an orphaned avatar
+  const onlyHasHiddenTools =
+    allToolCalls &&
+    allToolCalls.length > 0 &&
+    allToolCalls.every((tc) => tc.name === "parse_user_intent") &&
+    contentString.length === 0;
+  if (onlyHasHiddenTools && !isLoading) {
+    return null;
+  }
 
   // Whether this message has tool calls that produce UI
   const hasToolCalls = !!(allToolCalls && allToolCalls.length > 0);
@@ -216,7 +203,7 @@ export function AssistantMessage({
 
             {/* 3. Tool calls: status indicator + data cards (frontend-driven, no backend UI state needed) */}
             {hasToolCalls && message && (
-              <ToolCallRenderer
+              <CopilotKitToolCallRenderer
                 message={message}
                 messages={allMessages ?? thread.messages}
               />

@@ -30,21 +30,6 @@ export function useResultData<T = any>(result: unknown, status?: string): Result
       }
     }
 
-    // Handle MCP content-block arrays: [{type:"text", text:"..."}]
-    // This occurs when tool content is double-serialised (e.g. history from DB).
-    if (Array.isArray(parsed)) {
-      const textBlock = (parsed as any[]).find(
-        (b: any) => b?.type === "text" && typeof b?.text === "string",
-      );
-      if (textBlock) {
-        try {
-          parsed = JSON.parse(textBlock.text);
-        } catch {
-          parsed = { raw: textBlock.text };
-        }
-      }
-    }
-
     const hasError =
       parsed?.success === false || parsed?.error != null || parsed?.status === "error";
 

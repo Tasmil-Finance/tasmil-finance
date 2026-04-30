@@ -7,11 +7,8 @@ import { v4 as uuidv4 } from "uuid";
 import { SupervisorAgentCallCard } from "@/features/chat/actions/components/stellar/supervisor-agent-call-card";
 import { useStreamContext } from "@/features/chat/hooks";
 import {
-  AQUARIUS_SHARED_INFO,
-  AQUARIUS_SHARED_OPERATIONS,
   BLEND_SHARED_INFO,
   BLEND_SHARED_OPERATIONS,
-  EXECUTE_DISPATCHER,
   FLOW_TOOL_RENDERERS,
   INFO_TOOL_RENDERERS,
   OPERATION_TOOL_RENDERERS,
@@ -40,12 +37,7 @@ type CardRendererResult =
   | { kind: "shared-op"; render: (props: SharedRenderProps) => React.ReactElement }
   | null;
 
-export function getCardRenderer(toolName: string): CardRendererResult {
-  // Unified execute tool — routes to protocol-specific cards (Blend, Aquarius, etc.)
-  if (toolName === EXECUTE_DISPATCHER.toolName) {
-    return { kind: "shared-op", render: EXECUTE_DISPATCHER.render };
-  }
-
+function getCardRenderer(toolName: string): CardRendererResult {
   // Check shared Blend cards first (they have custom render functions with normalizers)
   const sharedInfo = BLEND_SHARED_INFO.find((r) => r.toolName === toolName);
   if (sharedInfo) return { kind: "shared", render: sharedInfo.render };
@@ -53,14 +45,6 @@ export function getCardRenderer(toolName: string): CardRendererResult {
   // Blend operations — tagged as "shared-op" so we can inject respond callback
   const sharedOp = BLEND_SHARED_OPERATIONS.find((r) => r.toolName === toolName);
   if (sharedOp) return { kind: "shared-op", render: sharedOp.render };
-
-  // Aquarius shared info cards
-  const aquaInfo = AQUARIUS_SHARED_INFO.find((r) => r.toolName === toolName);
-  if (aquaInfo) return { kind: "shared", render: aquaInfo.render };
-
-  // Aquarius operations
-  const aquaOp = AQUARIUS_SHARED_OPERATIONS.find((r) => r.toolName === toolName);
-  if (aquaOp) return { kind: "shared-op", render: aquaOp.render };
 
   // Check flow tool renderers — "shared" kind (no BlendOpWithRespond wrapper)
   const flowTool = FLOW_TOOL_RENDERERS.find((r) => r.toolName === toolName);
@@ -76,34 +60,25 @@ export function getCardRenderer(toolName: string): CardRendererResult {
   return null;
 }
 
-/** Try to extract the inner JSON from an MCP content-block array. */
-function extractMcpText(arr: unknown[]): unknown | undefined {
-  const textBlock = (arr as any[]).find(
-    (b) => b?.type === "text" && typeof b?.text === "string",
-  );
-  if (!textBlock) return undefined;
-  try {
-    return JSON.parse(textBlock.text);
-  } catch {
-    return textBlock.text;
-  }
-}
-
 function parseResult(content: string | unknown): unknown {
   // MCP tools return content as an array of blocks: [{type:"text", text:"..."}]
   // Extract the text from the first text block before JSON parsing
   if (Array.isArray(content)) {
-    return extractMcpText(content) ?? content;
+    const textBlock = (content as any[]).find(
+      (b) => b?.type === "text" && typeof b?.text === "string"
+    );
+    if (textBlock) {
+      try {
+        return JSON.parse(textBlock.text);
+      } catch {
+        return textBlock.text;
+      }
+    }
+    return content;
   }
   if (typeof content !== "string") return content;
   try {
-    const parsed = JSON.parse(content);
-    // JSON.parse may yield an MCP content-block array when the tool message
-    // content was double-serialised (e.g. history loaded from DB).
-    if (Array.isArray(parsed)) {
-      return extractMcpText(parsed) ?? parsed;
-    }
-    return parsed;
+    return JSON.parse(content);
   } catch {
     return content;
   }
@@ -198,10 +173,7 @@ function BlendOpWithRespond({
   return renderFn({ ...renderProps, respond });
 }
 
-/** @deprecated Use `ToolCallRenderer` instead. */
-export const CopilotKitToolCallRenderer = ToolCallRenderer;
-
-export function ToolCallRenderer({
+export function CopilotKitToolCallRenderer({
   message,
   messages,
 }: {
@@ -289,8 +261,8 @@ export function ToolCallRenderer({
         const cardRenderer = isComplete ? getCardRenderer(tc.name) : null;
         const status = result?.hasError ? "error" : isComplete ? "complete" : "calling";
 
-        // parse_user_intent shown as visible step (agent is parsing user's request)
-        if (false) {
+        // Hide parse_user_intent entirely — it's an internal routing step
+        if (tc.name === "parse_user_intent" && isComplete) {
           return null;
         }
 

@@ -10,7 +10,7 @@ import {
   uiMessageReducer,
 } from "@langchain/langgraph-sdk/react-ui";
 import type React from "react";
-import { createContext, type ReactNode, useContext, useEffect, useMemo, useRef } from "react";
+import { createContext, type ReactNode, useContext, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { getApiKey } from "@/lib/api-key";
 import { buildAiIdentityHeaders } from "@/lib/ai-auth";
@@ -79,10 +79,10 @@ const StreamSession = ({
   const { address: walletAddress } = useWallet();
   const accessToken = useAuthStore((state) => state.accessToken);
   const effectiveWallet = walletAddress ?? useWalletStore.getState().account;
-  const defaultHeaders = useMemo(
-    () => buildAiIdentityHeaders({ accessToken, walletAddress: effectiveWallet }),
-    [accessToken, effectiveWallet],
-  );
+  const defaultHeaders = buildAiIdentityHeaders({
+    accessToken,
+    walletAddress: effectiveWallet,
+  });
   const initialThreadId = useRef(threadId);
 
   useEffect(() => {
@@ -112,6 +112,7 @@ const StreamSession = ({
     threadId: threadId ?? null,
     defaultHeaders,
     fetchStateHistory: true,
+    throttle: 0,
     onFinish: () => {},
     onCustomEvent: (event, options) => {
       if (isUIMessage(event) || isRemoveUIMessage(event)) {

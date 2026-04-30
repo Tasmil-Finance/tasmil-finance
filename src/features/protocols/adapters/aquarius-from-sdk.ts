@@ -41,26 +41,13 @@ function normalizeTokensStr(raw: unknown): string[] {
 /**
  * Build tokens array from tokens_addresses + tokens_str (raw API shape).
  * If `tokens` array with symbol already exists (enriched SDK shape), use that.
- * Also handles resolve_pool format where tokens is a flat string[] of contract IDs.
  */
 function buildTokens(pool: Record<string, unknown>): Array<{ address: string; symbol?: string }> | undefined {
-  // Already enriched with symbols (objects with address+symbol)
-  if (Array.isArray(pool.tokens) && pool.tokens.length > 0) {
-    const first = pool.tokens[0];
-    if (typeof first === "object" && first !== null) {
-      return (pool.tokens as Array<Record<string, unknown>>).map((t) => ({
-        address: String(t.address ?? ""),
-        symbol: t.symbol != null ? String(t.symbol) : undefined,
-      }));
-    }
-    // resolve_pool format: tokens is string[] of contract addresses
-    // Use pool.name (e.g. "XLM/USDC") to extract symbols
-    const nameSymbols = typeof pool.name === "string"
-      ? pool.name.split("/").map((s) => s.trim())
-      : [];
-    return (pool.tokens as string[]).map((addr, i) => ({
-      address: String(addr),
-      symbol: nameSymbols[i] ?? undefined,
+  // Already enriched with symbols
+  if (Array.isArray(pool.tokens)) {
+    return (pool.tokens as Array<Record<string, unknown>>).map((t) => ({
+      address: String(t.address ?? ""),
+      symbol: t.symbol != null ? String(t.symbol) : undefined,
     }));
   }
   // Raw API: build from tokens_addresses + tokens_str
@@ -121,12 +108,7 @@ export function normalizeAquaPoolFromSdk(raw: Record<string, unknown>): AquaPool
     : num(pool, "volume_24h", "volume24h");
 
   const tokens = buildTokens(pool);
-  const rawTokensStr = pool.tokens_str ?? pool.tokensStr;
-  const tokensStr = rawTokensStr
-    ? normalizeTokensStr(rawTokensStr)
-    : typeof pool.name === "string"
-      ? pool.name.split("/").map((s: string) => s.trim())
-      : [];
+  const tokensStr = normalizeTokensStr(pool.tokens_str ?? pool.tokensStr);
 
   // Fee rate as percentage string (e.g. "0.0030" → "0.30%")
   const feeRaw = pool.fee;
@@ -135,7 +117,7 @@ export function normalizeAquaPoolFromSdk(raw: Record<string, unknown>): AquaPool
     : undefined;
 
   const result = aquaPoolCardPropsSchema.safeParse({
-    address: String(pool.address ?? pool.poolAddress ?? ""),
+    address: String(pool.address ?? ""),
     poolType: pool.pool_type ?? pool.poolType ?? undefined,
     tokens,
     tokensStr,

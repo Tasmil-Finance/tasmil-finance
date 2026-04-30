@@ -35,8 +35,6 @@ const OP_CONFIG: Record<string, OpConfig> = {
   backstop_queue:         { label: "Queue Withdrawal",  verb: "to queue",    action: "Sign & Queue",    cancel: true,  sign: false, title: "Sign Backstop Queue",     buttonText: "Sign & Queue",   icon: Coins, iconColor: "text-orange-500", iconBg: "bg-orange-500/10" },
   backstop_dequeue:       { label: "Dequeue",           verb: "to dequeue",  action: "Sign & Dequeue",  cancel: false, sign: true,  title: "Sign Backstop Dequeue",   buttonText: "Sign & Dequeue", icon: Coins, iconColor: "text-purple-500", iconBg: "bg-purple-500/10" },
   backstop_withdraw:      { label: "Backstop Withdraw", verb: "to withdraw", action: "Sign & Withdraw", cancel: true,  sign: false, title: "Sign Backstop Withdrawal",buttonText: "Sign & Withdraw",icon: Coins, iconColor: "text-green-500",  iconBg: "bg-green-500/10"  },
-  join_comet_pool:        { label: "Join Comet Pool",   verb: "to deposit",  action: "Sign & Join",     cancel: false, sign: true,  title: "Sign Comet Pool Join",    buttonText: "Sign & Join",    icon: Coins, iconColor: "text-cyan-500",   iconBg: "bg-cyan-500/10"   },
-  exit_comet_pool:        { label: "Exit Comet Pool",   verb: "to withdraw", action: "Sign & Exit",     cancel: true,  sign: false, title: "Sign Comet Pool Exit",    buttonText: "Sign & Exit",    icon: Coins, iconColor: "text-amber-500",  iconBg: "bg-amber-500/10"  },
 };
 
 const DEFAULT_OP_CONFIG: OpConfig = {

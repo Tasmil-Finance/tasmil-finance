@@ -34,7 +34,15 @@ export const shouldFilterMessage = (
       ? aiMsg.content.filter((c: any) => c.type === 'text').map((c: any) => c.text?.trim()).join('')
       : '';
 
-  // parse_user_intent is now shown as a visible step (like demo-ai)
+  // Always filter parse_user_intent-only messages — they're internal routing
+  // steps with no visible UI. Keeping them in the list causes isConsecutiveAi
+  // to incorrectly hide avatars on the next real AI message.
+  if (hasToolCalls && !content) {
+    const allAreParseIntent = aiMsg.tool_calls.every(
+      (tc: any) => tc.name === 'parse_user_intent'
+    );
+    if (allAreParseIntent) return true;
+  }
 
   // Filter intermediate tool-only messages, BUT keep them if a tool result
   // exists in the messages (so the CopilotKitToolCallRenderer can show cards).
