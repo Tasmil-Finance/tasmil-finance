@@ -103,8 +103,6 @@ const _sidebarData: SidebarData = {
           title: "Aggregator",
           url: "/aggregator",
           icon: ArrowLeftRight,
-          // Gated by proxy.ts to NEXT_PUBLIC_APP_ENV=development.
-          devOnly: true,
         },
       ],
     },
