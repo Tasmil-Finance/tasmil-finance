@@ -14,7 +14,7 @@ export function ChatHistorySidebar() {
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
   const router = useRouter();
   const params = useParams();
-  const { rightSidebarOpen, setRightSidebarOpen } = useMultiSidebar();
+  const { rightSidebarOpen } = useMultiSidebar();
 
   // Get current agent ID from URL (default to supervisor for one-chat-interface)
   const slug = params.slug as string[] | undefined;
