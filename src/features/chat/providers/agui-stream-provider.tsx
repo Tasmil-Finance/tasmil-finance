@@ -8,6 +8,7 @@
  * connect to the backend `/agui/{graphId}` SSE endpoint.
  */
 
+import { useQueryClient } from "@tanstack/react-query";
 import type React from "react";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
@@ -98,6 +99,30 @@ function AguiStreamSession({
       }
     },
   });
+
+  // Refresh CreditsPill on chat-run completion. AI worker writes CHAT_DEBIT
+  // (-10) on success or CHAT_REVERT (+10) on failure ~ms after the SSE stream
+  // closes; immediate invalidate + 800ms-delayed second pass cover the race.
+  const queryClient = useQueryClient();
+  const prevLoadingRef = useRef(streamValue.isLoading);
+  const prevErrorRef = useRef(streamValue.error);
+  useEffect(() => {
+    const wasLoading = prevLoadingRef.current;
+    const isLoadingNow = streamValue.isLoading;
+    const errorAppeared = !!streamValue.error && streamValue.error !== prevErrorRef.current;
+
+    prevLoadingRef.current = isLoadingNow;
+    prevErrorRef.current = streamValue.error;
+
+    if ((wasLoading && !isLoadingNow) || errorAppeared) {
+      queryClient.invalidateQueries({ queryKey: ["credit"] });
+      const t = setTimeout(
+        () => queryClient.invalidateQueries({ queryKey: ["credit"] }),
+        800,
+      );
+      return () => clearTimeout(t);
+    }
+  }, [streamValue.isLoading, streamValue.error, queryClient]);
 
   // Restore thread title from metadata when loading an existing thread
   useEffect(() => {
