@@ -161,7 +161,7 @@ export function decodeOperation(
 
   if (op.type === "change_trust") {
     const limit = op.limit ?? "0";
-    const isRemove = /^0(\.0+)?$/.test(limit);
+    const isRemove = new BigNumber(limit).isZero();
     return {
       ...emptyDecoded(op, isRemove ? "trustline-remove" : "trustline-add"),
       successful,
@@ -181,11 +181,11 @@ export function decodeOperation(
     return { ...emptyDecoded(op, "lock-balance"), successful };
   }
 
-  if (op.type.startsWith("manage_") && op.type.includes("offer")) {
-    return { ...emptyDecoded(op, "dex-offer"), successful };
-  }
-
-  if (op.type === "create_passive_sell_offer") {
+  if (
+    op.type === "manage_sell_offer" ||
+    op.type === "manage_buy_offer" ||
+    op.type === "create_passive_sell_offer"
+  ) {
     return { ...emptyDecoded(op, "dex-offer"), successful };
   }
 
