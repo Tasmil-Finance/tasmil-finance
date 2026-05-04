@@ -2,10 +2,7 @@ import { expect, test } from "@playwright/test";
 import { freshWallet, loginAsWallet } from "./helpers/auth";
 
 test.describe("Portfolio (Tasks 5+6+7)", () => {
-  test.skip(
-    process.env.NODE_ENV === "production",
-    "test-login is disabled on production",
-  );
+  test.skip(process.env.NODE_ENV === "production", "test-login is disabled on production");
 
   test("Portfolio page loads at /portfolio route", async ({ page }) => {
     const wallet = freshWallet();
@@ -24,9 +21,7 @@ test.describe("Portfolio (Tasks 5+6+7)", () => {
     expect(hasError).toBeFalsy();
   });
 
-  test("Portfolio tab bar shows Tokens, Positions, NFTs, History, Credits", async ({
-    page,
-  }) => {
+  test("Portfolio tab bar shows Tokens, Positions, NFTs, History, Credits", async ({ page }) => {
     const wallet = freshWallet();
     await loginAsWallet(page, wallet);
     await page.goto("/portfolio");
@@ -250,7 +245,7 @@ test.describe("Portfolio (Tasks 5+6+7)", () => {
   test("Network error on tab switch", async ({ page }) => {
     const wallet = freshWallet();
     await loginAsWallet(page, wallet);
-    await page.route("**/api/portfolio**", route => route.fulfill({ status: 503 }));
+    await page.route("**/api/portfolio**", (route) => route.fulfill({ status: 503 }));
     await page.goto("/portfolio");
     await page.waitForTimeout(3000);
     const content = await page.content();
@@ -261,7 +256,9 @@ test.describe("Portfolio (Tasks 5+6+7)", () => {
     const wallet = freshWallet();
     await loginAsWallet(page, wallet);
     const errors: string[] = [];
-    page.on("console", msg => { if (msg.type() === "error") errors.push(msg.text()); });
+    page.on("console", (msg) => {
+      if (msg.type() === "error") errors.push(msg.text());
+    });
     await page.goto("/portfolio");
     await page.waitForLoadState("networkidle");
     const tokensTab = page.getByText("Tokens").first();
@@ -269,7 +266,7 @@ test.describe("Portfolio (Tasks 5+6+7)", () => {
       await tokensTab.click();
       await page.waitForTimeout(1000);
     }
-    const criticalErrors = errors.filter(e => !/warning|deprecated/i.test(e));
+    const criticalErrors = errors.filter((e) => !/warning|deprecated/i.test(e));
     expect(criticalErrors).toHaveLength(0);
   });
 
@@ -299,5 +296,65 @@ test.describe("Portfolio (Tasks 5+6+7)", () => {
     await page.goto("/portfolio");
     await page.waitForLoadState("networkidle");
     await expect(page).toHaveTitle(/Tasmil/i);
+  });
+
+  test("history row expands to show details panel", async ({ page }) => {
+    await page.goto("/portfolio?tab=history");
+
+    // Wait for at least one tx row with a status dot to render
+    const firstRow = page.locator('[data-testid="status-dot"]').first().locator("..").locator("..");
+    await firstRow.waitFor({ state: "visible", timeout: 10_000 });
+
+    // Click the row trigger
+    await firstRow.click();
+
+    // Expanded panel should reveal Tx Hash dt
+    await expect(page.getByText(/Tx Hash/i)).toBeVisible({ timeout: 5_000 });
+    // ISO timestamp should be present
+    await expect(page.getByText(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)).toBeVisible();
+  });
+
+  test("portfolio shows Add Trustline + Watch Asset buttons", async ({ page }) => {
+    await page.goto("/portfolio");
+    await expect(page.getByRole("button", { name: /Add Trustline/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Watch Asset/i })).toBeVisible();
+  });
+
+  test("watch asset add → chip → persist → remove", async ({ page, context }) => {
+    // Clear any previous watchlist state
+    await context.clearCookies();
+    await page.addInitScript(() => {
+      window.localStorage.removeItem("tasmil.watchlist");
+    });
+
+    await page.goto("/portfolio");
+    await page.getByRole("button", { name: /Watch Asset/i }).click();
+
+    // Search for BLND
+    const search = page.getByPlaceholder(/search/i);
+    await search.fill("BLND");
+    // Wait past the debounce
+    await page.waitForTimeout(300);
+
+    // Click first matching Watch button
+    const watchBtn = page.getByRole("button", { name: /^Watch$/ }).first();
+    if (await watchBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await watchBtn.click();
+    } else {
+      // Registry may not surface BLND in this environment — skip rest
+      return;
+    }
+
+    // Chip should appear
+    const chip = page.getByRole("button", { name: /Open BLND in aggregator/i });
+    await expect(chip).toBeVisible();
+
+    // Reload — chip persists
+    await page.reload();
+    await expect(page.getByRole("button", { name: /Open BLND in aggregator/i })).toBeVisible();
+
+    // Remove
+    await page.getByRole("button", { name: /Remove BLND/i }).click();
+    await expect(page.getByRole("button", { name: /Open BLND in aggregator/i })).not.toBeVisible();
   });
 });
