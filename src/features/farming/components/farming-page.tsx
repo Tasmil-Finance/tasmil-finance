@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Loader2, Shield, ShieldOff, Wallet } from "lucide-react";
+import { Loader2, Wallet } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { OnboardingPage } from "@/features/account/components/onboarding-page";
@@ -17,22 +17,27 @@ import { useWalletStore } from "@/store/use-wallet";
 import { usePools } from "../hooks/use-farming-api";
 import { useFarmingActions } from "../hooks/use-farming-actions";
 import { computeCashflowSummary } from "../utils/cashflow";
-import { FarmingActivity } from "./farming-activity";
-import { FarmingHeader } from "./farming-header";
+import { ActivityDrawer } from "./activity-drawer";
 import { FarmingModals, type FarmingModalTab } from "./farming-modals";
-import { FarmingPools } from "./farming-pools";
 import { FarmingStatusBanners } from "./farming-status-banners";
-import { OverviewTab } from "./tabs/overview-tab";
-import { StrategyTab } from "./tabs/strategy-tab";
+import { StatRow } from "./hero/stat-row";
+import { SettingsButton } from "./settings-button";
+import { ManageTab } from "./tabs/manage-tab";
+import { PerformanceTab } from "./tabs/performance-tab";
 
-type TabValue = "overview" | "pools" | "strategy" | "activity";
-const VALID_TABS: TabValue[] = ["overview", "pools", "strategy", "activity"];
+type TabValue = "performance" | "manage";
+const VALID_TABS: TabValue[] = ["performance", "manage"];
 const TABS: { value: TabValue; label: string }[] = [
-  { value: "overview", label: "Overview" },
-  { value: "pools", label: "Pools" },
-  { value: "strategy", label: "Strategy" },
-  { value: "activity", label: "Activity" },
+  { value: "performance", label: "Performance" },
+  { value: "manage", label: "Manage" },
 ];
+
+const LEGACY_TAB_MAP: Record<string, TabValue> = {
+  overview: "performance",
+  pools: "manage",
+  strategy: "manage",
+  activity: "performance",
+};
 
 function ConnectPrompt() {
   return (
@@ -60,18 +65,32 @@ function FarmingContent() {
   const { account } = useWalletStore();
   const publicKey = account ?? undefined;
 
-  const tabParam = searchParams.get("tab") as TabValue | null;
-  const activeTab: TabValue = tabParam && VALID_TABS.includes(tabParam) ? tabParam : "overview";
+  const tabParam = searchParams.get("tab");
+  const resolvedTab: TabValue = (() => {
+    if (tabParam && VALID_TABS.includes(tabParam as TabValue)) return tabParam as TabValue;
+    if (tabParam) {
+      const mapped = LEGACY_TAB_MAP[tabParam];
+      if (mapped) return mapped;
+    }
+    return "performance";
+  })();
+
+  const [activityDrawerOpen, setActivityDrawerOpen] = useState(false);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: open drawer once on mount when ?tab=activity
+  useEffect(() => {
+    if (tabParam === "activity") setActivityDrawerOpen(true);
+  }, []);
 
   const setActiveTab = useCallback(
     (tab: TabValue) => {
       const params = new URLSearchParams(searchParams.toString());
-      if (tab === "overview") params.delete("tab");
+      if (tab === "performance") params.delete("tab");
       else params.set("tab", tab);
       const qs = params.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname);
     },
-    [router, searchParams, pathname]
+    [router, searchParams, pathname],
   );
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -136,7 +155,7 @@ function FarmingContent() {
 
   const deployedInPoolsUsd = useMemo(
     () => (position?.positions ?? []).reduce((sum, pos) => sum + pos.valueUsd, 0),
-    [position?.positions]
+    [position?.positions],
   );
 
   const unallocatedWalletUsd = useMemo(() => {
@@ -146,7 +165,7 @@ function FarmingContent() {
 
   const cashflowSummary = useMemo(
     () => computeCashflowSummary(position ?? undefined, activities),
-    [position, activities]
+    [position, activities],
   );
 
   const openModal = (tab: FarmingModalTab) => {
@@ -215,20 +234,19 @@ function FarmingContent() {
     <div className="flex h-full flex-col overflow-hidden">
       <div className="flex-1 overflow-auto">
         <div className="flex flex-col gap-6 px-4 py-6 sm:px-6 md:px-8">
-          <FarmingHeader
-            totalValueUsd={position.totalValueUsd}
-            allTimePnlUsd={cashflowSummary.allTimePnlUsd}
-            allTimePnlPercent={cashflowSummary.allTimePnlPercent}
-            currentApy={position.currentApy}
-            isLoading={false}
-          />
-
           <FarmingStatusBanners
             status={position.status}
             balanceStale={Boolean(position.balanceStale)}
             sessionKeyStale={Boolean(position.sessionKeyStale)}
             onRefresh={() => openModal("security")}
             onDeposit={() => openModal("fund")}
+          />
+
+          <StatRow
+            totalValueUsd={position.totalValueUsd}
+            allTimePnlUsd={cashflowSummary.allTimePnlUsd}
+            allTimePnlPercent={cashflowSummary.allTimePnlPercent}
+            currentApy={position.currentApy}
           />
 
           <motion.div
@@ -254,30 +272,11 @@ function FarmingContent() {
             >
               Withdraw
             </Button>
-            {isRevoked ? (
-              <Button
-                variant="gradient"
-                size="default"
-                className="px-6"
-                onClick={() => openModal("activate")}
-              >
-                <Shield className="mr-1.5 h-3.5 w-3.5" />
-                Activate Session Key
-              </Button>
-            ) : (
-              <Button
-                variant="ghost"
-                size="default"
-                className="text-muted-foreground hover:text-destructive"
-                onClick={() => openModal("security")}
-              >
-                <ShieldOff className="mr-1.5 h-3.5 w-3.5" />
-                Revoke
-              </Button>
-            )}
+            <SettingsButton status={position.status} onOpen={openModal} />
           </motion.div>
 
           <motion.div
+            role="tablist"
             className="flex items-center gap-4 border-b border-border pb-0"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -286,16 +285,18 @@ function FarmingContent() {
             {TABS.map((tab) => (
               <button
                 key={tab.value}
+                role="tab"
+                aria-selected={resolvedTab === tab.value}
                 onClick={() => setActiveTab(tab.value)}
                 className={cn(
                   "relative pb-3 text-base font-medium transition-colors",
-                  activeTab === tab.value
+                  resolvedTab === tab.value
                     ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {tab.label}
-                {activeTab === tab.value && (
+                {resolvedTab === tab.value && (
                   <motion.div
                     className="absolute inset-x-0 bottom-0 h-0.5 bg-primary"
                     layoutId="farming-tab-indicator"
@@ -307,33 +308,20 @@ function FarmingContent() {
           </motion.div>
 
           <AnimatePresence mode="wait">
-            {activeTab === "overview" && (
-              <OverviewTab
+            {resolvedTab === "performance" && (
+              <PerformanceTab
+                key="performance"
                 position={position}
                 activities={activities}
                 activitiesLoading={activitiesLoading}
                 unallocatedWalletUsd={unallocatedWalletUsd}
-                isRevoked={isRevoked}
-                accountActionPending={actions.isPending}
-                onActivate={() => openModal("activate")}
-                onSeeAllActivity={() => setActiveTab("activity")}
+                publicKey={publicKey}
+                onOpenDrawer={() => setActivityDrawerOpen(true)}
               />
             )}
-
-            {activeTab === "pools" && (
-              <motion.div
-                key="pools"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.25 }}
-              >
-                <FarmingPools pools={registryPools} isLoading={registryPoolsLoading} />
-              </motion.div>
-            )}
-
-            {activeTab === "strategy" && (
-              <StrategyTab
+            {resolvedTab === "manage" && (
+              <ManageTab
+                key="manage"
                 presets={presets}
                 presetsLoading={presetsLoading}
                 selectedPreset={selectedPreset}
@@ -343,22 +331,12 @@ function FarmingContent() {
                 onChangePreviewAsset={setStrategyPreviewAsset}
                 activeAssets={position.activeAssets ?? []}
                 isRevoked={isRevoked}
-                isUpdating={actions.isUpdatingPreset}
+                isUpdatingPreset={actions.isUpdatingPreset}
                 actionError={actions.actionError}
                 onApply={handleApplyPreset}
+                pools={registryPools}
+                poolsLoading={registryPoolsLoading}
               />
-            )}
-
-            {activeTab === "activity" && (
-              <motion.div
-                key="activity"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.25 }}
-              >
-                <FarmingActivity activities={activities} isLoading={activitiesLoading} />
-              </motion.div>
             )}
           </AnimatePresence>
         </div>
@@ -381,6 +359,13 @@ function FarmingContent() {
         onWithdraw={handleWithdraw}
         onRevoke={handleRevoke}
         onReactivate={handleReactivate}
+      />
+
+      <ActivityDrawer
+        open={activityDrawerOpen}
+        onOpenChange={setActivityDrawerOpen}
+        activities={activities}
+        isLoading={activitiesLoading}
       />
     </div>
   );
