@@ -1,80 +1,19 @@
 "use client";
 
 import { motion } from "framer-motion";
-import {
-  ArrowDownLeft,
-  ArrowLeftRight,
-  ArrowUpRight,
-  Clock,
-  Droplets,
-  Layers,
-  Link2,
-  Lock,
-  type LucideIcon,
-  Shield,
-  TrendingUp,
-  UserPlus,
-} from "lucide-react";
+import { Clock } from "lucide-react";
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { getExplorerUrl } from "@/shared/config/stellar";
 import { Button } from "@/shared/ui/button-v2";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { type StellarOperation, useStellarTransactions } from "../hooks/use-stellar-transactions";
-
-// ─── Icon map (reuse same pattern as transaction-list) ────────────────────────
-
-const OP_ICONS: Record<string, { icon: LucideIcon; bg: string; fg: string }> = {
-  payment_in: { icon: ArrowDownLeft, bg: "bg-emerald-500/10", fg: "text-emerald-400" },
-  payment_out: { icon: ArrowUpRight, bg: "bg-destructive/10", fg: "text-destructive" },
-  swap: { icon: ArrowLeftRight, bg: "bg-violet-500/10", fg: "text-violet-400" },
-  dex: { icon: TrendingUp, bg: "bg-amber-500/10", fg: "text-amber-400" },
-  create: { icon: UserPlus, bg: "bg-emerald-500/10", fg: "text-emerald-400" },
-  trust: { icon: Shield, bg: "bg-blue-500/10", fg: "text-blue-400" },
-  claim: { icon: ArrowDownLeft, bg: "bg-emerald-500/10", fg: "text-emerald-400" },
-  lock: { icon: Lock, bg: "bg-amber-500/10", fg: "text-amber-400" },
-  lp: { icon: Droplets, bg: "bg-violet-500/10", fg: "text-violet-400" },
-  contract: { icon: Layers, bg: "bg-muted/30", fg: "text-muted-foreground" },
-  merge: { icon: Link2, bg: "bg-muted/30", fg: "text-muted-foreground" },
-};
-
-function getIconKey(type: string, outgoing: boolean): keyof typeof OP_ICONS {
-  if (type === "payment") return outgoing ? "payment_out" : "payment_in";
-  if (type.startsWith("path_payment")) return "swap";
-  if (type.includes("offer")) return "dex";
-  if (type === "create_account") return "create";
-  if (type.includes("trust")) return "trust";
-  if (type === "claim_claimable_balance") return "claim";
-  if (type === "create_claimable_balance") return "lock";
-  if (type.startsWith("liquidity_pool")) return "lp";
-  if (type === "invoke_contract") return "contract";
-  if (type === "account_merge") return "merge";
-  return "contract";
-}
-
-// ─── Labels / helpers ─────────────────────────────────────────────────────────
-
-const OP_LABELS: Record<string, string> = {
-  payment: "Payment",
-  path_payment_strict_send: "Swap",
-  path_payment_strict_receive: "Swap",
-  create_account: "Create Account",
-  manage_sell_offer: "Sell Order",
-  manage_buy_offer: "Buy Order",
-  create_passive_sell_offer: "Passive Order",
-  change_trust: "Change Trust",
-  allow_trust: "Allow Trust",
-  set_trust_line_flags: "Trust Flags",
-  account_merge: "Merge Account",
-  create_claimable_balance: "Lock Balance",
-  claim_claimable_balance: "Claim Balance",
-  liquidity_pool_deposit: "LP Deposit",
-  liquidity_pool_withdraw: "LP Withdraw",
-  invoke_contract: "Invoke Host Function",
-};
-
-function getOpLabel(type: string): string {
-  return OP_LABELS[type] ?? type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
+import { useSorobanTokenMeta } from "../hooks/use-soroban-token-meta";
+import { useStellarTransactions } from "../hooks/use-stellar-transactions";
+import { decodeOperation } from "../lib/decode-operation";
+import { formatAmount, signedAmount } from "../lib/format-amount";
+import { groupByTransaction } from "../lib/group-by-transaction";
+import { getIconStyle } from "../lib/icons";
+import type { TxGroup } from "../lib/types";
 
 function formatRelativeTime(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -88,35 +27,25 @@ function formatRelativeTime(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-function isOutgoingOp(op: StellarOperation, address: string): boolean {
-  const outTypes = new Set(["payment", "path_payment_strict_send", "path_payment_strict_receive"]);
-  return outTypes.has(op.type) && op.from === address;
+function summary(group: TxGroup): { text: string; color: string } | null {
+  const { primary, successful } = group;
+  if (!successful) return { text: "Failed", color: "text-destructive" };
+  if (primary.kind === "swap") {
+    const src = primary.deltas.find((d) => !d.isCredit);
+    const dst = primary.deltas.find((d) => d.isCredit);
+    if (!src || !dst) return null;
+    return {
+      text: `${formatAmount(src.amount)} ${src.code} → ${formatAmount(dst.amount)} ${dst.code}`,
+      color: "text-foreground",
+    };
+  }
+  const d = primary.deltas[0];
+  if (!d) return null;
+  return {
+    text: `${signedAmount(formatAmount(d.amount), d.isCredit)} ${d.code}`,
+    color: d.isCredit ? "text-emerald-400" : "text-destructive",
+  };
 }
-
-function getAmountSummary(
-  op: StellarOperation,
-  outgoing: boolean
-): { text: string; color: string } | null {
-  const isTransfer = op.type === "payment" || op.type.startsWith("path_payment");
-  const amt = op.type.startsWith("path_payment") ? (op.destinationAmount ?? op.amount) : op.amount;
-  const asset = op.type.startsWith("path_payment")
-    ? (op.destinationAsset ?? op.assetCode ?? "XLM")
-    : (op.assetCode ?? "XLM");
-
-  if (!amt) return null;
-  const num = parseFloat(amt);
-  const formatted = num.toLocaleString("en-US", { maximumFractionDigits: 4 });
-  const sign = isTransfer ? (outgoing ? "−" : "+") : "";
-  const color = isTransfer
-    ? outgoing
-      ? "text-destructive"
-      : "text-emerald-400"
-    : "text-foreground";
-
-  return { text: `${sign}${formatted} ${asset}`, color };
-}
-
-// ─── Main component ───────────────────────────────────────────────────────────
 
 interface HistorySidebarProps {
   address: string;
@@ -125,7 +54,26 @@ interface HistorySidebarProps {
 
 export function HistorySidebar({ address, onSeeAll }: HistorySidebarProps) {
   const { data, isLoading } = useStellarTransactions(address);
-  const ops = (data?.pages.flatMap((p) => p.operations) ?? []).slice(0, 5);
+
+  const allRaw = data?.pages.flatMap((p) => p.ops) ?? [];
+  const allAttrs = (data?.pages ?? []).reduce<Record<string, NonNullable<TxGroup["attrs"]>>>(
+    (acc, p) => Object.assign(acc, p.attrsByTx),
+    {},
+  );
+
+  const contractIds = useMemo(() => {
+    const set = new Set<string>();
+    for (const r of allRaw) {
+      for (const c of r.asset_balance_changes ?? []) {
+        if (c.asset_type !== "native" && c.asset_issuer) set.add(c.asset_issuer);
+      }
+    }
+    return Array.from(set);
+  }, [allRaw]);
+
+  const { lookup } = useSorobanTokenMeta(contractIds);
+  const decoded = useMemo(() => allRaw.map((r) => decodeOperation(r, address, lookup)), [allRaw, address, lookup]);
+  const groups = useMemo(() => groupByTransaction(decoded, allAttrs).slice(0, 5), [decoded, allAttrs]);
 
   return (
     <motion.div
@@ -151,7 +99,7 @@ export function HistorySidebar({ address, onSeeAll }: HistorySidebarProps) {
             </div>
           ))}
         </div>
-      ) : ops.length === 0 ? (
+      ) : groups.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center px-6 pb-8">
           <Clock className="mb-3 h-8 w-8 text-muted-foreground/40" />
           <p className="mb-1 text-sm font-medium text-muted-foreground">No transactions yet</p>
@@ -161,46 +109,28 @@ export function HistorySidebar({ address, onSeeAll }: HistorySidebarProps) {
         </div>
       ) : (
         <div className="flex flex-col divide-y divide-border">
-          {ops.map((op) => {
-            const outgoing = isOutgoingOp(op, address);
-            const key = getIconKey(op.type, outgoing);
-            const { icon: Icon, bg, fg } = OP_ICONS[key]!;
-            const summary = getAmountSummary(op, outgoing);
-            const explorerLink = getExplorerUrl("tx", op.transactionHash);
-
+          {groups.map((group) => {
+            const style = getIconStyle(group.primary.kind, group.successful);
+            const Icon = style.icon;
+            const sum = summary(group);
+            const explorerLink = getExplorerUrl("tx", group.txHash);
             return (
               <a
-                key={op.id}
+                key={group.txHash}
                 href={explorerLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 px-6 py-3.5 transition-colors hover:bg-muted/20"
               >
-                {/* Icon */}
-                <div
-                  className={cn(
-                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
-                    bg
-                  )}
-                >
-                  <Icon className={cn("h-3.5 w-3.5", fg)} />
+                <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-full", style.bg)}>
+                  <Icon className={cn("h-3.5 w-3.5", style.fg)} />
                 </div>
-
-                {/* Label + time */}
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate text-sm font-medium text-foreground">
-                    {getOpLabel(op.type)}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {formatRelativeTime(op.createdAt)}
-                  </span>
+                  <span className="truncate text-sm font-medium text-foreground">{style.label}</span>
+                  <span className="text-xs text-muted-foreground">{formatRelativeTime(group.createdAt)}</span>
                 </div>
-
-                {/* Amount */}
-                {summary && (
-                  <span className={cn("shrink-0 text-sm font-semibold", summary.color)}>
-                    {summary.text}
-                  </span>
+                {sum && (
+                  <span className={cn("shrink-0 text-sm font-semibold", sum.color)}>{sum.text}</span>
                 )}
               </a>
             );
@@ -208,7 +138,6 @@ export function HistorySidebar({ address, onSeeAll }: HistorySidebarProps) {
         </div>
       )}
 
-      {/* See all */}
       <div className="mt-auto border-t border-border px-4 py-3">
         <Button
           variant="ghost"
