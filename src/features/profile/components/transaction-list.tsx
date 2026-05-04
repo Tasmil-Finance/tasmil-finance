@@ -1,391 +1,133 @@
 "use client";
 
-import {
-  ArrowDownLeft,
-  ArrowLeftRight,
-  ArrowUpRight,
-  Clock,
-  Droplets,
-  Layers,
-  Link2,
-  Loader2,
-  Lock,
-  type LucideIcon,
-  Shield,
-  TrendingUp,
-  UserPlus,
-} from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
-import { TokenImage } from "@/shared/components/token-image";
-import { activeNetwork, getExplorerUrl } from "@/shared/config/stellar";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/shared/ui/collapsible";
-import { CopyButton } from "@/shared/ui/copy-button";
+import { Clock, Loader2 } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { groupByDate as groupOpsByDate } from "@/shared/utils/date-group";
-import type { StellarOperation } from "../hooks/use-stellar-transactions";
+import { groupByDate } from "@/shared/utils/date-group";
+import { useSorobanTokenMeta } from "../hooks/use-soroban-token-meta";
 import { useStellarTransactions } from "../hooks/use-stellar-transactions";
-import { useTransactionDetail } from "../hooks/use-transaction-detail";
+import { decodeOperation } from "../lib/decode-operation";
+import { groupByTransaction } from "../lib/group-by-transaction";
+import type { DecodedOp, OpKind, TxGroup } from "../lib/types";
+import {
+  type FilterCategory,
+  type FilterState,
+  TransactionFilterBar,
+} from "./transaction-filter-bar";
+import { TransactionRow } from "./transaction-row";
 
-// ─── Icon map ─────────────────────────────────────────────────────────────────
-// Icons chosen to be semantically obvious to non-devs
-
-const OP_ICONS: Record<string, { icon: LucideIcon; bg: string; fg: string }> = {
-  // Directional transfers
-  payment_in: { icon: ArrowDownLeft, bg: "bg-emerald-500/10", fg: "text-emerald-400" },
-  payment_out: { icon: ArrowUpRight, bg: "bg-destructive/10", fg: "text-destructive" },
-  // Swaps / path payments
-  swap: { icon: ArrowLeftRight, bg: "bg-violet-500/10", fg: "text-violet-400" },
-  // DEX order book — trending chart represents market activity
-  dex: { icon: TrendingUp, bg: "bg-amber-500/10", fg: "text-amber-400" },
-  // Account creation
-  create: { icon: UserPlus, bg: "bg-emerald-500/10", fg: "text-emerald-400" },
-  // Trustline permission — shield = permission
-  trust: { icon: Shield, bg: "bg-blue-500/10", fg: "text-blue-400" },
-  // Claim / receive a claimable balance — arrow down
-  claim: { icon: ArrowDownLeft, bg: "bg-emerald-500/10", fg: "text-emerald-400" },
-  // Lock funds as a claimable balance
-  lock: { icon: Lock, bg: "bg-amber-500/10", fg: "text-amber-400" },
-  // Liquidity pool — water drops = liquidity
-  lp: { icon: Droplets, bg: "bg-violet-500/10", fg: "text-violet-400" },
-  // Smart contract call — layers = stacked protocol logic
-  contract: { icon: Layers, bg: "bg-muted/30", fg: "text-muted-foreground" },
-  // Account merge — link = joining two things
-  merge: { icon: Link2, bg: "bg-muted/30", fg: "text-muted-foreground" },
+const KIND_TO_CATEGORY: Record<OpKind, FilterCategory> = {
+  send: "transfer",
+  receive: "transfer",
+  "create-account": "transfer",
+  swap: "swap",
+  "lp-deposit": "defi",
+  "lp-withdraw": "defi",
+  "lend-deposit": "defi",
+  "lend-withdraw": "defi",
+  harvest: "defi",
+  "trustline-add": "other",
+  "trustline-remove": "other",
+  "merge-account": "other",
+  "claim-balance": "other",
+  "lock-balance": "other",
+  "dex-offer": "other",
+  "contract-other": "other",
+  "classic-other": "other",
 };
 
-function getIconKey(type: string, outgoing: boolean): keyof typeof OP_ICONS {
-  if (type === "payment") return outgoing ? "payment_out" : "payment_in";
-  if (type.startsWith("path_payment")) return "swap";
-  if (type.includes("offer")) return "dex";
-  if (type === "create_account") return "create";
-  if (type.includes("trust")) return "trust";
-  if (type === "claim_claimable_balance") return "claim";
-  if (type === "create_claimable_balance") return "lock";
-  if (type.startsWith("liquidity_pool")) return "lp";
-  if (type === "invoke_contract") return "contract";
-  if (type === "account_merge") return "merge";
-  return "contract";
-}
-
-// ─── Labels ───────────────────────────────────────────────────────────────────
-
-const OP_LABELS: Record<string, string> = {
-  payment: "Payment",
-  path_payment_strict_send: "Swap",
-  path_payment_strict_receive: "Swap",
-  create_account: "Create Account",
-  manage_sell_offer: "Sell Order",
-  manage_buy_offer: "Buy Order",
-  create_passive_sell_offer: "Passive Sell Order",
-  change_trust: "Change Trustline",
-  allow_trust: "Allow Trustline",
-  set_trust_line_flags: "Trustline Flags",
-  account_merge: "Merge Account",
-  create_claimable_balance: "Lock Balance",
-  claim_claimable_balance: "Claim Balance",
-  liquidity_pool_deposit: "Add Liquidity",
-  liquidity_pool_withdraw: "Remove Liquidity",
-  invoke_contract: "Contract Call",
-};
-
-function getOpLabel(type: string): string {
-  return OP_LABELS[type] ?? type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-// ─── Formatters ───────────────────────────────────────────────────────────────
-
-function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function shortenAddr(a: string): string {
-  if (!a || a.length < 10) return a;
-  return `${a.slice(0, 6)}...${a.slice(-4)}`;
-}
-
-function formatNum(amt: string): string {
-  const n = parseFloat(amt);
-  if (Number.isNaN(n)) return amt;
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(2)}K`;
-  if (n >= 1) return n.toLocaleString("en-US", { maximumFractionDigits: 4 });
-  return n.toPrecision(4);
-}
-
-// ─── Row data helpers ─────────────────────────────────────────────────────────
-
-function isOutgoingOp(op: StellarOperation, address: string): boolean {
-  const outTypes = new Set(["payment", "path_payment_strict_send", "path_payment_strict_receive"]);
-  return outTypes.has(op.type) && op.from === address;
-}
-
-// Center column: signed+colored amount for transfers, plain asset for others
-interface CenterInfo {
-  asset: string;
-  display: string; // formatted number (possibly with sign)
-  color: string; // tailwind color class
-  signed: boolean; // whether to show +/- prefix
-}
-
-function getCenterInfo(op: StellarOperation, address: string): CenterInfo | null {
-  const isTransfer = op.type === "payment" || op.type.startsWith("path_payment");
-  const outgoing = isOutgoingOp(op, address);
-
-  const rawAmt = op.type.startsWith("path_payment")
-    ? (op.destinationAmount ?? op.amount)
-    : op.amount;
-  const asset = op.type.startsWith("path_payment")
-    ? (op.destinationAsset ?? op.assetCode ?? "XLM")
-    : (op.assetCode ?? "XLM");
-
-  if (rawAmt) {
-    const display = formatNum(rawAmt);
-    if (isTransfer) {
-      return {
-        asset,
-        display: outgoing ? `−${display}` : `+${display}`,
-        color: outgoing ? "text-destructive" : "text-emerald-400",
-        signed: true,
-      };
+function passesFilters(group: TxGroup, state: FilterState): boolean {
+  if (state.filters.length > 0) {
+    const cat = KIND_TO_CATEGORY[group.primary.kind];
+    const failedSelected = state.filters.includes("failed");
+    if (failedSelected && !group.successful) {
+      // pass through if failed filter is on; remaining checks fall through too
+    } else if (!group.successful && !failedSelected) {
+      return false;
+    } else if (!state.filters.includes(cat) && !failedSelected) {
+      return false;
     }
-    // Non-transfer op with an amount (e.g. LP, claimable)
-    return { asset, display, color: "text-foreground", signed: false };
   }
-
-  // No amount — show asset name if we know it (trust changes, offers, etc.)
-  if (op.assetCode) {
-    return {
-      asset: op.assetCode,
-      display: op.assetCode,
-      color: "text-muted-foreground",
-      signed: false,
-    };
+  if (state.query) {
+    const q = state.query.toLowerCase();
+    const inHash = group.txHash.toLowerCase().includes(q);
+    const inAddr = group.ops.some((o) => o.counterparty?.toLowerCase().includes(q));
+    const inAsset = group.ops.some((o) => o.deltas.some((d) => d.code.toLowerCase().includes(q)));
+    if (!inHash && !inAddr && !inAsset) return false;
   }
-
-  return null;
+  return true;
 }
 
-interface RightInfo {
-  label: string;
-  value: string;
+function parseFilters(value: string | null): FilterCategory[] {
+  if (!value) return [];
+  const valid: FilterCategory[] = ["transfer", "swap", "defi", "other", "failed"];
+  return value.split(",").filter((v): v is FilterCategory => (valid as string[]).includes(v));
 }
 
-function getRightInfo(op: StellarOperation, address: string): RightInfo | null {
-  if (op.type === "payment") {
-    const out = op.from === address;
-    const addr = out ? op.to : op.from;
-    if (!addr) return null;
-    return { label: out ? "To" : "From", value: shortenAddr(addr) };
-  }
-  if (op.type.startsWith("path_payment")) {
-    if (!op.to) return null;
-    return { label: "To", value: shortenAddr(op.to) };
-  }
-  if (op.type === "create_account") {
-    if (!op.to) return null;
-    return { label: "Account", value: shortenAddr(op.to) };
-  }
-  if (op.type.includes("trust")) {
-    return { label: "Asset", value: op.assetCode ?? "—" };
-  }
-  if (op.type.startsWith("liquidity_pool")) {
-    return { label: "Pool", value: op.assetCode ?? "—" };
-  }
-  return null;
-}
-
-// ─── Status Dot + Details Panel ────────────────────────────────────────────────
-
-const explorerBase = activeNetwork.horizonUrl.includes("testnet")
-  ? "https://stellar.expert/explorer/testnet"
-  : "https://stellar.expert/explorer/public";
-
-function StatusDot({ successful }: { successful?: boolean | null }) {
-  if (successful !== true && successful !== false) return null;
-  return (
-    <span
-      data-testid="status-dot"
-      data-status={successful ? "success" : "failed"}
-      title={successful ? "Confirmed" : "Failed"}
-      className={cn(
-        "inline-block h-1.5 w-1.5 shrink-0 rounded-full",
-        successful ? "bg-emerald-400" : "bg-destructive"
-      )}
-      aria-label={successful ? "Confirmed" : "Failed"}
-    />
-  );
-}
-
-function DetailsPanel({
-  txHash,
-  createdAt,
-  enabled,
-}: {
-  txHash: string;
-  createdAt: string;
-  enabled: boolean;
-}) {
-  const { data, isLoading, error } = useTransactionDetail(txHash, enabled);
-  const explorerUrl = getExplorerUrl("tx", txHash);
-
-  return (
-    <div className="border-t border-border/40 bg-muted/10 px-5 py-4 text-xs">
-      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
-        <dt className="font-semibold uppercase tracking-wider text-muted-foreground">Tx Hash</dt>
-        <dd className="flex items-center gap-2">
-          <code className="font-mono break-all text-foreground">{txHash}</code>
-          <CopyButton text={txHash} />
-          <a
-            href={explorerUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary hover:underline whitespace-nowrap"
-          >
-            View ↗
-          </a>
-        </dd>
-
-        <dt className="font-semibold uppercase tracking-wider text-muted-foreground">Time</dt>
-        <dd className="text-foreground">{new Date(createdAt).toISOString()}</dd>
-
-        {isLoading && (
-          <>
-            <dt className="font-semibold uppercase tracking-wider text-muted-foreground">
-              Loading…
-            </dt>
-            <dd className="text-muted-foreground">Fetching tx details</dd>
-          </>
-        )}
-
-        {error && (
-          <>
-            <dt className="font-semibold uppercase tracking-wider text-muted-foreground">Error</dt>
-            <dd className="text-destructive">{error.message}</dd>
-          </>
-        )}
-
-        {data && (
-          <>
-            <dt className="font-semibold uppercase tracking-wider text-muted-foreground">Fee</dt>
-            <dd className="text-foreground">
-              {(Number(data.feeCharged) / 10_000_000).toFixed(7)} XLM
-            </dd>
-
-            <dt className="font-semibold uppercase tracking-wider text-muted-foreground">Ledger</dt>
-            <dd className="text-foreground">
-              <a
-                href={`${explorerBase}/ledger/${data.ledger}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                {data.ledger}
-              </a>
-            </dd>
-
-            {data.memo && (
-              <>
-                <dt className="font-semibold uppercase tracking-wider text-muted-foreground">
-                  Memo
-                </dt>
-                <dd className="break-all text-foreground">
-                  {data.memo}
-                  {data.memoType ? ` (${data.memoType})` : ""}
-                </dd>
-              </>
-            )}
-          </>
-        )}
-      </dl>
-    </div>
-  );
-}
-
-// ─── Row ──────────────────────────────────────────────────────────────────────
-
-function TxRow({ op, address }: { op: StellarOperation; address: string }) {
-  const [open, setOpen] = useState(false);
-  const outgoing = isOutgoingOp(op, address);
-  const key = getIconKey(op.type, outgoing);
-  const { icon: Icon, bg, fg } = OP_ICONS[key]!;
-  const center = getCenterInfo(op, address);
-  const right = getRightInfo(op, address);
-
-  return (
-    <Collapsible open={open} onOpenChange={setOpen}>
-      <CollapsibleTrigger asChild>
-        <button
-          type="button"
-          className="flex w-full items-center gap-4 px-5 py-3.5 text-left transition-colors hover:bg-muted/20"
-        >
-          {/* Operation icon */}
-          <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-full", bg)}>
-            <Icon className={cn("h-[15px] w-[15px]", fg)} />
-          </div>
-
-          {/* Op label + time */}
-          <div className="min-w-0 w-44 shrink-0">
-            <p className="truncate text-sm font-medium text-foreground">{getOpLabel(op.type)}</p>
-            <p className="text-xs text-muted-foreground">{formatTime(op.createdAt)}</p>
-          </div>
-
-          {/* Token + amount */}
-          <div className="flex flex-1 items-center gap-2.5">
-            {center ? (
-              <>
-                <TokenImage
-                  alt={center.asset}
-                  className="h-7 w-7 shrink-0 rounded-full text-[10px]"
-                />
-                <p className={cn("text-sm font-semibold leading-none", center.color)}>
-                  {center.display}
-                  {center.signed && (
-                    <span className="ml-1.5 text-xs font-normal text-muted-foreground">
-                      {center.asset}
-                    </span>
-                  )}
-                </p>
-              </>
-            ) : null}
-          </div>
-
-          {/* Direction + address */}
-          {right ? (
-            <div className="flex w-40 shrink-0 flex-col items-end gap-0.5">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/50">
-                {right.label}
-              </span>
-              <span className="font-mono text-xs text-muted-foreground">{right.value}</span>
-            </div>
-          ) : (
-            <div className="w-40 shrink-0" />
-          )}
-
-          {/* Status dot */}
-          <StatusDot successful={op.successful} />
-        </button>
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <DetailsPanel txHash={op.transactionHash} createdAt={op.createdAt} enabled={open} />
-      </CollapsibleContent>
-    </Collapsible>
-  );
-}
-
-// ─── Main ─────────────────────────────────────────────────────────────────────
+type DatedGroup = TxGroup;
 
 export function TransactionList({ address }: { address: string }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const filterState = useMemo<FilterState>(
+    () => ({
+      filters: parseFilters(searchParams.get("filter")),
+      query: searchParams.get("q") ?? "",
+    }),
+    [searchParams],
+  );
+
+  const setFilterState = useCallback(
+    (next: FilterState) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (next.filters.length === 0) params.delete("filter");
+      else params.set("filter", next.filters.join(","));
+      if (!next.query) params.delete("q");
+      else params.set("q", next.query);
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname);
+    },
+    [router, pathname, searchParams],
+  );
+
   const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } =
     useStellarTransactions(address);
+
+  const allRaw = data?.pages.flatMap((p) => p.ops) ?? [];
+  const allAttrs = (data?.pages ?? []).reduce<Record<string, NonNullable<TxGroup["attrs"]>>>(
+    (acc, p) => Object.assign(acc, p.attrsByTx),
+    {},
+  );
+
+  const contractIds = useMemo(() => {
+    const set = new Set<string>();
+    for (const r of allRaw) {
+      for (const c of r.asset_balance_changes ?? []) {
+        if (c.asset_type !== "native" && c.asset_issuer) set.add(c.asset_issuer);
+      }
+    }
+    return Array.from(set);
+  }, [allRaw]);
+
+  const { lookup } = useSorobanTokenMeta(contractIds);
+
+  const decoded: DecodedOp[] = useMemo(
+    () => allRaw.map((r) => decodeOperation(r, address, lookup)),
+    [allRaw, address, lookup],
+  );
+
+  const groups = useMemo(() => groupByTransaction(decoded, allAttrs), [decoded, allAttrs]);
+  const filtered = useMemo(
+    () => groups.filter((g) => passesFilters(g, filterState)),
+    [groups, filterState],
+  );
+
+  const datedGroups = useMemo(() => groupByDate<DatedGroup>(filtered), [filtered]);
+
   const sentinelRef = useRef<HTMLDivElement>(null);
-
-  const allOps = data?.pages.flatMap((p) => p.operations) ?? [];
-  const groups = groupOpsByDate(allOps);
-
   const loadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) fetchNextPage();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
@@ -397,13 +139,12 @@ export function TransactionList({ address }: { address: string }) {
       (entries) => {
         if (entries[0]?.isIntersecting) loadMore();
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
     obs.observe(el);
     return () => obs.disconnect();
   }, [loadMore]);
 
-  // ── Loading skeleton ──
   if (isLoading) {
     return (
       <div className="flex flex-col gap-6">
@@ -423,10 +164,6 @@ export function TransactionList({ address }: { address: string }) {
                     <Skeleton className="h-7 w-7 shrink-0 rounded-full" />
                     <Skeleton className="h-4 w-24" />
                   </div>
-                  <div className="flex w-40 flex-col items-end gap-1">
-                    <Skeleton className="h-2.5 w-8" />
-                    <Skeleton className="h-3.5 w-20" />
-                  </div>
                 </div>
               ))}
             </div>
@@ -436,8 +173,7 @@ export function TransactionList({ address }: { address: string }) {
     );
   }
 
-  // ── Empty ──
-  if (allOps.length === 0) {
+  if (groups.length === 0) {
     return (
       <div className="flex flex-col gap-4">
         <h2 className="text-xl font-semibold text-foreground">Transaction History</h2>
@@ -454,29 +190,32 @@ export function TransactionList({ address }: { address: string }) {
     );
   }
 
-  // ── Grouped list ──
   return (
     <div className="flex flex-col gap-2">
-      {/* Heading */}
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-xl font-semibold text-foreground">Transaction History</h2>
-        <span className="text-sm text-muted-foreground">{allOps.length} operations</span>
+        <span className="text-sm text-muted-foreground">{groups.length} transactions</span>
       </div>
 
-      {groups.map((group) => (
-        <div key={group.key} className="flex flex-col gap-2">
-          {/* Date label */}
-          <p className="px-1 pt-2 text-sm font-semibold text-muted-foreground">{group.label}</p>
-          {/* Rows card */}
+      <TransactionFilterBar value={filterState} onChange={setFilterState} />
+
+      {filtered.length === 0 && (
+        <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
+          No transactions match these filters.
+        </div>
+      )}
+
+      {datedGroups.map((dateGroup) => (
+        <div key={dateGroup.key} className="flex flex-col gap-2">
+          <p className="px-1 pt-2 text-sm font-semibold text-muted-foreground">{dateGroup.label}</p>
           <div className="overflow-hidden rounded-xl border border-border bg-card divide-y divide-border/60">
-            {group.items.map((op) => (
-              <TxRow key={op.id} op={op} address={address} />
+            {dateGroup.items.map((g) => (
+              <TransactionRow key={g.txHash} group={g} address={address} />
             ))}
           </div>
         </div>
       ))}
 
-      {/* Infinite scroll sentinel */}
       {hasNextPage && (
         <div ref={sentinelRef} className="flex items-center justify-center py-6">
           {isFetchingNextPage && (
@@ -488,7 +227,7 @@ export function TransactionList({ address }: { address: string }) {
         </div>
       )}
 
-      {!hasNextPage && allOps.length > 0 && (
+      {!hasNextPage && groups.length > 0 && (
         <p className="py-4 text-center text-[11px] uppercase tracking-widest text-muted-foreground/30">
           End of history
         </p>
