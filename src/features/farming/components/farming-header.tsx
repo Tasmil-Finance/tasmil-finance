@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Tractor, TrendingDown, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import CountUp from "@/shared/ui/count-up";
 import { Skeleton } from "@/shared/ui/skeleton";
 import type { RebalanceStatus } from "../types";
 
@@ -46,7 +47,7 @@ export function FarmingHeader({
   return (
     <motion.div
       data-onborda="farming-header"
-      className="flex items-center gap-4"
+      className="flex items-center gap-4 rounded-2xl border border-border/50 bg-gradient-to-br from-primary/10 via-background to-background p-6"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
@@ -78,7 +79,7 @@ export function FarmingHeader({
             transition={{ duration: 0.5, delay: 0.15 }}
           >
             <span className="text-5xl font-bold tracking-tight text-foreground">
-              {formatUsd(totalValueUsd)}
+              <CountUp value={totalValueUsd} prefix="$" decimals={2} duration={0.8} abbreviate={false} />
             </span>
             {hasPnl && (
               <motion.div
