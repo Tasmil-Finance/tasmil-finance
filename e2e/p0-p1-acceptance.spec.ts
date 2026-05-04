@@ -16,7 +16,7 @@
  */
 import { expect, test } from "@playwright/test";
 import { freshWallet, loginAsWallet } from "./helpers/auth";
-import { applyCreditDelta } from "./helpers/backend";
+import { applyCreditDelta, seedManagedAccount } from "./helpers/backend";
 import { clearOnboardingState, clearWatchlistState } from "./helpers/state";
 
 test.describe("T1 — Onboarding guide (P0)", () => {
@@ -123,6 +123,7 @@ test.describe("T2 — Farming UI (P0)", () => {
     await clearOnboardingState(page);
     const wallet = freshWallet();
     await loginAsWallet(page, wallet);
+    await seedManagedAccount(wallet);
     await page.goto("/farming");
 
     // Dismiss onboarding modal if it auto-opened (T1 covers it; here we just need it gone)
@@ -151,6 +152,7 @@ test.describe("T2 — Farming UI (P0)", () => {
     await clearOnboardingState(page);
     const wallet = freshWallet();
     await loginAsWallet(page, wallet);
+    await seedManagedAccount(wallet);
 
     // Capture early state — race CountUp's animation
     await page.goto("/farming");
@@ -176,6 +178,7 @@ test.describe("T2 — Farming UI (P0)", () => {
     await clearOnboardingState(page);
     const wallet = freshWallet();
     await loginAsWallet(page, wallet);
+    await seedManagedAccount(wallet);
     await page.goto("/farming");
 
     // Dismiss modal
@@ -202,6 +205,7 @@ test.describe("T2 — Farming UI (P0)", () => {
     await clearOnboardingState(page);
     const wallet = freshWallet();
     await loginAsWallet(page, wallet);
+    await seedManagedAccount(wallet);
     await page.goto("/farming");
 
     // Dismiss modal
