@@ -6,7 +6,14 @@ export interface WelcomeSlideData {
   title: string;
   description: string;
   gradient: string;
-  videoUrl?: string;
+  /** Path under /public, e.g. "/onboarding/intro.mp4". Empty/undefined → no video slot. */
+  videoSrc?: string;
+  /** Path under /public, e.g. "/onboarding/intro-poster.png". Optional. */
+  videoPoster?: string;
+  /** Path under /public, e.g. "/onboarding/chat.png". Empty/undefined → no image slot. */
+  imageSrc?: string;
+  /** Alt text for the image slot. Required when imageSrc is set. */
+  imageAlt?: string;
 }
 
 export const welcomeSlides: WelcomeSlideData[] = [
@@ -16,7 +23,8 @@ export const welcomeSlides: WelcomeSlideData[] = [
     description:
       "Your AI-powered DeFi portfolio manager on Stellar. Manage, optimize, and grow your assets in one place.",
     gradient: "from-sky-500 to-blue-600",
-    videoUrl: "",
+    videoSrc: "/onboarding/intro.mp4",
+    videoPoster: "/onboarding/intro-poster.png",
   },
   {
     icon: MessageSquare,
@@ -24,6 +32,8 @@ export const welcomeSlides: WelcomeSlideData[] = [
     description:
       "Natural-language DeFi: ask the agent to swap, bridge, or rebalance — it executes and explains.",
     gradient: "from-violet-500 to-purple-600",
+    imageSrc: "/onboarding/chat.png",
+    imageAlt: "Chat interface preview",
   },
   {
     icon: Tractor,
@@ -31,6 +41,8 @@ export const welcomeSlides: WelcomeSlideData[] = [
     description:
       "AI agents find the best yields across Blend, Soroswap, and Aquarius. Set risk; the agent rebalances for you.",
     gradient: "from-emerald-500 to-teal-600",
+    imageSrc: "/onboarding/farming.png",
+    imageAlt: "Farming dashboard preview",
   },
   {
     icon: LineChart,
@@ -38,6 +50,8 @@ export const welcomeSlides: WelcomeSlideData[] = [
     description:
       "Watch your portfolio in real time. Climb the Quest leaderboard. Earn welcome credits and task bonuses.",
     gradient: "from-amber-500 to-orange-600",
+    imageSrc: "/onboarding/portfolio.png",
+    imageAlt: "Portfolio overview preview",
   },
   {
     icon: Trophy,
