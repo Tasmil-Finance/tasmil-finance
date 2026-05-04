@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { freshWallet, loginAsWallet } from "./helpers/auth";
 
 test.describe("Welcome onboarding modal", () => {
   test("opens on first wallet connect, closes on Get Started, persists dismissal", async ({
@@ -10,13 +11,12 @@ test.describe("Welcome onboarding modal", () => {
       window.localStorage.removeItem("tasmil-onboarding");
     });
 
+    const wallet = freshWallet();
+    await loginAsWallet(page, wallet);
     await page.goto("/farming");
 
     const modal = page.getByRole("dialog");
-    const opened = await modal.isVisible({ timeout: 8000 }).catch(() => false);
-    if (!opened) {
-      return;
-    }
+    await expect(modal).toBeVisible({ timeout: 8000 });
 
     for (let i = 0; i < 4; i++) {
       await page.getByRole("button", { name: /^Next$/ }).click();
@@ -34,11 +34,13 @@ test.describe("Welcome onboarding modal", () => {
     await page.addInitScript(() => {
       window.localStorage.removeItem("tasmil-onboarding");
     });
+
+    const wallet = freshWallet();
+    await loginAsWallet(page, wallet);
     await page.goto("/farming");
 
     const modal = page.getByRole("dialog");
-    const opened = await modal.isVisible({ timeout: 8000 }).catch(() => false);
-    if (!opened) return;
+    await expect(modal).toBeVisible({ timeout: 8000 });
 
     await page.getByRole("button", { name: /Skip/i }).click();
     await expect(modal).not.toBeVisible({ timeout: 3000 });
