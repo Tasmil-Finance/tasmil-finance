@@ -364,4 +364,50 @@ test.describe("Farming UI (Task 8)", () => {
     const clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
     expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 1);
   });
+
+  test("Stat row renders 3 cards", async ({ page }) => {
+    const wallet = freshWallet();
+    await loginAsWallet(page, wallet);
+    await page.goto("/farming");
+    await page.waitForTimeout(2000);
+    await expect(page.getByText("Total Value")).toBeVisible();
+    await expect(page.getByText("All-Time P&L")).toBeVisible();
+    await expect(page.getByText("Current APY")).toBeVisible();
+  });
+
+  test("Two tabs Performance / Manage are present", async ({ page }) => {
+    const wallet = freshWallet();
+    await loginAsWallet(page, wallet);
+    await page.goto("/farming");
+    await page.waitForTimeout(2000);
+    await expect(page.getByRole("tab", { name: /^Performance$/ })).toBeVisible();
+    await expect(page.getByRole("tab", { name: /^Manage$/ })).toBeVisible();
+    await expect(page.getByRole("tab", { name: /^Overview$/ })).toHaveCount(0);
+    await expect(page.getByRole("tab", { name: /^Pools$/ })).toHaveCount(0);
+    await expect(page.getByRole("tab", { name: /^Strategy$/ })).toHaveCount(0);
+    await expect(page.getByRole("tab", { name: /^Activity$/ })).toHaveCount(0);
+  });
+
+  test("?tab=pools redirects to Manage", async ({ page }) => {
+    const wallet = freshWallet();
+    await loginAsWallet(page, wallet);
+    await page.goto("/farming?tab=pools");
+    await page.waitForTimeout(2000);
+    const manage = page.getByRole("tab", { name: /^Manage$/ });
+    await expect(manage).toHaveAttribute("aria-selected", "true");
+  });
+
+  test("'See all' opens activity drawer", async ({ page }) => {
+    const wallet = freshWallet();
+    await loginAsWallet(page, wallet);
+    await page.goto("/farming");
+    await page.waitForTimeout(2000);
+    const seeAll = page.getByRole("button", { name: /see all/i });
+    if (await seeAll.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await seeAll.click();
+      await expect(page.getByText(/activity timeline/i).first()).toBeVisible();
+      await page.keyboard.press("Escape");
+      await expect(page.getByText(/activity timeline/i)).toHaveCount(0);
+    }
+  });
 });
