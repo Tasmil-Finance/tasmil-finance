@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Plus, Search } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { TokenImage } from "@/shared/components/token-image";
 import { Button } from "@/shared/ui/button-v2";
 import {
@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/input";
+import { Skeleton } from "@/shared/ui/skeleton";
 import { keyOf, useWatchList } from "@/store/use-watch-list";
 
 const DEFAULT_SYMBOLS = ["USDC", "XLM", "BLND", "AQUA", "USDT", "EURC", "yXLM", "SHX"] as const;
@@ -38,33 +39,39 @@ interface AddAssetDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+type Status = "idle" | "loading" | "error" | "ready";
+
 export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
   const [tokens, setTokens] = useState<RegistryToken[]>([]);
+  const [status, setStatus] = useState<Status>("idle");
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
-  const addAsset = useWatchList((s) => s.addAsset);
   const isWatched = useWatchList((s) => s.isWatched);
+  const addAsset = useWatchList((s) => s.addAsset);
 
   useEffect(() => {
     const id = setTimeout(() => setDebounced(query.trim().toUpperCase()), 200);
     return () => clearTimeout(id);
   }, [query]);
 
-  useEffect(() => {
-    if (!open || tokens.length > 0) return;
-    let cancelled = false;
+  const fetchTokens = useCallback(() => {
+    setStatus("loading");
     fetch("/api/tokens")
       .then((r) => (r.ok ? r.json() : Promise.reject(r)))
       .then((data: RegistryResponse) => {
-        if (!cancelled) setTokens(data.tokens ?? []);
+        setTokens(data.tokens ?? []);
+        setStatus("ready");
       })
       .catch(() => {
-        // Silent failure: dialog stays usable but empty
+        setStatus("error");
       });
-    return () => {
-      cancelled = true;
-    };
-  }, [open, tokens.length]);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    if (status !== "idle") return;
+    fetchTokens();
+  }, [open, status, fetchTokens]);
 
   const filtered = useMemo(() => {
     if (!debounced) {
@@ -112,42 +119,78 @@ export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
             />
           </div>
 
-          {debounced && filtered.length === 0 && (
+          {status === "loading" && (
+            <ul className="flex flex-col gap-1">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <li
+                  key={i}
+                  data-testid="watchlist-row-skeleton"
+                  className="flex items-center gap-3 rounded-lg px-3 py-2"
+                >
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                  <div className="flex-1 space-y-1.5">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                  <Skeleton className="h-7 w-16 rounded-md" />
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {status === "error" && (
+            <div className="flex flex-col items-center gap-2 py-6 text-center">
+              <p className="text-sm text-muted-foreground">Couldn&rsquo;t load assets.</p>
+              <Button variant="outline" size="sm" onClick={fetchTokens}>
+                Retry
+              </Button>
+            </div>
+          )}
+
+          {status === "ready" && debounced && filtered.length === 0 && (
             <p className="text-sm text-muted-foreground py-6 text-center">
               No matches for &ldquo;{debounced}&rdquo;.
             </p>
           )}
 
-          <ul className="flex flex-col gap-1 max-h-72 overflow-y-auto">
-            {filtered.map((t) => (
-              <li
-                key={`${t.symbol}-${t.addresses?.stellar ?? "native"}`}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-muted/30"
-              >
-                <TokenImage alt={t.symbol} className="h-8 w-8 rounded-full text-[10px]" />
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-foreground">{t.symbol}</div>
-                  {t.addresses?.stellar && (
-                    <div className="font-mono text-xs text-muted-foreground">
-                      {shorten(t.addresses.stellar)}
+          {status === "ready" && (
+            <ul className="flex flex-col gap-1 max-h-72 overflow-y-auto">
+              {filtered.map((t) => {
+                const k = keyOf({
+                  symbol: t.symbol,
+                  chain: "stellar",
+                  contractId: t.addresses?.stellar,
+                });
+                const watched = isWatched(k);
+                return (
+                  <li
+                    key={`${t.symbol}-${t.addresses?.stellar ?? "native"}`}
+                    className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-muted/30"
+                  >
+                    <TokenImage alt={t.symbol} className="h-8 w-8 rounded-full text-[10px]" />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-foreground">{t.symbol}</div>
+                      {t.addresses?.stellar && (
+                        <div className="font-mono text-xs text-muted-foreground">
+                          {shorten(t.addresses.stellar)}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                {isWatched(
-                  keyOf({ symbol: t.symbol, chain: "stellar", contractId: t.addresses?.stellar })
-                ) ? (
-                  <Button size="sm" variant="ghost" disabled className="gap-1">
-                    <Check className="h-3.5 w-3.5" />
-                    Watching
-                  </Button>
-                ) : (
-                  <Button size="sm" variant="outline" onClick={() => handleAdd(t)}>
-                    Watch
-                  </Button>
-                )}
-              </li>
-            ))}
-          </ul>
+                    {watched ? (
+                      <Button size="sm" variant="ghost" disabled className="gap-1">
+                        <Check className="h-3.5 w-3.5" />
+                        Watching
+                      </Button>
+                    ) : (
+                      <Button size="sm" variant="outline" onClick={() => handleAdd(t)}>
+                        Watch
+                      </Button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
       </DialogContent>
     </Dialog>

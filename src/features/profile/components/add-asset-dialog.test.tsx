@@ -101,4 +101,52 @@ describe("AddAssetDialog", () => {
     expect(stored[0]!.contractId).toBe("C_BLND");
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
+
+  it("shows loading skeleton rows while /api/tokens is in flight", async () => {
+    // Hold the fetch open so we can observe the loading state
+    let resolveFetch: (value: { ok: boolean; json: () => Promise<unknown> }) => void = () => {};
+    global.fetch = jest.fn(
+      () =>
+        new Promise((resolve) => {
+          resolveFetch = resolve;
+        })
+    ) as jest.Mock;
+
+    render(<AddAssetDialog open={true} onOpenChange={() => {}} />);
+
+    // Expect skeleton rows (data-testid="watchlist-row-skeleton")
+    await waitFor(() => {
+      expect(screen.getAllByTestId("watchlist-row-skeleton").length).toBeGreaterThan(0);
+    });
+
+    // Resolve so the test cleans up
+    await act(async () => {
+      resolveFetch({ ok: true, json: () => Promise.resolve(FAKE_REGISTRY) });
+    });
+  });
+
+  it("shows error state with retry when /api/tokens fails", async () => {
+    let attempts = 0;
+    global.fetch = jest.fn(() => {
+      attempts += 1;
+      if (attempts === 1) {
+        return Promise.resolve({ ok: false, json: () => Promise.reject(new Error("boom")) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve(FAKE_REGISTRY) });
+    }) as jest.Mock;
+
+    render(<AddAssetDialog open={true} onOpenChange={() => {}} />);
+
+    // Error state with retry button
+    const retry = await screen.findByRole("button", { name: /retry/i });
+    expect(screen.getByText(/couldn.?t load assets/i)).toBeInTheDocument();
+
+    // Click retry → succeeds, curated list appears
+    await act(async () => {
+      fireEvent.click(retry);
+    });
+    await waitFor(() => {
+      expect(screen.getByText("BLND")).toBeInTheDocument();
+    });
+  });
 });
