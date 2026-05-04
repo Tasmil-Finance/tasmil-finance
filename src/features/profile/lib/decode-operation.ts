@@ -1,5 +1,9 @@
 import BigNumber from "bignumber.js";
-import type { AssetDelta, DecodedOp, OpKind, TokenMetaLookup } from "./types";
+import type { AssetDelta, DecodedOp, OpKind, Protocol, TokenMetaLookup } from "./types";
+import { scaleByDecimals } from "./format-amount";
+import { lookupProtocol } from "./protocol-registry";
+
+const CLASSIC_DECIMALS = 7;
 
 export interface AssetBalanceChange {
   type: "transfer" | "mint" | "burn" | "clawback";
@@ -198,9 +202,97 @@ export function decodeOperation(
   }
 
   if (op.type === "invoke_host_function") {
-    // Soroban handling lands in a follow-up task.
-    return { ...emptyDecoded(op, "contract-other"), successful, rawFnName: op.function };
+    return decodeSoroban(op, address, _tokenMeta, successful);
   }
 
   return { ...emptyDecoded(op, "classic-other"), successful };
+}
+
+function resolveTokenMeta(
+  contractId: string | undefined,
+  fallbackCode: string | undefined,
+  tokenMeta: TokenMetaLookup,
+): { code: string; decimals: number } {
+  if (contractId) {
+    const m = tokenMeta(contractId);
+    if (m) return { code: m.code, decimals: m.decimals };
+  }
+  return { code: fallbackCode ?? "XLM", decimals: CLASSIC_DECIMALS };
+}
+
+function abcToDelta(
+  change: NonNullable<RawHorizonOp["asset_balance_changes"]>[number],
+  isCredit: boolean,
+  tokenMeta: TokenMetaLookup,
+): AssetDelta {
+  const isNative = change.asset_type === "native";
+  const contractId = isNative ? undefined : change.asset_issuer;
+  const fallbackCode = isNative ? "XLM" : change.asset_code;
+  const { code, decimals } = isNative
+    ? { code: "XLM", decimals: CLASSIC_DECIMALS }
+    : resolveTokenMeta(contractId, fallbackCode, tokenMeta);
+  return {
+    code,
+    issuer: contractId,
+    amount: scaleByDecimals(change.amount, decimals),
+    isCredit,
+    contractId,
+  };
+}
+
+function decodeSoroban(
+  op: RawHorizonOp,
+  address: string,
+  tokenMeta: TokenMetaLookup,
+  successful: boolean,
+): DecodedOp {
+  const fnName = op.function ?? undefined;
+  const userChanges = (op.asset_balance_changes ?? []).filter(
+    (c) => c.from === address || c.to === address,
+  );
+
+  if (userChanges.length === 0) {
+    return {
+      ...emptyDecoded(op, "contract-other"),
+      successful,
+      rawFnName: fnName,
+    };
+  }
+
+  const deltas: AssetDelta[] = userChanges.map((c) => abcToDelta(c, c.to === address, tokenMeta));
+
+  // Counterparty contract = the non-address side of the first change.
+  const counterParty = userChanges[0]!.to === address ? userChanges[0]!.from : userChanges[0]!.to;
+  const protocol: Protocol | undefined = lookupProtocol(counterParty);
+
+  const credits = deltas.filter((d) => d.isCredit);
+  const debits = deltas.filter((d) => !d.isCredit);
+
+  let kind: OpKind = "contract-other";
+
+  if (debits.length > 0 && credits.length > 0) {
+    kind = "swap";
+  } else if (debits.length === 1 && credits.length === 0) {
+    kind = protocol === "blend" ? "lend-deposit"
+      : protocol === "soroswap" || protocol === "aquarius" || protocol === "phoenix" ? "lp-deposit"
+      : "send";
+  } else if (credits.length === 1 && debits.length === 0) {
+    kind = protocol === "blend" ? "lend-withdraw"
+      : protocol === "soroswap" || protocol === "aquarius" || protocol === "phoenix" ? "lp-withdraw"
+      : fnName === "claim" ? "harvest"
+      : "receive";
+  } else if (debits.length > 1 && credits.length === 0) {
+    kind = "lp-deposit";
+  } else if (credits.length > 1 && debits.length === 0) {
+    kind = "lp-withdraw";
+  }
+
+  return {
+    ...emptyDecoded(op, kind),
+    successful,
+    deltas,
+    counterparty: counterParty,
+    protocol,
+    rawFnName: fnName,
+  };
 }

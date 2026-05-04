@@ -1,4 +1,5 @@
 import { decodeOperation, type RawHorizonOp } from "./decode-operation";
+import type { SorobanTokenMeta } from "./types";
 
 const ADDR = "GA7XYZ7XYZ7XYZ7XYZ7XYZ7XYZ7XYZ7XYZ7XYZ7XYZ7XYZ7XYZ7";
 const OTHER = "GBOTHER1OTHER1OTHER1OTHER1OTHER1OTHER1OTHER1OTHER1";
@@ -131,5 +132,92 @@ describe("decodeOperation — classic ops", () => {
   it("classifies unknown classic type as classic-other", () => {
     const r = decodeOperation(base({ type: "set_options" }), ADDR, noMeta);
     expect(r.kind).toBe("classic-other");
+  });
+});
+
+const META: Record<string, SorobanTokenMeta> = {
+  CC_USDC: { code: "USDC", decimals: 7, contractId: "CC_USDC" },
+  CC_BLND: { code: "BLND", decimals: 7, contractId: "CC_BLND" },
+  CC_XLM: { code: "XLM", decimals: 7, contractId: "CC_XLM" },
+};
+const meta = (id: string) => META[id];
+
+describe("decodeOperation — Soroban via asset_balance_changes", () => {
+  it("classifies single-credit transfer as receive", () => {
+    const op = base({
+      type: "invoke_host_function",
+      function: "HostFunctionTypeHostFunctionTypeInvokeContract",
+      asset_balance_changes: [
+        { type: "transfer", from: OTHER, to: ADDR, amount: "12345678", asset_type: "credit_alphanum4", asset_issuer: "CC_USDC", asset_code: "USDC" },
+      ],
+    });
+    const r = decodeOperation(op, ADDR, meta);
+    expect(r.kind).toBe("receive");
+    expect(r.deltas).toEqual([
+      { code: "USDC", amount: "1.2345678", isCredit: true, issuer: "CC_USDC", contractId: "CC_USDC" },
+    ]);
+  });
+
+  it("classifies single-debit transfer as send", () => {
+    const op = base({
+      type: "invoke_host_function",
+      asset_balance_changes: [
+        { type: "transfer", from: ADDR, to: OTHER, amount: "10000000", asset_type: "credit_alphanum4", asset_issuer: "CC_USDC", asset_code: "USDC" },
+      ],
+    });
+    const r = decodeOperation(op, ADDR, meta);
+    expect(r.kind).toBe("send");
+    expect(r.deltas[0]).toMatchObject({ amount: "1", isCredit: false });
+  });
+
+  it("classifies one debit + one credit as swap", () => {
+    const op = base({
+      type: "invoke_host_function",
+      asset_balance_changes: [
+        { type: "transfer", from: ADDR, to: "C_ROUTER", amount: "100000000", asset_type: "native" },
+        { type: "transfer", from: "C_ROUTER", to: ADDR, amount: "23500000", asset_type: "credit_alphanum4", asset_issuer: "CC_USDC", asset_code: "USDC" },
+      ],
+    });
+    const r = decodeOperation(op, ADDR, meta);
+    expect(r.kind).toBe("swap");
+    expect(r.deltas).toHaveLength(2);
+    expect(r.deltas[0]).toMatchObject({ code: "XLM", isCredit: false });
+    expect(r.deltas[1]).toMatchObject({ code: "USDC", isCredit: true });
+  });
+
+  it("classifies known-protocol single-debit as lend-deposit", () => {
+    // CDF37Z2B... is the mainnet blend USDC strategy from protocol-registry.
+    const op = base({
+      type: "invoke_host_function",
+      asset_balance_changes: [
+        { type: "transfer", from: ADDR, to: "CDF37Z2B5JDF5UB3I3Y3COFTH3I3JF3ECKKIXDZBOUAVEO7LN5LH2SXN", amount: "1000000", asset_type: "credit_alphanum4", asset_code: "USDC", asset_issuer: "CC_USDC" },
+      ],
+    });
+    const orig = process.env.NEXT_PUBLIC_STELLAR_NETWORK;
+    process.env.NEXT_PUBLIC_STELLAR_NETWORK = "mainnet";
+    jest.resetModules();
+    const { decodeOperation: fresh } = require("./decode-operation");
+    const r = fresh(op, ADDR, meta);
+    process.env.NEXT_PUBLIC_STELLAR_NETWORK = orig;
+    expect(r.protocol).toBe("blend");
+    expect(r.kind).toBe("lend-deposit");
+  });
+
+  it("falls back to contract-other when balance changes are empty", () => {
+    const op = base({ type: "invoke_host_function", function: "do_thing", asset_balance_changes: [] });
+    const r = decodeOperation(op, ADDR, meta);
+    expect(r.kind).toBe("contract-other");
+    expect(r.rawFnName).toBe("do_thing");
+  });
+
+  it("uses 7-decimal fallback when token meta unknown", () => {
+    const op = base({
+      type: "invoke_host_function",
+      asset_balance_changes: [
+        { type: "transfer", from: OTHER, to: ADDR, amount: "10000000", asset_type: "credit_alphanum4", asset_issuer: "CC_UNKNOWN", asset_code: "FOO" },
+      ],
+    });
+    const r = decodeOperation(op, ADDR, () => undefined);
+    expect(r.deltas[0]).toMatchObject({ code: "FOO", amount: "1" });
   });
 });
