@@ -34,7 +34,7 @@ const TYPE_BADGE: Record<string, string> = {
   lp: "bg-primary/10 text-primary",
 };
 
-const ROW_GRID = "grid grid-cols-[2fr_1fr_1.2fr_1fr_20px] items-center gap-x-4";
+const POOLS_GRID = "grid grid-cols-[2fr_1fr_1fr_1fr_80px] items-center gap-x-4";
 
 interface FarmingPoolsProps {
   pools: DiscoveredPool[];
@@ -58,7 +58,8 @@ export function FarmingPools({ pools, isLoading }: FarmingPoolsProps) {
           {Array.from({ length: 4 }).map((_, i) => (
             <motion.div
               key={i}
-              className={`${ROW_GRID} border-t border-border px-6 py-3.5`}
+              data-pools-row="true"
+              className={`${POOLS_GRID} border-t border-border px-6 py-3.5`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: i * 0.06 }}
@@ -107,7 +108,7 @@ export function FarmingPools({ pools, isLoading }: FarmingPoolsProps) {
         <div className="h-px bg-border" />
 
         {/* Column headers */}
-        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_80px] items-center gap-x-4 px-6 py-2.5">
+        <div data-pools-row="false" className={`${POOLS_GRID} px-6 py-2.5`}>
           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Pool
           </span>
@@ -133,7 +134,8 @@ export function FarmingPools({ pools, isLoading }: FarmingPoolsProps) {
           return (
             <div
               key={`${pool.id}-${idx}`}
-              className="grid grid-cols-[2fr_1fr_1fr_1fr_80px] items-center gap-x-4 border-t border-border px-6 py-3.5 transition-colors hover:bg-muted/20"
+              data-pools-row="true"
+              className={`${POOLS_GRID} border-t border-border px-6 py-3.5 transition-colors hover:bg-muted/20`}
             >
               {/* Pool name + token pair images */}
               <div className="flex items-center gap-3">
