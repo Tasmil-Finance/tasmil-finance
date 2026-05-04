@@ -1,4 +1,13 @@
+jest.mock("sonner", () => ({
+  toast: {
+    success: jest.fn(),
+    error: jest.fn(),
+    info: jest.fn(),
+  },
+}));
+
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { toast } from "sonner";
 import { useWatchList } from "@/store/use-watch-list";
 import { AddAssetDialog } from "./add-asset-dialog";
 
@@ -13,6 +22,7 @@ const FAKE_REGISTRY = {
 beforeEach(() => {
   localStorage.clear();
   useWatchList.setState({ items: [] });
+  (toast.success as jest.Mock).mockClear();
   global.fetch = jest.fn(() =>
     Promise.resolve({
       ok: true,
@@ -181,5 +191,19 @@ describe("AddAssetDialog", () => {
       expect(screen.getByText("BLND")).toBeInTheDocument();
     });
     expect(attempts).toBe(2);
+  });
+
+  it("fires a success toast when an asset is added", async () => {
+    render(<AddAssetDialog open={true} onOpenChange={() => {}} />);
+    const input = await screen.findByPlaceholderText(/search/i);
+    await act(async () => {
+      fireEvent.change(input, { target: { value: "BL" } });
+      await new Promise((r) => setTimeout(r, 250));
+    });
+    const watchBtn = screen.getByRole("button", { name: /^watch$/i });
+    await act(async () => {
+      fireEvent.click(watchBtn);
+    });
+    expect(toast.success).toHaveBeenCalledWith(expect.stringMatching(/blnd/i));
   });
 });

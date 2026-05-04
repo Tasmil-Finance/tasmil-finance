@@ -2,6 +2,7 @@
 
 import { Check, Plus, Search } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { TokenImage } from "@/shared/components/token-image";
 import { Button } from "@/shared/ui/button-v2";
 import {
@@ -94,6 +95,7 @@ export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
       chain: "stellar",
       contractId: token.addresses?.stellar,
     });
+    toast.success(`Now watching ${token.symbol}`);
     onOpenChange(false);
     setQuery("");
   }
