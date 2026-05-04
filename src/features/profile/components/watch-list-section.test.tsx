@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
-import { useWatchList } from "@/store/use-watch-list";
+import { keyOf, useWatchList } from "@/store/use-watch-list";
 import { WatchListSection } from "./watch-list-section";
 
 const pushMock = jest.fn();
@@ -21,29 +21,32 @@ describe("WatchListSection", () => {
 
   it("renders rows when items present", () => {
     act(() => {
-      useWatchList.getState().addAsset({ symbol: "BLND" });
-      useWatchList.getState().addAsset({ symbol: "AQUA" });
+      useWatchList.getState().addAsset({ symbol: "BLND", contractId: "C_BLND" });
+      useWatchList.getState().addAsset({ symbol: "AQUA", contractId: "C_AQUA" });
     });
     render(<WatchListSection />);
     expect(screen.getByText("BLND")).toBeInTheDocument();
     expect(screen.getByText("AQUA")).toBeInTheDocument();
   });
 
-  it("clicking remove drops the asset", () => {
-    act(() => useWatchList.getState().addAsset({ symbol: "BLND" }));
+  it("clicking remove drops the asset by composite key", () => {
+    act(() =>
+      useWatchList.getState().addAsset({ symbol: "BLND", contractId: "C_BLND" })
+    );
     render(<WatchListSection />);
     const removeBtn = screen.getByRole("button", { name: /remove blnd/i });
     fireEvent.click(removeBtn);
-    expect(useWatchList.getState().isWatched("BLND")).toBe(false);
+    const k = keyOf({ symbol: "BLND", chain: "stellar", contractId: "C_BLND" });
+    expect(useWatchList.getState().isWatched(k)).toBe(false);
   });
 
-  it("clicking row body navigates to aggregator", () => {
-    act(() => useWatchList.getState().addAsset({ symbol: "BLND" }));
+  it("clicking row body navigates to aggregator with stored chain", () => {
+    act(() =>
+      useWatchList.getState().addAsset({ symbol: "BLND", contractId: "C_BLND" })
+    );
     render(<WatchListSection />);
     const rowBtn = screen.getByRole("button", { name: /open blnd in aggregator/i });
     fireEvent.click(rowBtn);
-    expect(pushMock).toHaveBeenCalledWith(
-      expect.stringContaining("/aggregator?tokenIn=BLND&chainIn=stellar")
-    );
+    expect(pushMock).toHaveBeenCalledWith("/aggregator?tokenIn=BLND&chainIn=stellar");
   });
 });

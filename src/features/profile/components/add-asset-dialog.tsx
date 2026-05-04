@@ -71,6 +71,7 @@ export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
   function handleAdd(token: RegistryToken) {
     addAsset({
       symbol: token.symbol,
+      chain: "stellar",
       contractId: token.addresses?.stellar,
     });
     onOpenChange(false);

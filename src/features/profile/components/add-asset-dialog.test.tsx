@@ -4,9 +4,9 @@ import { AddAssetDialog } from "./add-asset-dialog";
 
 const FAKE_REGISTRY = {
   tokens: [
-    { symbol: "BLND", name: "Blend", chains: ["stellar"], addresses: { stellar: "C..." } },
-    { symbol: "AQUA", name: "Aquarius", chains: ["stellar"], addresses: { stellar: "C..." } },
-    { symbol: "USDC", name: "USD Coin", chains: ["stellar"], addresses: { stellar: "C..." } },
+    { symbol: "BLND", name: "Blend", chains: ["stellar"], addresses: { stellar: "C_BLND" } },
+    { symbol: "AQUA", name: "Aquarius", chains: ["stellar"], addresses: { stellar: "C_AQUA" } },
+    { symbol: "USDC", name: "USD Coin", chains: ["stellar"], addresses: { stellar: "C_USDC" } },
   ],
 };
 
@@ -59,7 +59,11 @@ describe("AddAssetDialog", () => {
     await act(async () => {
       fireEvent.click(watchBtn);
     });
-    expect(useWatchList.getState().items.map((i) => i.symbol)).toContain("BLND");
+    const stored = useWatchList.getState().items;
+    expect(stored).toHaveLength(1);
+    expect(stored[0]!.symbol).toBe("BLND");
+    expect(stored[0]!.chain).toBe("stellar");
+    expect(stored[0]!.contractId).toBe("C_BLND");
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 });
