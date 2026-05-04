@@ -5,7 +5,6 @@ import { Tractor, TrendingDown, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CountUp from "@/shared/ui/count-up";
 import { Skeleton } from "@/shared/ui/skeleton";
-import type { RebalanceStatus } from "../types";
 
 function formatUsd(value: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -25,7 +24,6 @@ interface FarmingHeaderProps {
   allTimePnlUsd: number;
   allTimePnlPercent: number;
   currentApy: number;
-  status: RebalanceStatus | undefined;
   isLoading: boolean;
 }
 
@@ -34,15 +32,10 @@ export function FarmingHeader({
   allTimePnlUsd,
   allTimePnlPercent,
   currentApy,
-  status,
   isLoading,
 }: FarmingHeaderProps) {
   const isPositive = allTimePnlUsd >= 0;
   const hasPnl = allTimePnlUsd !== 0 || allTimePnlPercent !== 0;
-  const isActive = status?.ready && !status?.halted;
-
-  const bgColor = isActive ? "bg-primary/15" : "bg-muted/20";
-  const iconColor = isActive ? "text-primary" : "text-muted-foreground";
 
   return (
     <motion.div
@@ -52,10 +45,8 @@ export function FarmingHeader({
       transition={{ duration: 0.4, ease: "easeOut" }}
     >
       {/* Icon — same size as AddressAvatar (size-20) */}
-      <div
-        className={cn("flex size-20 shrink-0 items-center justify-center rounded-full", bgColor)}
-      >
-        <Tractor className={cn("size-9", iconColor)} />
+      <div className="flex size-20 shrink-0 items-center justify-center rounded-full bg-primary/15">
+        <Tractor className="size-9 text-primary" />
       </div>
 
       <div className="flex flex-col gap-1">

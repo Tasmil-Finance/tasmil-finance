@@ -1,74 +1,37 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Info, Loader2, Shield, ShieldOff, Wallet, XCircle } from "lucide-react";
+import { Loader2, Shield, ShieldOff, Wallet } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useId, useMemo, useState } from "react";
-import { FundForm } from "@/features/account/components/fund-form";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { OnboardingPage } from "@/features/account/components/onboarding-page";
-import { PresetCard } from "@/features/account/components/preset-card";
 import {
   useActivity,
-  useFundAccount,
   usePosition,
   usePresets,
-  useReactivate,
-  useRevoke,
-  useSubmitTx,
-  useUpdatePreset,
-  useWithdraw,
 } from "@/features/account/hooks/use-account-api";
 import type { RiskPreset } from "@/features/account/types";
 import { cn } from "@/lib/utils";
-import { activeNetwork } from "@/shared/config/stellar";
 import { Button } from "@/shared/ui/button-v2";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/dialog";
 import { useWalletStore } from "@/store/use-wallet";
 import { usePools } from "../hooks/use-farming-api";
-import { FarmingActivity, FarmingActivitySidebar } from "./farming-activity";
-import { FarmingAllocation } from "./farming-allocation";
+import { useFarmingActions } from "../hooks/use-farming-actions";
+import { computeCashflowSummary } from "../utils/cashflow";
+import { FarmingActivity } from "./farming-activity";
 import { FarmingHeader } from "./farming-header";
+import { FarmingModals, type FarmingModalTab } from "./farming-modals";
 import { FarmingPools } from "./farming-pools";
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-async function signXdr(xdr: string, publicKey: string): Promise<string> {
-  const { StellarWalletsKit } = await import("@creit.tech/stellar-wallets-kit/sdk");
-  const { signedTxXdr } = await StellarWalletsKit.signTransaction(xdr, {
-    address: publicKey,
-    networkPassphrase: activeNetwork.networkPassphrase,
-  });
-  return signedTxXdr;
-}
-
-function formatUsd(value: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
-}
-
-// ─── Tabs ───────────────────────────────────────────────────────────────────
+import { OverviewTab } from "./tabs/overview-tab";
+import { StrategyTab } from "./tabs/strategy-tab";
 
 type TabValue = "overview" | "pools" | "strategy" | "activity";
 const VALID_TABS: TabValue[] = ["overview", "pools", "strategy", "activity"];
-
 const TABS: { value: TabValue; label: string }[] = [
   { value: "overview", label: "Overview" },
   { value: "pools", label: "Pools" },
   { value: "strategy", label: "Strategy" },
   { value: "activity", label: "Activity" },
 ];
-
-// ─── Connect prompt ─────────────────────────────────────────────────────────
 
 function ConnectPrompt() {
   return (
@@ -89,8 +52,6 @@ function ConnectPrompt() {
   );
 }
 
-// ─── Main content ───────────────────────────────────────────────────────────
-
 function FarmingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -98,39 +59,25 @@ function FarmingContent() {
   const { account } = useWalletStore();
   const publicKey = account ?? undefined;
 
-  // Tab state
   const tabParam = searchParams.get("tab") as TabValue | null;
   const activeTab: TabValue = tabParam && VALID_TABS.includes(tabParam) ? tabParam : "overview";
 
   const setActiveTab = useCallback(
     (tab: TabValue) => {
       const params = new URLSearchParams(searchParams.toString());
-      if (tab === "overview") {
-        params.delete("tab");
-      } else {
-        params.set("tab", tab);
-      }
+      if (tab === "overview") params.delete("tab");
+      else params.set("tab", tab);
       const qs = params.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname);
     },
     [router, searchParams, pathname]
   );
 
-  // Modal state
-  const [accountModalOpen, setAccountModalOpen] = useState(false);
-  const [accountModalTab, setAccountModalTab] = useState<
-    "fund" | "strategy" | "withdraw" | "security" | "activate"
-  >("fund");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalTab, setModalTab] = useState<FarmingModalTab>("fund");
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [selectedPreset, setSelectedPreset] = useState<RiskPreset | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
-  const withdrawAmountInputId = useId();
-  // V4: users can switch presets at any time. Change takes effect on the
-  // next allocation cycle (within 10 min). Backend enforces preset
-  // validation; frontend just sends the choice.
-  const canChangeStrategy = true;
 
-  // Data hooks
   const {
     data: position,
     isLoading: positionLoading,
@@ -142,15 +89,13 @@ function FarmingContent() {
     isLoading: activitiesLoading,
     refetch: refetchActivity,
   } = useActivity(publicKey);
-  // Default preview asset to the account's current baseAsset; fall back to
-  // USDC until position loads.
+
   const [strategyPreviewAsset, setStrategyPreviewAsset] = useState<"USDC" | "XLM">("USDC");
   const { data: presets, isLoading: presetsLoading } = usePresets(strategyPreviewAsset);
 
-  // Keep selectedPreset in sync with the account's active preset so the
-  // Strategy tab visually highlights the current selection on first render.
-  // Only runs when the backend preset changes — doesn't override in-flight
-  // user selections on the tab.
+  const actions = useFarmingActions(publicKey);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only sync from server preset on first load
   useEffect(() => {
     const normalized = position?.preset?.toLowerCase();
     const mapped: RiskPreset | null =
@@ -161,32 +106,15 @@ function FarmingContent() {
           : normalized === "balanced"
             ? "Balanced"
             : null;
-    if (mapped && selectedPreset === null) {
-      setSelectedPreset(mapped);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (mapped && selectedPreset === null) setSelectedPreset(mapped);
   }, [position?.preset]);
 
-  // Sync the preview asset toggle with the account's active baseAsset once
-  // the position data loads. Users can still switch the toggle to preview
-  // the other asset's allocation.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: sync preview asset when account base asset changes
   useEffect(() => {
     const base = position?.baseAsset?.toUpperCase();
-    if (base === "USDC" || base === "XLM") {
-      setStrategyPreviewAsset(base);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (base === "USDC" || base === "XLM") setStrategyPreviewAsset(base);
   }, [position?.baseAsset]);
 
-  // Mutations
-  const fundAccount = useFundAccount();
-  const withdrawMutation = useWithdraw();
-  const revokeMutation = useRevoke();
-  const reactivateMutation = useReactivate();
-  const submitTx = useSubmitTx();
-  const updatePreset = useUpdatePreset();
-
-  // Computed values
   const { availableUsd, lockedUsd } = useMemo(() => {
     const positions = position?.positions ?? [];
     const isBalanceStale = Boolean(position?.balanceStale);
@@ -195,11 +123,8 @@ function FarmingContent() {
     let positionsTotal = 0;
     for (const pos of positions) {
       positionsTotal += pos.valueUsd;
-      if (pos.poolType === "backstop" && pos.q4wExpiresAt) {
-        locked += pos.valueUsd;
-      } else {
-        available += pos.valueUsd;
-      }
+      if (pos.poolType === "backstop" && pos.q4wExpiresAt) locked += pos.valueUsd;
+      else available += pos.valueUsd;
     }
     const walletAvailable = isBalanceStale
       ? 0
@@ -208,214 +133,67 @@ function FarmingContent() {
     return { availableUsd: available, lockedUsd: locked };
   }, [position?.positions, position?.totalValueUsd, position?.balanceStale]);
 
-  const deployedInPoolsUsd = useMemo(() => {
-    return (position?.positions ?? []).reduce((sum, pos) => sum + pos.valueUsd, 0);
-  }, [position?.positions]);
+  const deployedInPoolsUsd = useMemo(
+    () => (position?.positions ?? []).reduce((sum, pos) => sum + pos.valueUsd, 0),
+    [position?.positions]
+  );
 
   const unallocatedWalletUsd = useMemo(() => {
     if (position?.balanceStale) return 0;
     return Math.max((position?.totalValueUsd ?? 0) - deployedInPoolsUsd, 0);
   }, [position?.totalValueUsd, deployedInPoolsUsd, position?.balanceStale]);
 
-  const cashflowSummary = useMemo(() => {
-    const totalValueUsd = position?.totalValueUsd ?? 0;
-    const totalDepositedUsd = position?.totalDepositedUsd ?? 0;
-    const totalWithdrawnFromApi = position?.totalWithdrawnUsd ?? 0;
-    const netDepositsFromApi =
-      position?.netDepositsUsd ?? totalDepositedUsd - totalWithdrawnFromApi;
-    const profitUsd = position?.profitUsd ?? 0;
-    const profitPercent = position?.profitPercent ?? 0;
+  const cashflowSummary = useMemo(
+    () => computeCashflowSummary(position ?? undefined, activities),
+    [position, activities]
+  );
 
-    if (totalDepositedUsd > 0 || totalWithdrawnFromApi > 0) {
-      return {
-        totalFundedUsd: totalDepositedUsd,
-        totalWithdrawnUsd: totalWithdrawnFromApi,
-        netDepositsUsd: netDepositsFromApi,
-        allTimePnlUsd: profitUsd,
-        allTimePnlPercent: profitPercent,
-      };
-    }
-
-    let totalFundedUsd = 0;
-    let legacyStrategyDepositsUsd = 0;
-    let totalWithdrawnUsd = 0;
-    const seen = new Set<string>();
-
-    for (const item of activities ?? []) {
-      const dedupeKey = item.txHash ? `${item.type}:${item.txHash}` : `${item.type}:${item.id}`;
-      if (seen.has(dedupeKey)) continue;
-      seen.add(dedupeKey);
-      const amountUsd = typeof item.amountUsd === "number" ? item.amountUsd : 0;
-      if (amountUsd <= 0) continue;
-      if (item.type === "FUND") totalFundedUsd += amountUsd;
-      else if (item.type === "DEPOSIT") legacyStrategyDepositsUsd += amountUsd;
-      else if (item.type === "WITHDRAW") totalWithdrawnUsd += amountUsd;
-    }
-
-    if (totalFundedUsd <= 0 && legacyStrategyDepositsUsd > 0) {
-      totalFundedUsd = legacyStrategyDepositsUsd;
-    }
-
-    const hasCashflowData = totalFundedUsd > 0 || totalWithdrawnUsd > 0;
-    if (!hasCashflowData) {
-      return {
-        totalFundedUsd: totalDepositedUsd,
-        totalWithdrawnUsd: 0,
-        netDepositsUsd: totalDepositedUsd,
-        allTimePnlUsd: profitUsd,
-        allTimePnlPercent: profitPercent,
-      };
-    }
-
-    const netDepositsUsd = totalFundedUsd - totalWithdrawnUsd;
-    const allTimePnlUsd = totalValueUsd + totalWithdrawnUsd - totalFundedUsd;
-    const allTimePnlPercent =
-      totalFundedUsd > 0 ? Math.round((allTimePnlUsd / totalFundedUsd) * 10000) / 100 : 0;
-
-    return { totalFundedUsd, totalWithdrawnUsd, netDepositsUsd, allTimePnlUsd, allTimePnlPercent };
-  }, [
-    activities,
-    position?.totalDepositedUsd,
-    position?.totalWithdrawnUsd,
-    position?.netDepositsUsd,
-    position?.totalValueUsd,
-    position?.profitUsd,
-    position?.profitPercent,
-  ]);
-
-  // ─── Action handlers ──────────────────────────────────────────────────────
-
-  const openAccountModal = (tab: "fund" | "strategy" | "withdraw" | "security" | "activate") => {
-    setActionError(null);
-    if (tab === "strategy") {
-      const normalized = position?.preset?.toLowerCase();
-      const mapped =
-        normalized === "safe" ? "Safe" : normalized === "aggressive" ? "Aggressive" : "Balanced";
-      setSelectedPreset(mapped);
-    }
-    setAccountModalTab(tab);
-    setAccountModalOpen(true);
-  };
-
-  const handleUpdatePreset = async () => {
-    if (!publicKey || !selectedPreset || !canChangeStrategy) return;
-    try {
-      setActionError(null);
-      await updatePreset.mutateAsync({ publicKey, preset: selectedPreset });
-      // Refresh state immediately so the dashboard reflects the new preset.
-      await refetchPosition();
-      setAccountModalOpen(false);
-    } catch (err) {
-      console.warn("Update preset failed:", err);
-      setActionError(err instanceof Error ? err.message : "Operation failed. Please try again.");
-    }
+  const openModal = (tab: FarmingModalTab) => {
+    actions.setActionError(null);
+    setModalTab(tab);
+    setModalOpen(true);
   };
 
   const handleFund = async (amount: number, token: "USDC" | "XLM") => {
-    if (!publicKey) return;
-    try {
-      setActionError(null);
-      const result = await fundAccount.mutateAsync({ publicKey, amount, token });
-      if (!result?.xdr) throw new Error("No fund transaction returned from server");
-      const signedXdr = await signXdr(result.xdr, publicKey);
-      await submitTx.mutateAsync({ signedXdr, publicKey, txType: "fund", amount, token });
+    const ok = await actions.fund(amount, token);
+    if (ok) {
       await Promise.all([refetchPosition(), refetchActivity()]);
-      setAccountModalOpen(false);
-    } catch (err) {
-      console.warn("Fund failed:", err);
-      setActionError(err instanceof Error ? err.message : "Operation failed. Please try again.");
+      setModalOpen(false);
     }
   };
 
   const handleWithdraw = async () => {
-    if (!publicKey || !canWithdraw) return;
-    try {
-      setActionError(null);
-      const result = await withdrawMutation.mutateAsync({
-        publicKey,
-        amount: parsedWithdrawAmount,
-      });
-      const xdrs: string[] = result?.xdrs ?? (result?.xdr ? [result.xdr] : []);
-      const signedXdrs: string[] = result?.signedXdrs ?? [];
-      // Server-side bot-signed submissions are already on-chain by the
-      // time the response lands. Only client-signed XDRs need browser
-      // wallet roundtrips.
-      const serverSubmitted = (result?.submittedTxHashes ?? []) as string[];
-      if (xdrs.length === 0 && signedXdrs.length === 0 && serverSubmitted.length === 0)
-        throw new Error("No withdrawal transaction returned from server");
-
-      for (const [i, xdr] of xdrs.entries()) {
-        const signedXdr = await signXdr(xdr, publicKey);
-        const isLast = i === xdrs.length - 1 && signedXdrs.length === 0;
-        await submitTx.mutateAsync({
-          signedXdr,
-          ...(isLast
-            ? { publicKey, txType: "withdraw" as const, amount: parsedWithdrawAmount }
-            : {}),
-        });
-      }
-
-      for (const [i, signedXdr] of signedXdrs.entries()) {
-        const isLast = i === signedXdrs.length - 1;
-        await submitTx.mutateAsync({
-          signedXdr,
-          ...(isLast
-            ? { publicKey, txType: "withdraw" as const, amount: parsedWithdrawAmount }
-            : {}),
-        });
-      }
-
+    const parsed = Number.parseFloat(withdrawAmount);
+    if (Number.isNaN(parsed) || parsed <= 0 || parsed > availableUsd) return;
+    const ok = await actions.withdraw(parsed);
+    if (ok) {
       await Promise.all([refetchPosition(), refetchActivity()]);
       setWithdrawAmount("");
-      setAccountModalOpen(false);
-    } catch (err) {
-      console.warn("Withdraw failed:", err);
-      setActionError(err instanceof Error ? err.message : "Operation failed. Please try again.");
-    }
-  };
-
-  const handleReactivate = async () => {
-    if (!publicKey) return;
-    try {
-      setActionError(null);
-      const result = await reactivateMutation.mutateAsync(publicKey);
-      const setupXdrs = result?.setupTxs ?? [];
-      if (setupXdrs.length === 0) {
-        throw new Error("No reactivation transaction returned from server");
-      }
-      for (const [i, xdr] of setupXdrs.entries()) {
-        const signedXdr = await signXdr(xdr, publicKey);
-        const isLast = i === setupXdrs.length - 1;
-        await submitTx.mutateAsync({
-          signedXdr,
-          ...(isLast ? { publicKey, txType: "reactivate" as const } : {}),
-        });
-      }
-      await Promise.all([refetchPosition(), refetchActivity()]);
-      setAccountModalOpen(false);
-    } catch (err) {
-      console.warn("Reactivate failed:", err);
-      setActionError(err instanceof Error ? err.message : "Operation failed. Please try again.");
+      setModalOpen(false);
     }
   };
 
   const handleRevoke = async () => {
-    if (!publicKey) return;
-    try {
-      setActionError(null);
-      const result = await revokeMutation.mutateAsync(publicKey);
-      if (!result?.xdr) throw new Error("No revoke transaction returned from server");
-      const signedXdr = await signXdr(result.xdr, publicKey);
-      await submitTx.mutateAsync({ signedXdr, publicKey, txType: "revoke" });
+    const ok = await actions.revoke();
+    if (ok) {
       await Promise.all([refetchPosition(), refetchActivity()]);
-      setAccountModalOpen(false);
-    } catch (err) {
-      console.warn("Revoke failed:", err);
-      setActionError(err instanceof Error ? err.message : "Operation failed. Please try again.");
+      setModalOpen(false);
     }
   };
 
-  // ─── Guards ───────────────────────────────────────────────────────────────
+  const handleReactivate = async () => {
+    const ok = await actions.reactivate();
+    if (ok) {
+      await Promise.all([refetchPosition(), refetchActivity()]);
+      setModalOpen(false);
+    }
+  };
+
+  const handleApplyPreset = async () => {
+    if (!selectedPreset) return;
+    const ok = await actions.applyPreset(selectedPreset);
+    if (ok) await refetchPosition();
+  };
 
   if (!publicKey) return <ConnectPrompt />;
 
@@ -427,50 +205,24 @@ function FarmingContent() {
     );
   }
 
-  // Keep onboarding rendered until the full 2-of-2 signup finishes. Status
-  // DEPLOYING means TX 1 (keeper-wallet deploy) confirmed but TX 2
-  // (configure_session_key) has not — if we swap to the Dashboard too
-  // early the user loses the TX 2 prompt and lands on a vault that cannot
-  // actually sign anything.
   if (!position || position.status === "DEPLOYING") return <OnboardingPage />;
 
-  // ─── Derived ──────────────────────────────────────────────────────────────
-
   const registryPools = registryPoolsData ?? [];
-  const accountStatus = position?.status ?? "ACTIVE";
-  const isRevoked = accountStatus === "REVOKED";
-  const accountActionPending =
-    fundAccount.isPending ||
-    withdrawMutation.isPending ||
-    revokeMutation.isPending ||
-    reactivateMutation.isPending ||
-    submitTx.isPending;
-
-  const parsedWithdrawAmount = Number.parseFloat(withdrawAmount);
-  const canWithdraw =
-    !Number.isNaN(parsedWithdrawAmount) &&
-    parsedWithdrawAmount > 0 &&
-    parsedWithdrawAmount <= availableUsd;
-
-  // ─── Render ───────────────────────────────────────────────────────────────
+  const isRevoked = position.status === "REVOKED";
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="flex-1 overflow-auto">
         <div className="flex flex-col gap-6 px-4 py-6 sm:px-6 md:px-8">
-          {/* Header — like WalletHeader: icon + big value + P&L */}
           <FarmingHeader
             totalValueUsd={position.totalValueUsd}
             allTimePnlUsd={cashflowSummary.allTimePnlUsd}
             allTimePnlPercent={cashflowSummary.allTimePnlPercent}
             currentApy={position.currentApy}
-            status={undefined}
             isLoading={false}
           />
 
-          {/* Stale session-key banner — prompts user to re-sign after the
-              operator deploys a new strategy post-signup. */}
-          {position?.sessionKeyStale && (
+          {position.sessionKeyStale && (
             <motion.div
               className="flex items-start gap-3 rounded-lg border border-yellow-500/40 bg-yellow-500/10 p-3 text-xs"
               initial={{ opacity: 0, y: -4 }}
@@ -486,13 +238,12 @@ function FarmingContent() {
                   this just updates the bot's scope.
                 </p>
               </div>
-              <Button variant="outline" size="sm" onClick={() => openAccountModal("security")}>
+              <Button variant="outline" size="sm" onClick={() => openModal("security")}>
                 Refresh
               </Button>
             </motion.div>
           )}
 
-          {/* Action buttons — visible right under header */}
           <motion.div
             className="flex items-center gap-3"
             initial={{ opacity: 0, y: 6 }}
@@ -503,7 +254,7 @@ function FarmingContent() {
               variant="gradient"
               size="default"
               className="px-6"
-              onClick={() => openAccountModal("fund")}
+              onClick={() => openModal("fund")}
             >
               Deposit
             </Button>
@@ -511,7 +262,7 @@ function FarmingContent() {
               variant="outline"
               size="default"
               className="px-6"
-              onClick={() => openAccountModal("withdraw")}
+              onClick={() => openModal("withdraw")}
               disabled={isRevoked}
             >
               Withdraw
@@ -521,7 +272,7 @@ function FarmingContent() {
                 variant="gradient"
                 size="default"
                 className="px-6"
-                onClick={() => openAccountModal("activate")}
+                onClick={() => openModal("activate")}
               >
                 <Shield className="mr-1.5 h-3.5 w-3.5" />
                 Activate Session Key
@@ -531,7 +282,7 @@ function FarmingContent() {
                 variant="ghost"
                 size="default"
                 className="text-muted-foreground hover:text-destructive"
-                onClick={() => openAccountModal("security")}
+                onClick={() => openModal("security")}
               >
                 <ShieldOff className="mr-1.5 h-3.5 w-3.5" />
                 Revoke
@@ -539,7 +290,6 @@ function FarmingContent() {
             )}
           </motion.div>
 
-          {/* Tab bar — like portfolio tab bar */}
           <motion.div
             className="flex items-center gap-4 border-b border-border pb-0"
             initial={{ opacity: 0, y: 6 }}
@@ -569,56 +319,20 @@ function FarmingContent() {
             ))}
           </motion.div>
 
-          {/* Tab content */}
           <AnimatePresence mode="wait">
             {activeTab === "overview" && (
-              <motion.div
-                key="overview"
-                className="flex flex-col gap-6"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.25 }}
-              >
-                {/* Paused (REVOKED) strip — neutral styling, always reversible */}
-                {isRevoked && (
-                  <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/10 px-4 py-3">
-                    <Info className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    <span className="flex-1 text-sm text-muted-foreground">
-                      <strong className="text-foreground">Agent paused.</strong> Deposits are
-                      available, but withdrawals require reactivating the session key first.
-                    </span>
-                    <Button
-                      size="sm"
-                      variant="gradient"
-                      className="shrink-0"
-                      onClick={() => openAccountModal("activate")}
-                      disabled={accountActionPending}
-                    >
-                      Activate Session Key
-                    </Button>
-                  </div>
-                )}
-
-                {/* Two-column: Allocation card (left) + Activity sidebar (right)
-                    Same layout as portfolio: Performance chart + History sidebar */}
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]">
-                  <FarmingAllocation
-                    positions={position.positions}
-                    totalValueUsd={position.totalValueUsd}
-                    unallocatedWalletUsd={unallocatedWalletUsd}
-                    isLoading={false}
-                  />
-                  <FarmingActivitySidebar
-                    activities={activities}
-                    isLoading={activitiesLoading}
-                    onSeeAll={() => setActiveTab("activity")}
-                  />
-                </div>
-
-                {/* Pools table below — like Assets table in portfolio */}
-                <FarmingPools pools={registryPools} isLoading={registryPoolsLoading} />
-              </motion.div>
+              <OverviewTab
+                position={position}
+                activities={activities}
+                activitiesLoading={activitiesLoading}
+                registryPools={registryPools}
+                registryPoolsLoading={registryPoolsLoading}
+                unallocatedWalletUsd={unallocatedWalletUsd}
+                isRevoked={isRevoked}
+                accountActionPending={actions.isPending}
+                onActivate={() => openModal("activate")}
+                onSeeAllActivity={() => setActiveTab("activity")}
+              />
             )}
 
             {activeTab === "pools" && (
@@ -634,148 +348,20 @@ function FarmingContent() {
             )}
 
             {activeTab === "strategy" && (
-              <motion.div
-                key="strategy"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.25 }}
-                className="space-y-6"
-              >
-                <div className="space-y-3">
-                  <div className="space-y-1">
-                    <h2 className="font-semibold text-foreground text-xl">Choose Your Strategy</h2>
-                    <p className="text-muted-foreground text-sm">
-                      Your current preset is{" "}
-                      <span className="font-medium text-foreground">
-                        {position?.preset
-                          ? position.preset.charAt(0) + position.preset.slice(1).toLowerCase()
-                          : "Balanced"}
-                      </span>
-                      . The same preset applies to both USDC and XLM deposits — each portion is
-                      allocated through its asset-specific pools.
-                    </p>
-                  </div>
-
-                  {/* Asset preview toggle — lets user see how the preset
-                      distributes for USDC vs XLM deposits. Active asset
-                      (account.baseAsset) is marked. */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-muted-foreground/70 text-[11px] uppercase tracking-widest">
-                      Preview allocation for
-                    </span>
-                    {(["USDC", "XLM"] as const).map((asset) => {
-                      const isActive = strategyPreviewAsset === asset;
-                      // "Active" = user has positions or keeper balance in
-                      // this asset. Backend fills activeAssets from both
-                      // strategy positions AND keeper-wallet balances so a
-                      // user who funds both USDC and XLM sees both badges.
-                      const activeAssetsUpper = (position?.activeAssets ?? []).map((a) =>
-                        a.toUpperCase()
-                      );
-                      const isCurrentBase = activeAssetsUpper.includes(asset);
-                      return (
-                        <button
-                          type="button"
-                          key={asset}
-                          onClick={() => setStrategyPreviewAsset(asset)}
-                          className={cn(
-                            "inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm transition-all",
-                            isActive
-                              ? "border-primary/50 bg-primary/10 text-foreground ring-1 ring-primary/40"
-                              : "border-white/8 bg-white/3 text-muted-foreground hover:border-white/12 hover:text-foreground"
-                          )}
-                        >
-                          <span className="font-semibold">{asset}</span>
-                          {isCurrentBase && (
-                            <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] text-emerald-400">
-                              active
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {isRevoked && (
-                  <div className="flex items-start gap-3 rounded-lg border border-border bg-muted/20 p-3 text-sm">
-                    <ShieldOff className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                    <p className="text-muted-foreground">
-                      Session key is revoked. Reactivate from the Security action before changing
-                      your strategy.
-                    </p>
-                  </div>
-                )}
-
-                {presetsLoading ? (
-                  <div className="flex items-center justify-center py-10">
-                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                  </div>
-                ) : presets && presets.length > 0 ? (
-                  <>
-                    {/* Stack on narrow viewports, 3-col only on xl so the
-                        cards never clip when the sidebar is open. */}
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                      {presets.map((preset) => (
-                        <PresetCard
-                          key={preset.name}
-                          preset={preset}
-                          selected={selectedPreset === preset.name}
-                          onSelect={() => {
-                            if (!isRevoked && !updatePreset.isPending) {
-                              setSelectedPreset(preset.name);
-                            }
-                          }}
-                        />
-                      ))}
-                    </div>
-
-                    <div className="flex items-center justify-end gap-3">
-                      {actionError && <p className="text-destructive text-sm">{actionError}</p>}
-                      <Button
-                        variant="gradient"
-                        size="lg"
-                        className="h-11 px-6"
-                        onClick={async () => {
-                          if (!publicKey || !selectedPreset) return;
-                          try {
-                            setActionError(null);
-                            await updatePreset.mutateAsync({
-                              publicKey,
-                              preset: selectedPreset,
-                            });
-                            await refetchPosition();
-                          } catch (err) {
-                            console.warn("Update preset failed:", err);
-                            setActionError(
-                              err instanceof Error
-                                ? err.message
-                                : "Strategy update failed. Please try again."
-                            );
-                          }
-                        }}
-                        disabled={
-                          isRevoked ||
-                          !selectedPreset ||
-                          // Disable when already on the selected preset
-                          selectedPreset?.toUpperCase() === position?.preset?.toUpperCase() ||
-                          updatePreset.isPending
-                        }
-                      >
-                        {updatePreset.isPending && (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        )}
-                        Apply Strategy
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="rounded-lg border border-border bg-muted/10 p-6 text-center text-muted-foreground text-sm">
-                    Strategy options are loading. If this persists, please refresh the page.
-                  </div>
-                )}
-              </motion.div>
+              <StrategyTab
+                presets={presets}
+                presetsLoading={presetsLoading}
+                selectedPreset={selectedPreset}
+                onSelectPreset={setSelectedPreset}
+                currentPreset={position.preset}
+                previewAsset={strategyPreviewAsset}
+                onChangePreviewAsset={setStrategyPreviewAsset}
+                activeAssets={position.activeAssets ?? []}
+                isRevoked={isRevoked}
+                isUpdating={actions.isUpdatingPreset}
+                actionError={actions.actionError}
+                onApply={handleApplyPreset}
+              />
             )}
 
             {activeTab === "activity" && (
@@ -793,243 +379,27 @@ function FarmingContent() {
         </div>
       </div>
 
-      {/* ─── Modals ──────────────────────────────────────────────────────────── */}
-
-      <Dialog
-        open={accountModalOpen}
+      <FarmingModals
+        open={modalOpen}
+        tab={modalTab}
         onOpenChange={(open) => {
-          setAccountModalOpen(open);
-          if (!open) setActionError(null);
+          setModalOpen(open);
+          if (!open) actions.setActionError(null);
         }}
-      >
-        <DialogContent
-          className={cn(
-            "max-h-[90vh] overflow-y-auto",
-            accountModalTab === "strategy" ? "max-w-5xl" : "max-w-2xl"
-          )}
-        >
-          <DialogHeader>
-            <DialogTitle>
-              {accountModalTab === "fund"
-                ? "Deposit More"
-                : accountModalTab === "strategy"
-                  ? "Change Strategy"
-                  : accountModalTab === "withdraw"
-                    ? "Withdraw"
-                    : accountModalTab === "activate"
-                      ? "Activate Session Key"
-                      : "Revoke Session Key"}
-            </DialogTitle>
-            <DialogDescription>
-              {accountModalTab === "fund"
-                ? "Add funds to your farming agent."
-                : accountModalTab === "strategy"
-                  ? "Choose your risk profile for future allocations."
-                  : accountModalTab === "withdraw"
-                    ? "Withdraw from available positions."
-                    : accountModalTab === "activate"
-                      ? "Re-register a session key so the agent can resume automation."
-                      : "Pause bot automation — reversible any time."}
-            </DialogDescription>
-          </DialogHeader>
-
-          {actionError && (
-            <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-              <XCircle className="h-4 w-4 shrink-0" />
-              <span>{actionError}</span>
-            </div>
-          )}
-
-          {accountModalTab === "fund" && (
-            <div className="space-y-4 pt-3">
-              <FundForm onFund={handleFund} isLoading={accountActionPending} />
-            </div>
-          )}
-
-          {accountModalTab === "strategy" && (
-            <div className="space-y-4 pt-3">
-              {!canChangeStrategy && (
-                <div className="rounded-lg border border-border bg-muted/20 p-3 text-sm text-muted-foreground">
-                  Strategy changes are admin-protected in this environment.
-                </div>
-              )}
-              <p className="text-sm text-muted-foreground">
-                Choose your risk profile. Changes apply to future allocations.
-              </p>
-              {presetsLoading ? (
-                <div className="flex items-center justify-center py-6">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                  {presets?.map((preset) => (
-                    <PresetCard
-                      key={preset.name}
-                      preset={preset}
-                      selected={selectedPreset === preset.name}
-                      onSelect={() => setSelectedPreset(preset.name)}
-                    />
-                  ))}
-                </div>
-              )}
-              <Button
-                variant="gradient"
-                size="lg"
-                className="h-12 w-full"
-                onClick={handleUpdatePreset}
-                disabled={!canChangeStrategy || !selectedPreset || updatePreset.isPending}
-              >
-                {updatePreset.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Apply Strategy
-              </Button>
-            </div>
-          )}
-
-          {accountModalTab === "withdraw" && (
-            <div className="space-y-4 pt-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-lg border border-border bg-muted/10 p-3">
-                  <p className="text-xs text-muted-foreground">Available (instant)</p>
-                  <p className="text-lg font-semibold text-foreground">{formatUsd(availableUsd)}</p>
-                </div>
-                <div className="rounded-lg border border-border bg-muted/10 p-3">
-                  <p className="text-xs text-muted-foreground">Locked (backstop)</p>
-                  <p className="text-lg font-semibold text-foreground">{formatUsd(lockedUsd)}</p>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label
-                  htmlFor={withdrawAmountInputId}
-                  className="block text-xs text-muted-foreground"
-                >
-                  Withdraw amount (USD)
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    id={withdrawAmountInputId}
-                    type="number"
-                    min="0"
-                    max={availableUsd}
-                    step="any"
-                    placeholder="0.00"
-                    value={withdrawAmount}
-                    onChange={(e) => setWithdrawAmount(e.target.value)}
-                    disabled={accountActionPending}
-                    className="w-full rounded-lg border border-border bg-background px-4 py-3 font-mono text-foreground focus:border-primary focus:outline-none disabled:opacity-50"
-                  />
-                  <Button
-                    variant="outline"
-                    size="default"
-                    className="shrink-0"
-                    onClick={() => setWithdrawAmount(availableUsd.toFixed(2))}
-                    disabled={accountActionPending || availableUsd <= 0}
-                  >
-                    Max
-                  </Button>
-                </div>
-              </div>
-              <Button
-                variant="gradient"
-                size="lg"
-                className="h-12 w-full"
-                onClick={handleWithdraw}
-                disabled={!canWithdraw || accountActionPending}
-              >
-                {(withdrawMutation.isPending || submitTx.isPending) && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Withdraw
-              </Button>
-            </div>
-          )}
-
-          {accountModalTab === "security" && (
-            <div className="space-y-4 pt-3">
-              <div className="flex items-start gap-3 rounded-lg border border-primary/30 bg-primary/5 p-3">
-                <Shield className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                <div className="text-xs">
-                  <p className="font-medium text-foreground">Refresh Session Key</p>
-                  <p className="text-muted-foreground">
-                    Re-sign the session-key policy if the bot reports "not authorized" after a
-                    strategy upgrade. Safe to run anytime — it replaces the current policy with one
-                    scoped to the latest deployed strategies.
-                  </p>
-                </div>
-              </div>
-              <Button
-                variant="gradient"
-                size="lg"
-                className="h-12 w-full"
-                onClick={handleReactivate}
-                disabled={accountActionPending}
-              >
-                {(reactivateMutation.isPending || submitTx.isPending) && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                <Shield className="mr-2 h-4 w-4" />
-                Refresh Session Key
-              </Button>
-
-              <div className="flex items-start gap-3 rounded-lg border border-border bg-muted/10 p-3 mt-6">
-                <Info className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                <div className="text-xs">
-                  <p className="font-medium text-foreground">Revoke stops bot automation.</p>
-                  <p className="text-muted-foreground">
-                    You can still deposit and withdraw. Activate a new session key any time to
-                    resume.
-                  </p>
-                </div>
-              </div>
-              <Button
-                variant="destructive"
-                size="lg"
-                className="h-12 w-full"
-                onClick={handleRevoke}
-                disabled={accountActionPending}
-              >
-                {(revokeMutation.isPending || submitTx.isPending) && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                <ShieldOff className="mr-2 h-4 w-4" />
-                Revoke Session Key
-              </Button>
-            </div>
-          )}
-
-          {accountModalTab === "activate" && (
-            <div className="space-y-4 pt-3">
-              <div className="flex items-start gap-3 rounded-lg border border-primary/30 bg-primary/5 p-3">
-                <Shield className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                <div className="text-xs">
-                  <p className="font-medium text-foreground">Sign to register a new session key.</p>
-                  <p className="text-muted-foreground">
-                    This allows the bot to rebalance on your behalf. Your funds remain in the keeper
-                    wallet — the session key only grants scoped permissions.
-                  </p>
-                </div>
-              </div>
-              <Button
-                variant="gradient"
-                size="lg"
-                className="h-12 w-full"
-                onClick={handleReactivate}
-                disabled={accountActionPending}
-              >
-                {(reactivateMutation.isPending || submitTx.isPending) && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                <Shield className="mr-2 h-4 w-4" />
-                Activate Session Key
-              </Button>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+        actionError={actions.actionError}
+        isPending={actions.isPending}
+        onFund={handleFund}
+        availableUsd={availableUsd}
+        lockedUsd={lockedUsd}
+        withdrawAmount={withdrawAmount}
+        onWithdrawAmountChange={setWithdrawAmount}
+        onWithdraw={handleWithdraw}
+        onRevoke={handleRevoke}
+        onReactivate={handleReactivate}
+      />
     </div>
   );
 }
-
-// ─── Export ──────────────────────────────────────────────────────────────────
 
 export function FarmingPage() {
   return (
