@@ -2,6 +2,7 @@
 
 import { Check, Copy, ExternalLink, LogOut, User, Wallet } from "lucide-react";
 import { useState } from "react";
+import { ReplayMenuItem } from "@/features/onboarding";
 import { cn } from "@/lib/utils";
 import { getExplorerUrl, isMainnet } from "@/shared/config/stellar";
 import { useWallet } from "@/shared/context/wallet-context";
@@ -140,6 +141,8 @@ export function ConnectWalletButton({ compact }: ConnectWalletButtonProps) {
             </a>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+          <ReplayMenuItem />
+          <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={disconnect}
             className="text-red-400 focus:bg-red-500/10 focus:text-red-400"
@@ -160,6 +163,7 @@ export function ConnectWalletButton({ compact }: ConnectWalletButtonProps) {
         <Button
           className="flex h-auto w-full items-center justify-start gap-3 rounded-xl bg-zinc-800/50 px-3 py-2.5 backdrop-blur-sm transition-all hover:bg-zinc-800/70"
           variant="ghost"
+          data-testid="wallet-connected"
         >
           <AddressAvatar address={address || ""} size="size-8" />
           <div className="min-w-0 flex-1 text-left">
@@ -194,6 +198,8 @@ export function ConnectWalletButton({ compact }: ConnectWalletButtonProps) {
             View on Explorer
           </a>
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <ReplayMenuItem />
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={disconnect}
