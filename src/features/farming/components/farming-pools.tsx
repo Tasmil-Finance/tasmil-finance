@@ -39,11 +39,15 @@ const POOLS_GRID = "grid grid-cols-[2fr_1fr_1fr_1fr_80px] items-center gap-x-4";
 interface FarmingPoolsProps {
   pools: DiscoveredPool[];
   isLoading: boolean;
+  assetFilter?: "USDC" | "XLM";
 }
 
-export function FarmingPools({ pools, isLoading }: FarmingPoolsProps) {
+export function FarmingPools({ pools, isLoading, assetFilter }: FarmingPoolsProps) {
   const depositable = pools.filter((p) => !!p.strategyContractAddress);
-  const sorted = [...depositable].sort((a, b) => b.currentApy - a.currentApy);
+  const filtered = assetFilter
+    ? depositable.filter((p) => p.assetSymbol === assetFilter)
+    : depositable;
+  const sorted = [...filtered].sort((a, b) => b.currentApy - a.currentApy);
 
   if (isLoading) {
     return (

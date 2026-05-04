@@ -39,3 +39,27 @@ describe("FarmingPools", () => {
     expect(screen.getByText("5.00%")).toBeInTheDocument();
   });
 });
+
+const usdcPool = { ...samplePool, id: "p-usdc", assetSymbol: "USDC" } as DiscoveredPool;
+const xlmPool = { ...samplePool, id: "p-xlm", assetSymbol: "XLM" } as DiscoveredPool;
+
+describe("FarmingPools assetFilter", () => {
+  it("renders both pools when no filter", () => {
+    const { container } = render(<FarmingPools pools={[usdcPool, xlmPool]} isLoading={false} />);
+    const dataRows = container.querySelectorAll('[data-pools-row="true"]');
+    expect(dataRows.length).toBe(2);
+  });
+
+  it("filters to USDC pools when assetFilter=USDC", () => {
+    const { container } = render(
+      <FarmingPools pools={[usdcPool, xlmPool]} isLoading={false} assetFilter="USDC" />,
+    );
+    const dataRows = container.querySelectorAll('[data-pools-row="true"]');
+    expect(dataRows.length).toBe(1);
+  });
+
+  it("renders empty state when no pools match filter", () => {
+    render(<FarmingPools pools={[xlmPool]} isLoading={false} assetFilter="USDC" />);
+    expect(screen.getByText(/no depositable pools/i)).toBeInTheDocument();
+  });
+});
