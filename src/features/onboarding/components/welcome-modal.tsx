@@ -17,12 +17,13 @@ export function WelcomeModal() {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
 
-  // Reset position when the modal opens.
+  // Reset position when the modal opens. reInit picks up final viewport
+  // dimensions if Embla measured before layout settled.
   useEffect(() => {
-    if (welcomeModalOpen) {
-      setCurrent(0);
-      api?.scrollTo(0, true);
-    }
+    if (!welcomeModalOpen || !api) return;
+    api.reInit();
+    setCurrent(0);
+    api.scrollTo(0, true);
   }, [welcomeModalOpen, api]);
 
   // Track the active slide; clean up the listener so it doesn't accumulate.
@@ -88,10 +89,24 @@ export function WelcomeModal() {
         />
       </div>
 
-      <Carousel setApi={setApi} opts={{ watchDrag: true, loop: false }}>
-        <CarouselContent>
+      <Carousel
+        setApi={setApi}
+        // DialogContent is `display: grid`; without min-w-0 the intrinsic
+        // width of the inner flex (5 × basis-full) lets the carousel
+        // overflow the grid column. Force shrink-to-fit so the viewport
+        // matches DialogContent's 512px max-w-lg.
+        className="min-w-0"
+        opts={{ watchDrag: true, loop: false, align: "start", containScroll: "trimSnaps" }}
+      >
+        {/*
+          shadcn's CarouselContent / CarouselItem default to `-ml-4` / `pl-4`
+          for inter-slide gaps in multi-item carousels. We render one slide
+          at a time, full-width, so override both to ml-0/pl-0 — otherwise
+          each slide's content drifts 16px further left than the last.
+        */}
+        <CarouselContent className="ml-0">
           {welcomeSlides.map((slide) => (
-            <CarouselItem key={slide.title}>
+            <CarouselItem key={slide.title} className="pl-0">
               <WelcomeSlide slide={slide} />
             </CarouselItem>
           ))}

@@ -13,8 +13,8 @@ interface WelcomeImageProps {
 export function WelcomeImage({ src, alt, fallback }: WelcomeImageProps) {
   const [errored, setErrored] = useState(false);
 
-  if (errored && fallback) {
-    return <>{fallback}</>;
+  if (errored) {
+    return fallback ? <>{fallback}</> : null;
   }
 
   return (
