@@ -1,5 +1,12 @@
 export type RiskPreset = "Safe" | "Balanced" | "Aggressive";
 
+export type AccountStatus =
+  | "DEPLOYING"
+  | "AWAITING_FUND"
+  | "ACTIVE"
+  | "HALTED"
+  | "REVOKED";
+
 export interface PresetCardData {
   name: RiskPreset;
   estimatedApy: number;
@@ -18,7 +25,7 @@ export interface PositionData {
   profitPercent: number;
   currentApy: number;
   preset: string;
-  status: string;
+  status: AccountStatus;
   baseAsset?: string;
   activeAssets?: string[];
   positions: {

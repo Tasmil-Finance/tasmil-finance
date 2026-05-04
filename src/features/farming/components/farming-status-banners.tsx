@@ -2,9 +2,8 @@
 
 import { Info, Shield, Wallet, XCircle } from "lucide-react";
 import type { ReactNode } from "react";
+import type { AccountStatus } from "@/features/account/types";
 import { Button } from "@/shared/ui/button-v2";
-
-type AccountStatus = "DEPLOYING" | "AWAITING_FUND" | "ACTIVE" | "HALTED" | "REVOKED";
 
 interface FarmingStatusBannersProps {
   status: AccountStatus;

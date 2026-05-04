@@ -224,13 +224,12 @@ function FarmingContent() {
           />
 
           <FarmingStatusBanners
-            status={position.status as "DEPLOYING" | "AWAITING_FUND" | "ACTIVE" | "HALTED" | "REVOKED"}
+            status={position.status}
             balanceStale={Boolean(position.balanceStale)}
             sessionKeyStale={Boolean(position.sessionKeyStale)}
             onRefresh={() => openModal("security")}
             onDeposit={() => openModal("fund")}
           />
-
 
           <motion.div
             className="flex items-center gap-3"
