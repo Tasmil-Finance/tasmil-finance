@@ -136,7 +136,7 @@ test.describe("T2 — Farming UI (P0)", () => {
       await expect(dialog).not.toBeVisible({ timeout: 3000 });
     }
 
-    const hero = page.locator('[data-onborda="farming-header"]');
+    const hero = page.locator('[data-testid="farming-header"]');
     await expect(hero).toBeVisible({ timeout: 10_000 });
 
     // CountUp emits a $-prefixed number once mounted
@@ -164,7 +164,7 @@ test.describe("T2 — Farming UI (P0)", () => {
       await expect(dialog).not.toBeVisible({ timeout: 3000 });
     }
 
-    const hero = page.locator('[data-onborda="farming-header"]');
+    const hero = page.locator('[data-testid="farming-header"]');
     await expect(hero).toBeVisible({ timeout: 10_000 });
 
     // For a fresh wallet with no positions the value will be $0.00 — that's a valid

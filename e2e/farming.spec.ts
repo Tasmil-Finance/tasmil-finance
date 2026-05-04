@@ -302,7 +302,7 @@ test.describe("Farming UI (Task 8)", () => {
     const wallet = freshWallet();
     await loginAsWallet(page, wallet);
     await page.goto("/farming");
-    const valueEl = page.locator('[data-onborda="farming-header"]').getByText(/\$\d/);
+    const valueEl = page.locator('[data-testid="farming-header"]').getByText(/\$\d/);
     await expect(valueEl).toBeVisible({ timeout: 10_000 });
   });
 

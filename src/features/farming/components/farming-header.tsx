@@ -39,6 +39,7 @@ export function FarmingHeader({
 
   return (
     <motion.div
+      data-testid="farming-header"
       className="flex items-center gap-4 rounded-2xl border border-border/50 bg-gradient-to-br from-primary/10 via-background to-background p-6"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
