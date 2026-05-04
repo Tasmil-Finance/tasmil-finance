@@ -21,12 +21,12 @@ export const REASON_LABELS: Record<CreditReason, string> = {
   TOPUP_FIAT: "Fiat top-up",
   CHAT_DEBIT: "Chat",
   CHAT_REVERT: "Chat refund",
-  REFERRAL_JOIN: "Referral bonus",
-  REFERRAL_X_SHARE: "X share bonus",
+  REFERRAL_JOIN: "Referral bonus (points)",
+  REFERRAL_X_SHARE: "X share bonus (points)",
   ADMIN_ADJUST: "Admin adjustment",
   PROMO_GRANT: "Promo grant",
   WELCOME_GRANT: "Welcome bonus",
-  TASK_COMPLETED: "Task bonus",
+  TASK_COMPLETED: "Task bonus (points)",
 };
 
 export interface CreditLedgerEntry {
@@ -80,7 +80,7 @@ export function useCredits() {
   return useQuery({
     queryKey: creditQueryKey(wallet),
     queryFn: fetchSnapshot,
-    staleTime: 15_000,
+    staleTime: 5_000,
     enabled: !!accessToken && !isExpired,
   });
 }
