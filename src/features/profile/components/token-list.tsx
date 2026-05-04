@@ -1,14 +1,16 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ExternalLink, Plus, Wallet } from "lucide-react";
+import { ExternalLink, Eye, Plus, Wallet } from "lucide-react";
 import { useState } from "react";
 import { TokenImage } from "@/shared/components/token-image";
 import { getExplorerUrl } from "@/shared/config/stellar";
 import { Button } from "@/shared/ui/button-v2";
 import { Skeleton } from "@/shared/ui/skeleton";
 import type { WalletToken } from "../hooks/use-wallet-tokens";
+import { AddAssetDialog } from "./add-asset-dialog";
 import { AddTrustlineDialog } from "./add-trustline-dialog";
+import { WatchListSection } from "./watch-list-section";
 
 function formatUsd(value: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -57,6 +59,7 @@ interface TokenListProps {
 
 export function TokenList({ tokens, totalUsd, isLoading }: TokenListProps) {
   const [trustlineOpen, setTrustlineOpen] = useState(false);
+  const [watchAssetOpen, setWatchAssetOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -112,20 +115,32 @@ export function TokenList({ tokens, totalUsd, isLoading }: TokenListProps) {
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-foreground">Assets</h2>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1.5"
-            onClick={() => setTrustlineOpen(true)}
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Add Asset
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => setWatchAssetOpen(true)}
+            >
+              <Eye className="h-3.5 w-3.5" />
+              Watch Asset
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => setTrustlineOpen(true)}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Add Trustline
+            </Button>
+          </div>
         </div>
         <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-card p-12 text-muted-foreground">
           <p className="text-sm">No token balances found</p>
         </div>
         <AddTrustlineDialog open={trustlineOpen} onOpenChange={setTrustlineOpen} />
+        <AddAssetDialog open={watchAssetOpen} onOpenChange={setWatchAssetOpen} />
       </div>
     );
   }
@@ -139,18 +154,34 @@ export function TokenList({ tokens, totalUsd, isLoading }: TokenListProps) {
     >
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold text-foreground">Assets</h2>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-1.5"
-          onClick={() => setTrustlineOpen(true)}
-        >
-          <Plus className="h-3.5 w-3.5" />
-          Add Asset
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => setWatchAssetOpen(true)}
+          >
+            <Eye className="h-3.5 w-3.5" />
+            Watch Asset
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => setTrustlineOpen(true)}
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Add Trustline
+          </Button>
+        </div>
       </div>
 
-      <div data-onborda="portfolio-assets" className="overflow-hidden rounded-xl border border-border bg-card">
+      <WatchListSection />
+
+      <div
+        data-onborda="portfolio-assets"
+        className="overflow-hidden rounded-xl border border-border bg-card"
+      >
         {/* Wallet summary */}
         <div className="flex items-center gap-3 px-6 py-4">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
@@ -235,6 +266,7 @@ export function TokenList({ tokens, totalUsd, isLoading }: TokenListProps) {
       </div>
 
       <AddTrustlineDialog open={trustlineOpen} onOpenChange={setTrustlineOpen} />
+      <AddAssetDialog open={watchAssetOpen} onOpenChange={setWatchAssetOpen} />
     </motion.div>
   );
 }
