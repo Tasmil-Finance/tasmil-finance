@@ -37,13 +37,38 @@ export interface PositionData {
   sessionKeyStale?: boolean;
 }
 
+export type ActivityCategory = "protocol" | "reward" | "wallet";
+
+export interface ActivityPoolRef {
+  protocol: string;
+  name: string;
+  assetSymbol: string;
+}
+
+export interface PerPoolReward {
+  poolId: string;
+  protocol: string;
+  token: string;
+  amount: number;
+  amountUsd?: number;
+  txHash?: string;
+}
+
 export interface ActivityItem {
   id: string;
   type: string;
+  category: ActivityCategory;
   amount?: number;
   amountUsd?: number;
   token?: string;
   detail?: string;
   txHash?: string;
+  pool?: ActivityPoolRef;
+  metadata?: { perPool?: PerPoolReward[] } & Record<string, unknown>;
   createdAt: string;
+}
+
+export interface ActivityListResponse {
+  items: ActivityItem[];
+  nextCursor: string | null;
 }
