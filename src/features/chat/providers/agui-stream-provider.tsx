@@ -12,6 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import type React from "react";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
+import { creditQueryKey } from "@/features/credits/use-credits";
 import { buildAiIdentityHeaders } from "@/lib/ai-auth";
 import { getBrowserAiBaseUrl } from "@/lib/runtime-urls";
 import { useWallet } from "@/shared/context/wallet-context";
@@ -115,9 +116,10 @@ function AguiStreamSession({
     prevErrorRef.current = streamValue.error;
 
     if ((wasLoading && !isLoadingNow) || errorAppeared) {
-      queryClient.invalidateQueries({ queryKey: ["credit"] });
+      // Prefix-match invalidates both useCredits snapshot and useCreditsLedger pages.
+      queryClient.invalidateQueries({ queryKey: creditQueryKey(null) });
       const t = setTimeout(
-        () => queryClient.invalidateQueries({ queryKey: ["credit"] }),
+        () => queryClient.invalidateQueries({ queryKey: creditQueryKey(null) }),
         800,
       );
       return () => clearTimeout(t);

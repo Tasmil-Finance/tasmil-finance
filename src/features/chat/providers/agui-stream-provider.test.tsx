@@ -38,7 +38,10 @@ jest.mock("./thread-provider", () => ({
   useThreads: () => ({ getThreads: jest.fn().mockResolvedValue([]), setThreads: jest.fn() }),
 }));
 jest.mock("@/lib/ai-auth", () => ({ buildAiIdentityHeaders: () => ({}) }));
-jest.mock("@/lib/runtime-urls", () => ({ getBrowserAiBaseUrl: () => "http://test" }));
+jest.mock("@/lib/runtime-urls", () => ({
+  getBrowserAiBaseUrl: () => "http://test",
+  getBrowserBackendBaseUrl: () => "http://test",
+}));
 jest.mock("../lib/client", () => ({
   createClient: () => ({ threads: { update: () => Promise.resolve() } }),
 }));
@@ -103,13 +106,15 @@ describe("StreamProvider credit invalidation", () => {
       );
     });
 
-    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: ["credit"] });
+    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: ["credit", "anon"] });
+    expect(invalidateQueriesMock).toHaveBeenCalledTimes(1);
 
     invalidateQueriesMock.mockClear();
     act(() => {
       jest.advanceTimersByTime(800);
     });
-    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: ["credit"] });
+    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: ["credit", "anon"] });
+    expect(invalidateQueriesMock).toHaveBeenCalledTimes(1);
   });
 
   it("invalidates ['credit'] when error becomes truthy", () => {
@@ -129,6 +134,13 @@ describe("StreamProvider credit invalidation", () => {
       );
     });
 
-    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: ["credit"] });
+    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: ["credit", "anon"] });
+    expect(invalidateQueriesMock).toHaveBeenCalledTimes(1);
+    invalidateQueriesMock.mockClear();
+    act(() => {
+      jest.advanceTimersByTime(800);
+    });
+    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: ["credit", "anon"] });
+    expect(invalidateQueriesMock).toHaveBeenCalledTimes(1);
   });
 });
