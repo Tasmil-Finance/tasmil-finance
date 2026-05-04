@@ -31,8 +31,6 @@ import { useAggregator } from "@/features/aggregator/hooks/use-aggregator";
 import { useAllbridgeExecute } from "@/features/aggregator/hooks/use-allbridge-execute";
 import { useEvmTokenBalance } from "@/features/aggregator/hooks/use-evm-balance";
 import { useSolanaTokenBalance } from "@/features/aggregator/hooks/use-solana-balance";
-import { TOUR_NAMES } from "@/features/onboarding/config/tour-steps";
-import { usePageTour } from "@/features/onboarding/hooks/use-onboarding";
 import { useWalletTokens } from "@/features/profile/hooks/use-wallet-tokens";
 import { TokenImage } from "@/shared/components/token-image";
 import { useWallet } from "@/shared/context/wallet-context";
@@ -97,7 +95,6 @@ function formatBalanceShort(value: number): string {
 const isTestnet = process.env["NEXT_PUBLIC_STELLAR_NETWORK"] !== "mainnet";
 
 export function AggregatorPage() {
-  usePageTour(TOUR_NAMES.aggregator);
   const {
     connect: connectStellar,
     disconnect: disconnectStellar,
@@ -456,7 +453,7 @@ export function AggregatorPage() {
         </Typography>
       </div>
 
-      <div className="relative z-20 flex items-start gap-3" data-onborda="aggregator-card">
+      <div className="relative z-20 flex items-start gap-3">
         <div ref={swapPanelRef} className="w-full sm:w-[480px] max-w-[480px]">
           <BorderGlow
             animated
@@ -503,10 +500,7 @@ export function AggregatorPage() {
             {activeTab === "bridge" ? (
               <div className="flex flex-col px-4 pb-4">
                 {/* Input/Output */}
-                <div
-                  data-onborda="aggregator-inputs"
-                  className="flex flex-col relative gap-2 leading-4"
-                >
+                <div className="flex flex-col relative gap-2 leading-4">
                   {/* ── TOKEN IN ── */}
                   <div className="rounded-2xl p-4 pb-[15px]" style={{ background: C.sectionBg }}>
                     <div className="grid grid-cols-9 gap-2 items-center h-7">
@@ -825,7 +819,7 @@ export function AggregatorPage() {
                 )}
 
                 {/* ── CTA ── */}
-                <div data-onborda="aggregator-action" className="flex flex-col gap-2 mt-3">
+                <div className="flex flex-col gap-2 mt-3">
                   {needsWallet ? (
                     <button
                       type="button"

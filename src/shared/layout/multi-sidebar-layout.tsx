@@ -118,7 +118,7 @@ function DesktopLayout({
     <div className="flex h-screen w-full flex-col overflow-hidden">
       <TopNavBar sidebarData={data} showRightSidebar={showRightSidebar} />
       <div className="flex flex-1 overflow-hidden">
-        <main data-onborda="main-content" className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto">
           {children}
         </main>
         {showRightSidebar && (

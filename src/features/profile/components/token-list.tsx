@@ -148,10 +148,7 @@ export function TokenList({ tokens, totalUsd, isLoading }: TokenListProps) {
           <p className="text-sm">No token balances found</p>
         </div>
       ) : (
-        <div
-          data-onborda="portfolio-assets"
-          className="overflow-hidden rounded-xl border border-border bg-card"
-        >
+        <div className="overflow-hidden rounded-xl border border-border bg-card">
           {/* Wallet summary */}
           <div className="flex items-center gap-3 px-6 py-4">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">

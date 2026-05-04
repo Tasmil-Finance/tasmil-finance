@@ -5,8 +5,6 @@ import { Wallet } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback } from "react";
-import { TOUR_NAMES } from "@/features/onboarding/config/tour-steps";
-import { usePageTour } from "@/features/onboarding/hooks/use-onboarding";
 import { ReferralsBody } from "@/features/referrals";
 import { PackageGrid } from "@/features/topup/components/topup-page";
 import type { CreditPackage } from "@/features/topup/types";
@@ -59,7 +57,6 @@ interface ProfileContentProps {
 }
 
 function ProfileContent({ packages }: ProfileContentProps) {
-  usePageTour(TOUR_NAMES.portfolio);
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -123,7 +120,6 @@ function ProfileContent({ packages }: ProfileContentProps) {
 
           {/* Tab bar */}
           <motion.div
-            data-onborda="portfolio-tabs"
             className="flex items-center gap-4 border-b border-border pb-0"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}

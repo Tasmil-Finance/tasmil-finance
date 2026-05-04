@@ -19,8 +19,6 @@ import {
   useWithdraw,
 } from "@/features/account/hooks/use-account-api";
 import type { RiskPreset } from "@/features/account/types";
-import { TOUR_NAMES } from "@/features/onboarding/config/tour-steps";
-import { usePageTour } from "@/features/onboarding/hooks/use-onboarding";
 import { cn } from "@/lib/utils";
 import { activeNetwork } from "@/shared/config/stellar";
 import { Button } from "@/shared/ui/button-v2";
@@ -94,7 +92,6 @@ function ConnectPrompt() {
 // ─── Main content ───────────────────────────────────────────────────────────
 
 function FarmingContent() {
-  usePageTour(TOUR_NAMES.farming);
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -497,7 +494,6 @@ function FarmingContent() {
 
           {/* Action buttons — visible right under header */}
           <motion.div
-            data-onborda="farming-actions"
             className="flex items-center gap-3"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -545,7 +541,6 @@ function FarmingContent() {
 
           {/* Tab bar — like portfolio tab bar */}
           <motion.div
-            data-onborda="farming-tabs"
             className="flex items-center gap-4 border-b border-border pb-0"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}

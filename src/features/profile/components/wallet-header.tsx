@@ -45,7 +45,6 @@ export function WalletHeader({
 
   return (
     <motion.div
-      data-onborda="portfolio-header"
       className="flex items-center gap-4"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
