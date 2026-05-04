@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/shared/hooks/use-mobile";
 import { AppSidebar } from "@/shared/layout/app-sidebar";
 import { ChatHistoryWrapper } from "@/shared/layout/chat-history-wrapper";
+import { TopNavBar } from "@/shared/layout/top-nav-bar";
 import { MobileSidebarContent } from "@/shared/layout/mobile-sidebar-content";
 import { Button } from "@/shared/ui/button-v2";
 import {
@@ -14,6 +15,8 @@ import {
 } from "@/shared/ui/multi-sidebar";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/shared/ui/sheet";
 import { SidebarInset, SidebarProvider, useSidebar } from "@/shared/ui/sidebar";
+
+const useTopNav = process.env.NEXT_PUBLIC_USE_TOP_NAV === "true";
 
 interface MultiSidebarLayoutProps {
   children: React.ReactNode;
@@ -133,6 +136,36 @@ function DesktopLayout({
 }) {
   const { rightSidebarOpen } = useMultiSidebar();
 
+  if (useTopNav) {
+    if (!customSidebarData) return null;
+    return (
+      <div className="flex h-screen w-full flex-col overflow-hidden">
+        <TopNavBar sidebarData={customSidebarData} showRightSidebar={showRightSidebar} />
+        <div className="flex flex-1 overflow-hidden">
+          <main
+            data-onborda="main-content"
+            className="flex-1 overflow-y-auto"
+          >
+            {children}
+          </main>
+          {showRightSidebar && (
+            <div
+              className={cn(
+                "h-full flex-shrink-0 overflow-hidden border-border border-l transition-all duration-300 ease-in-out",
+                rightSidebarOpen ? "w-80" : "w-0",
+              )}
+            >
+              <div className="h-full w-80">
+                <ChatHistoryWrapper />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Legacy path — unchanged
   return (
     <SidebarProvider defaultOpen={true}>
       <AppSidebar sidebarData={customSidebarData} />
