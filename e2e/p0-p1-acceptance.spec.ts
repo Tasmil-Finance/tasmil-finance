@@ -583,6 +583,26 @@ test.describe("T6 — Asset selector (P1)", () => {
     }
   }
 
+  /**
+   * Mock the Stellar Horizon /accounts/<wallet> response so the
+   * portfolio page renders the populated TokenList branch (which
+   * mounts WatchListSection) instead of the empty-state branch
+   * (which does not). Without this, watching an asset adds it to
+   * the persisted store but no chip is visible because the section
+   * is unmounted. Must be called BEFORE page.goto().
+   */
+  async function mockHorizonAccount(page: import("@playwright/test").Page) {
+    await page.route(/horizon\.stellar\.org\/accounts\//, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          balances: [{ asset_type: "native", balance: "100.0000000" }],
+        }),
+      });
+    });
+  }
+
   test("portfolio shows both Add Trustline and Watch Asset buttons", async ({ page, context }) => {
     await context.clearCookies();
     await clearOnboardingState(page);
@@ -604,6 +624,7 @@ test.describe("T6 — Asset selector (P1)", () => {
     await clearWatchlistState(page);
     const wallet = freshWallet();
     await loginAsWallet(page, wallet);
+    await mockHorizonAccount(page);
     await page.goto("/portfolio");
     await bypassOnboarding(page);
 
@@ -629,6 +650,7 @@ test.describe("T6 — Asset selector (P1)", () => {
     await clearWatchlistState(page);
     const wallet = freshWallet();
     await loginAsWallet(page, wallet);
+    await mockHorizonAccount(page);
     await page.goto("/portfolio");
     await bypassOnboarding(page);
 
@@ -654,6 +676,7 @@ test.describe("T6 — Asset selector (P1)", () => {
     await clearWatchlistState(page);
     const wallet = freshWallet();
     await loginAsWallet(page, wallet);
+    await mockHorizonAccount(page);
     await page.goto("/portfolio");
     await bypassOnboarding(page);
 
@@ -670,7 +693,14 @@ test.describe("T6 — Asset selector (P1)", () => {
     // Reload — chip persists
     await page.reload();
     await bypassOnboarding(page);
-    await expect(page.getByRole("button", { name: /Open BLND in aggregator/i })).toBeVisible();
+    // Wait for the Assets section to finish loading (Watch Asset button only
+    // renders in the populated branch, after isLoading flips false).
+    await expect(page.getByRole("button", { name: /Watch Asset/i })).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect(page.getByRole("button", { name: /Open BLND in aggregator/i })).toBeVisible({
+      timeout: 10_000,
+    });
 
     // Remove
     await page.getByRole("button", { name: /Remove BLND/i }).click();
@@ -679,6 +709,9 @@ test.describe("T6 — Asset selector (P1)", () => {
     // Reload again — chip is still gone
     await page.reload();
     await bypassOnboarding(page);
+    await expect(page.getByRole("button", { name: /Watch Asset/i })).toBeVisible({
+      timeout: 10_000,
+    });
     await expect(page.getByRole("button", { name: /Open BLND in aggregator/i })).not.toBeVisible();
   });
 });
