@@ -8,11 +8,11 @@ export interface WelcomeSlideData {
   gradient: string;
   /** Path under /public, e.g. "/onboarding/intro.mp4". Empty/undefined → no video slot. */
   videoSrc?: string;
-  /** Path under /public, e.g. "/onboarding/intro-poster.png". Optional. */
+  /** Path under /public, e.g. "/onboarding/intro-poster.png". Empty/undefined → no poster. */
   videoPoster?: string;
   /** Path under /public, e.g. "/onboarding/chat.png". Empty/undefined → no image slot. */
   imageSrc?: string;
-  /** Alt text for the image slot. Required when imageSrc is set. */
+  /** Alt text for the image slot. Recommended when imageSrc is set; renderer falls back to slide title. */
   imageAlt?: string;
 }
 
