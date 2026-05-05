@@ -171,9 +171,9 @@ export function AssistantMessage({
   const hasToolCalls = !!(allToolCalls && allToolCalls.length > 0);
 
   return (
-    <div className="group mr-auto flex w-full items-start gap-3 overflow-hidden">
+    <div className="group mr-auto flex w-full flex-col items-start gap-2 overflow-hidden md:flex-row md:gap-3">
       <div className="w-10 shrink-0">{!hideAvatar && <AgentAvatar />}</div>
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
+      <div className="flex min-w-0 w-full flex-1 flex-col gap-1">
         {isToolResult ? (
           <>
             <ToolResult message={message} />
@@ -290,7 +290,7 @@ export function AssistantMessage({
 
 export function AssistantMessageLoading({ hideAvatar = false }: { hideAvatar?: boolean }) {
   return (
-    <div className="mr-auto flex items-start gap-3">
+    <div className="mr-auto flex flex-col items-start gap-2 md:flex-row md:gap-3">
       {!hideAvatar && <AgentAvatar />}
       <div className="flex items-center gap-2 py-1.5">
         <Loader size={16} className="text-muted-foreground" />
