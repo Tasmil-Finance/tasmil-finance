@@ -1,9 +1,11 @@
 "use client";
 
-import { Check, Copy, ExternalLink, LogOut, User, Wallet } from "lucide-react";
+import { Check, ChevronDown, ExternalLink, LogOut, User } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { ReplayMenuItem } from "./replay-menu-item";
 import { cn } from "@/lib/utils";
+import { useCredits } from "@/features/credits/use-credits";
 import { getExplorerUrl, isMainnet } from "@/shared/config/stellar";
 import { useWallet } from "@/shared/context/wallet-context";
 import { Button } from "@/shared/ui/button-v2";
@@ -14,18 +16,28 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import { Typography } from "@/shared/ui/typography";
 
-const AddressAvatar = ({
-  address,
-  size = "size-12",
-  iconSize,
-}: {
+const networkLabel = isMainnet ? "Mainnet" : "Testnet";
+
+function explorerUrl(address: string): string {
+  return getExplorerUrl("account", address);
+}
+
+function monogram(address: string): string {
+  if (!address || address.length < 2) return "··";
+  const first = address.charAt(0);
+  const last = address.charAt(address.length - 1);
+  return (first + last).toUpperCase();
+}
+
+interface AddressAvatarProps {
   address: string;
   size?: string;
   iconSize?: string;
-}) => {
+}
+
+const AddressAvatar = ({ address, size = "size-12", iconSize }: AddressAvatarProps) => {
   const hash = address.split("").reduce((acc, char) => {
     const newAcc = (acc << 5) - acc + char.charCodeAt(0);
     return newAcc & newAcc;
@@ -58,17 +70,11 @@ const AddressAvatar = ({
   );
 };
 
-const networkLabel = isMainnet ? "Mainnet" : "Testnet";
-
-function explorerUrl(address: string): string {
-  return getExplorerUrl("account", address);
-}
-
 interface ConnectWalletButtonProps {
-  compact?: boolean;
+  variant?: "topbar" | "sidebar";
 }
 
-export function ConnectWalletButton({ compact }: ConnectWalletButtonProps) {
+export function ConnectWalletButton({ variant = "sidebar" }: ConnectWalletButtonProps) {
   const { isConnected, address, displayAddress, connect, disconnect } = useWallet();
   const [copied, setCopied] = useState(false);
 
@@ -79,84 +85,29 @@ export function ConnectWalletButton({ compact }: ConnectWalletButtonProps) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  if (variant === "topbar") {
+    return (
+      <TopbarWallet
+        isConnected={isConnected}
+        address={address}
+        displayAddress={displayAddress}
+        connect={connect}
+        disconnect={disconnect}
+        copied={copied}
+        copyAddress={copyAddress}
+      />
+    );
+  }
+
+  // ── Connected: expanded sidebar (default) ───────────────────────────
   if (!isConnected) {
-    return compact ? (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            className="h-10 w-10 p-0"
-            onClick={connect}
-            variant="gradient"
-            data-testid="connect-wallet"
-          >
-            <Wallet className="h-5 w-5" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <Typography size="xs">Connect Wallet</Typography>
-        </TooltipContent>
-      </Tooltip>
-    ) : (
+    return (
       <Button className="w-full" onClick={connect} variant="gradient" data-testid="connect-wallet">
         Connect Wallet
       </Button>
     );
   }
 
-  // ── Connected: compact (collapsed sidebar) ──────────────────────────
-  if (compact) {
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-800/50 p-0 backdrop-blur-sm transition-all hover:bg-zinc-800/70"
-            variant="ghost"
-            data-testid="wallet-connected"
-          >
-            <AddressAvatar address={address || ""} size="size-8" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent side="right" align="end" className="w-56">
-          <div className="px-3 py-2.5">
-            <Typography size="xs" className="text-muted-foreground">
-              Connected to {networkLabel}
-            </Typography>
-            <Typography size="sm" weight="medium" className="mt-0.5 text-foreground">
-              {displayAddress}
-            </Typography>
-          </div>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={copyAddress}>
-            {copied ? (
-              <Check className="mr-2 h-4 w-4 text-emerald-400" />
-            ) : (
-              <Copy className="mr-2 h-4 w-4" />
-            )}
-            {copied ? "Copied!" : "Copy Address"}
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <a href={explorerUrl(address || "")} target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="mr-2 h-4 w-4" />
-              View on Explorer
-            </a>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <ReplayMenuItem />
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={disconnect}
-            className="text-red-400 focus:bg-red-500/10 focus:text-red-400"
-            data-testid="disconnect-wallet"
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Disconnect
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  }
-
-  // ── Connected: expanded sidebar ─────────────────────────────────────
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -188,7 +139,7 @@ export function ConnectWalletButton({ compact }: ConnectWalletButtonProps) {
           {copied ? (
             <Check className="mr-2 h-4 w-4 text-emerald-400" />
           ) : (
-            <Copy className="mr-2 h-4 w-4" />
+            <ExternalLink className="mr-2 h-4 w-4" />
           )}
           {copied ? "Copied!" : "Copy Address"}
         </DropdownMenuItem>
@@ -206,6 +157,105 @@ export function ConnectWalletButton({ compact }: ConnectWalletButtonProps) {
           className="text-red-400 focus:bg-red-500/10 focus:text-red-400"
         >
           <LogOut className="mr-2 h-4 w-4" />
+          Disconnect
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+interface TopbarWalletProps {
+  isConnected: boolean;
+  address: string | null | undefined;
+  displayAddress: string | null | undefined;
+  connect: () => void;
+  disconnect: () => void;
+  copied: boolean;
+  copyAddress: () => Promise<void>;
+}
+
+function TopbarWallet({
+  isConnected,
+  address,
+  displayAddress,
+  connect,
+  disconnect,
+  copied,
+  copyAddress,
+}: TopbarWalletProps) {
+  const { data: creditsData, isLoading: creditsLoading } = useCredits();
+  const credits = creditsData?.credits ?? 0;
+  const creditsDisplay = creditsLoading ? "—" : new Intl.NumberFormat("en-US").format(credits);
+
+  if (!isConnected) {
+    return (
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={connect}
+        data-testid="connect-wallet"
+        className="h-9 rounded-full px-4 font-medium text-sm"
+      >
+        Connect Wallet
+      </Button>
+    );
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          data-testid="wallet-connected"
+          className="flex h-9 items-center gap-2 rounded-full border border-border bg-transparent px-3 font-medium text-foreground text-sm transition-colors hover:bg-accent"
+        >
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-muted font-semibold text-[10px] text-muted-foreground">
+            {monogram(address ?? "")}
+          </span>
+          <span>{displayAddress}</span>
+          <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-60">
+        <div className="px-3 py-2.5">
+          <div className="flex items-center justify-between">
+            <Typography size="sm" weight="medium" className="text-foreground">
+              {displayAddress}
+            </Typography>
+            <Typography size="xs" className="text-muted-foreground">
+              {networkLabel}
+            </Typography>
+          </div>
+        </div>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link
+            href="/profile/credits"
+            data-testid="wallet-credits-row"
+            className="flex w-full items-center justify-between"
+          >
+            <span className="text-sm">Credits</span>
+            <span className="font-mono text-foreground text-sm tabular-nums">
+              {creditsDisplay}
+            </span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={copyAddress}>
+          {copied ? "Copied!" : "Copy address"}
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <a href={explorerUrl(address || "")} target="_blank" rel="noopener noreferrer">
+            View on explorer
+          </a>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <ReplayMenuItem />
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={disconnect}
+          className="text-red-400 focus:bg-red-500/10 focus:text-red-400"
+        >
           Disconnect
         </DropdownMenuItem>
       </DropdownMenuContent>
