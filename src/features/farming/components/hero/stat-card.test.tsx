@@ -18,9 +18,18 @@ describe("StatCard", () => {
     expect(screen.getByText("-1.2%")).toHaveClass("text-red-400");
   });
 
-  it("renders sparkline placeholder copy when isPlaceholder", () => {
-    render(<StatCard label="APY" value="7.41%" sparklineState="placeholder" />);
-    expect(screen.getByText(/trend coming soon/i)).toBeInTheDocument();
+  it("renders no sparkline slot when no sparkline prop provided", () => {
+    const { container } = render(<StatCard label="APY" value="7.41%" />);
+    expect(screen.queryByText(/trend coming soon/i)).not.toBeInTheDocument();
+    expect(container.querySelector(".h-10")).toBeNull();
+  });
+
+  it("renders sparkline slot when sparkline prop provided", () => {
+    const { container } = render(
+      <StatCard label="APY" value="7.41%" sparkline={<svg data-testid="spark" />} />,
+    );
+    expect(container.querySelector(".h-10")).not.toBeNull();
+    expect(screen.getByTestId("spark")).toBeInTheDocument();
   });
 
   it("has aria-label combining label and value", () => {

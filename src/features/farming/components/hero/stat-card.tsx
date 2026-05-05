@@ -4,14 +4,12 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 type DeltaTone = "positive" | "negative" | "neutral";
-type SparklineState = "placeholder" | "live" | "loading";
 
 interface StatCardProps {
   label: string;
   value: string;
   delta?: { text: string; tone: DeltaTone };
-  sparklineState?: SparklineState;
-  /** Optional sparkline node (Phase 2). When omitted and state="placeholder", shows trend-soon copy. */
+  /** Optional sparkline node. Slot renders only when provided. Phase 2 will wire real charts. */
   sparkline?: React.ReactNode;
 }
 
@@ -21,7 +19,7 @@ const DELTA_TONE_CLASS: Record<DeltaTone, string> = {
   neutral: "text-muted-foreground",
 };
 
-export function StatCard({ label, value, delta, sparklineState, sparkline }: StatCardProps) {
+export function StatCard({ label, value, delta, sparkline }: StatCardProps) {
   return (
     <motion.article
       role="article"
@@ -42,14 +40,7 @@ export function StatCard({ label, value, delta, sparklineState, sparkline }: Sta
           {delta.text}
         </span>
       )}
-      <div className="mt-1 h-10">
-        {sparklineState === "placeholder" && (
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60">
-            Trend coming soon
-          </p>
-        )}
-        {sparkline}
-      </div>
+      {sparkline && <div className="mt-1 h-10">{sparkline}</div>}
     </motion.article>
   );
 }
