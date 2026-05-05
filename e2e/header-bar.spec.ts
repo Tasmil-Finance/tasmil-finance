@@ -2,14 +2,13 @@ import { expect, test } from "@playwright/test";
 import { freshWallet, loginAsWallet } from "./helpers/auth";
 
 test.describe("Header bar — Morpho-style strip (desktop)", () => {
-  test("brand text uses solid foreground (no gradient)", async ({ page }) => {
+  test("brand text uses shimmer animation (gradient + animate-shimmer-text)", async ({ page }) => {
     await page.goto("/farming");
     const brand = page.locator('[data-testid="top-nav-bar"]').getByText("Tasmil");
     await expect(brand).toBeVisible();
     const className = (await brand.getAttribute("class")) ?? "";
-    expect(className).not.toMatch(/bg-gradient-to/);
-    expect(className).not.toMatch(/bg-clip-text/);
-    expect(className).toMatch(/text-foreground/);
+    expect(className).toMatch(/animate-shimmer-text/);
+    expect(className).toMatch(/bg-clip-text/);
   });
 
   test("nav links are text-only — no svg icons", async ({ page }) => {
@@ -106,11 +105,11 @@ test.describe("Header bar — mobile", () => {
     await expect(header.getByTestId("connect-wallet")).toBeVisible();
   });
 
-  test("mobile brand text has no gradient class", async ({ page }) => {
+  test("mobile brand text has shimmer animation classes", async ({ page }) => {
     await page.goto("/farming");
     const brand = page.locator("header").first().getByText("Tasmil");
     const className = (await brand.getAttribute("class")) ?? "";
-    expect(className).not.toMatch(/bg-gradient-to/);
-    expect(className).not.toMatch(/bg-clip-text/);
+    expect(className).toMatch(/animate-shimmer-text/);
+    expect(className).toMatch(/bg-clip-text/);
   });
 });

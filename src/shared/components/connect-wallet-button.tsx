@@ -24,13 +24,6 @@ function explorerUrl(address: string): string {
   return getExplorerUrl("account", address);
 }
 
-function monogram(address: string): string {
-  if (!address || address.length < 2) return "··";
-  const first = address.charAt(0);
-  const last = address.charAt(address.length - 1);
-  return (first + last).toUpperCase();
-}
-
 interface AddressAvatarProps {
   address: string;
   size?: string;
@@ -207,13 +200,11 @@ function TopbarWallet({
         <button
           type="button"
           data-testid="wallet-connected"
-          className="flex h-9 items-center gap-2 rounded-full border border-border bg-transparent px-3 font-medium text-foreground text-sm transition-colors hover:bg-accent"
+          className="flex h-10 items-center gap-2.5 rounded-full border border-border bg-transparent px-3.5 font-medium text-base text-foreground transition-colors hover:bg-accent"
         >
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-muted font-semibold text-[10px] text-muted-foreground">
-            {monogram(address ?? "")}
-          </span>
+          <AddressAvatar address={address ?? ""} size="size-6" iconSize="size-3.5" />
           <span>{displayAddress}</span>
-          <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+          <ChevronDown className="h-4 w-4 opacity-60" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-60">

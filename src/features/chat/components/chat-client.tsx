@@ -2,7 +2,7 @@
 
 import type { Checkpoint, Message } from "@langchain/langgraph-sdk";
 import { AnimatePresence } from "framer-motion";
-import { ArrowDown, Clock, Coins, Layers, PanelLeft, Send, Square } from "lucide-react";
+import { ArrowDown, Clock, Coins, Layers, Send, Square } from "lucide-react";
 
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -68,7 +68,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const { toggleRightSidebar, rightSidebarOpen, toggleLeftSidebar } = useMultiSidebar();
+  const { toggleRightSidebar, rightSidebarOpen } = useMultiSidebar();
   const [firstTokenReceived, setFirstTokenReceived] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [userScrolledUp, setUserScrolledUp] = useState(false);
@@ -635,9 +635,6 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
 
       {/* Header - no border */}
       <header className="relative z-10 flex shrink-0 items-center gap-3 px-4 py-3">
-        <Button className="h-8 w-8 p-0" onClick={toggleLeftSidebar} variant="outline">
-          <PanelLeft className="h-4 w-4" />
-        </Button>
         <span className="font-semibold text-foreground text-lg">{displayTitle}</span>
         <div className="ml-auto flex items-center gap-1">
           {!rightSidebarOpen && (

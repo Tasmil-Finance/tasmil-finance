@@ -39,12 +39,12 @@ describe("TopNavBar", () => {
     pathnameMock.mockReturnValue("/farming");
   });
 
-  it("renders the brand name without gradient class", () => {
+  it("renders the brand name with shimmer animation classes", () => {
     render(<TopNavBar sidebarData={fakeData} />);
     const brand = screen.getByText("Tasmil");
     expect(brand).toBeInTheDocument();
-    expect(brand.className).not.toMatch(/gradient/);
-    expect(brand.className).not.toMatch(/bg-clip-text/);
+    expect(brand.className).toMatch(/animate-shimmer-text/);
+    expect(brand.className).toMatch(/bg-clip-text/);
   });
 
   it("renders nav links from sidebarData", () => {

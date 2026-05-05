@@ -36,7 +36,7 @@ describe("ConnectWalletButton variant='topbar'", () => {
     expect(screen.getByTestId("connect-wallet")).toHaveTextContent(/connect wallet/i);
   });
 
-  it("renders pill with monogram + displayAddress when connected", () => {
+  it("renders pill with gradient avatar + displayAddress when connected", () => {
     mockWallet.mockReturnValue({
       isConnected: true,
       address: "GABCDEFGHIJKLMNOPQRSTUVWXYZ234567ABCDEFGHIJKLMNOPQRSTUVWXY",
@@ -47,8 +47,7 @@ describe("ConnectWalletButton variant='topbar'", () => {
     render(<ConnectWalletButton variant="topbar" />);
     const trigger = screen.getByTestId("wallet-connected");
     expect(trigger).toHaveTextContent("GABC…XY");
-    // monogram is first + last hex char, uppercased
-    expect(trigger).toHaveTextContent("GY");
+    expect(trigger.querySelector(".bg-gradient-to-br")).not.toBeNull();
   });
 
   it("opens dropdown with Credits row showing formatted balance", async () => {

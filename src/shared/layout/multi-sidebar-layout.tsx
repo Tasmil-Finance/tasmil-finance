@@ -38,7 +38,7 @@ function MobileHeader({ sidebarData }: { sidebarData: SidebarData }) {
       </button>
       <Link href="/chat/new" className="flex items-center gap-2">
         <Image src={sidebarData.header.logo_url} width={24} height={24} alt="Logo" />
-        <span className="font-semibold text-foreground text-sm">
+        <span className="animate-shimmer-text bg-gradient-to-r from-[#b5eaff] via-white to-[#00bfff] bg-[length:200%_100%] bg-clip-text font-semibold text-sm text-transparent">
           {sidebarData.header.brand_name}
         </span>
       </Link>
