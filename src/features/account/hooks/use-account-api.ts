@@ -46,7 +46,8 @@ export function useActivity(publicKey: string | undefined) {
         ...$b.query,
         enabled: !!publicKey,
         refetchInterval: 60_000,
-        select: (res: unknown): ActivityItem[] => (res as { data?: ActivityItem[] }).data ?? [],
+        select: (res: unknown): ActivityItem[] =>
+          (res as { data?: { items?: ActivityItem[] } }).data?.items ?? [],
       },
     }
   );
