@@ -2,50 +2,51 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StepStrategy } from "./step-strategy";
 
-const presets = [
-  { name: "Safe" as const, estimatedApy: 3.1, poolCount: 1, poolTypes: [], risks: [], topPools: [] },
-  { name: "Balanced" as const, estimatedApy: 5.4, poolCount: 3, poolTypes: [], risks: [], topPools: [] },
-  { name: "Aggressive" as const, estimatedApy: 8.8, poolCount: 4, poolTypes: [], risks: [], topPools: [] },
-];
-
 const defaultProps = {
-  asset: "USDC" as const,
   mode: "AUTO" as const,
-  preset: "Balanced" as const,
-  customMarkets: [] as string[],
-  balances: { usdc: 100, xlm: 200 },
-  presets,
-  onAssetChange: jest.fn(),
-  onModeChange: jest.fn(),
-  onPresetChange: jest.fn(),
-  onCustomMarketsChange: jest.fn(),
+  onSelect: jest.fn(),
 };
 
+beforeEach(() => {
+  defaultProps.onSelect.mockClear();
+});
+
 describe("StepStrategy", () => {
-  it("renders three sections: asset, mode, presets", () => {
+  it("renders Agent Strategy title and Auto/Custom circles", () => {
     render(<StepStrategy {...defaultProps} />);
-    expect(screen.getByText("Deposit asset")).toBeInTheDocument();
-    expect(screen.getByText("Allocation mode")).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: /balanced/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /agent strategy/i })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /auto/i })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /custom/i })).toBeInTheDocument();
   });
 
-  it("calls onAssetChange when XLM pill clicked", async () => {
-    const onAssetChange = jest.fn();
-    render(<StepStrategy {...defaultProps} onAssetChange={onAssetChange} />);
-    await userEvent.click(screen.getByRole("button", { name: /xlm/i }));
-    expect(onAssetChange).toHaveBeenCalledWith("XLM");
+  it("Auto circle reflects selected state when mode=AUTO", () => {
+    render(<StepStrategy {...defaultProps} mode="AUTO" />);
+    expect(screen.getByRole("radio", { name: /auto/i })).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByRole("radio", { name: /custom/i })).toHaveAttribute("aria-checked", "false");
   });
 
-  it("calls onPresetChange when Aggressive selected", async () => {
-    const onPresetChange = jest.fn();
-    render(<StepStrategy {...defaultProps} onPresetChange={onPresetChange} />);
-    await userEvent.click(screen.getByRole("radio", { name: /aggressive/i }));
-    expect(onPresetChange).toHaveBeenCalledWith("Aggressive");
+  it("clicking Custom calls onSelect with CUSTOM", async () => {
+    const onSelect = jest.fn();
+    render(<StepStrategy {...defaultProps} onSelect={onSelect} />);
+    await userEvent.click(screen.getByRole("radio", { name: /custom/i }));
+    expect(onSelect).toHaveBeenCalledWith("CUSTOM");
   });
 
-  it("CUSTOM mode shows pool picker instead of presets", () => {
-    render(<StepStrategy {...defaultProps} mode="CUSTOM" />);
-    expect(screen.queryByRole("radio", { name: /balanced/i })).toBeNull();
-    expect(screen.getByText(/custom mode/i)).toBeInTheDocument();
+  it("clicking Auto calls onSelect with AUTO", async () => {
+    const onSelect = jest.fn();
+    render(<StepStrategy {...defaultProps} mode="CUSTOM" onSelect={onSelect} />);
+    await userEvent.click(screen.getByRole("radio", { name: /auto/i }));
+    expect(onSelect).toHaveBeenCalledWith("AUTO");
+  });
+
+  it("back button renders only when onBack provided", async () => {
+    const { rerender } = render(<StepStrategy {...defaultProps} />);
+    expect(screen.queryByRole("button", { name: /back/i })).toBeNull();
+
+    const onBack = jest.fn();
+    rerender(<StepStrategy {...defaultProps} onBack={onBack} />);
+    const backBtn = screen.getByRole("button", { name: /back/i });
+    await userEvent.click(backBtn);
+    expect(onBack).toHaveBeenCalled();
   });
 });

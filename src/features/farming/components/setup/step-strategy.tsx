@@ -1,113 +1,72 @@
 "use client";
 
-import type { PresetCardData, RiskPreset } from "@/features/account/types";
-import type { Asset } from "../shared/asset-pill";
-import { AssetPill } from "../shared/asset-pill";
-import { CircleButton } from "../shared/circle-button";
+import { ChevronLeft } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { Mode } from "../shared/mode-toggle";
-import { StepPoolPicker } from "./step-pool-picker";
-import { StepPreset } from "./step-preset";
 
 interface Props {
-  asset: Asset;
   mode: Mode;
-  preset: RiskPreset;
-  customMarkets: string[];
-  balances: { usdc: number; xlm: number };
-  presets: PresetCardData[] | undefined;
-  onAssetChange: (asset: Asset) => void;
-  onModeChange: (mode: Mode) => void;
-  onPresetChange: (preset: RiskPreset) => void;
-  onCustomMarketsChange: (next: string[]) => void;
+  onSelect: (mode: Mode) => void;
+  onBack?: () => void;
 }
 
-const fmt = (n: number, asset: Asset) =>
-  n.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: asset === "USDC" ? 2 : 4,
-  });
-
-function InlineModeToggle({ value, onChange }: { value: Mode; onChange: (m: Mode) => void }) {
+export function StepStrategy({ mode, onSelect, onBack }: Props) {
   return (
-    <div className="flex gap-3">
-      <CircleButton
-        variant={value === "AUTO" ? "radial-cyan" : "ghost"}
-        size="lg"
-        onClick={() => onChange("AUTO")}
-        aria-pressed={value === "AUTO"}
-      >
-        Auto
-      </CircleButton>
-      <CircleButton
-        variant={value === "CUSTOM" ? "radial-cyan" : "ghost"}
-        size="lg"
-        onClick={() => onChange("CUSTOM")}
-        aria-pressed={value === "CUSTOM"}
-      >
-        Custom
-      </CircleButton>
+    <div className="relative flex min-h-[calc(100vh-3.5rem)] w-full flex-col items-center bg-background px-6 pt-6">
+      {onBack && (
+        <button
+          type="button"
+          aria-label="Back"
+          onClick={onBack}
+          className="absolute top-4 left-1/2 inline-flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+      )}
+
+      <div className="flex flex-1 flex-col items-center justify-center gap-16 md:gap-24">
+        <h1 className="text-center font-bold text-5xl text-foreground tracking-tight md:text-7xl">
+          Agent Strategy
+        </h1>
+
+        <div className="flex items-center -space-x-12 md:-space-x-16">
+          <ModeCircle
+            label="Auto"
+            selected={mode === "AUTO"}
+            onClick={() => onSelect("AUTO")}
+          />
+          <ModeCircle
+            label="Custom"
+            selected={mode === "CUSTOM"}
+            onClick={() => onSelect("CUSTOM")}
+          />
+        </div>
+      </div>
     </div>
   );
 }
 
-export function StepStrategy({
-  asset,
-  mode,
-  preset,
-  customMarkets,
-  balances,
-  presets,
-  onAssetChange,
-  onModeChange,
-  onPresetChange,
-  onCustomMarketsChange,
-}: Props) {
+interface ModeCircleProps {
+  label: string;
+  selected: boolean;
+  onClick: () => void;
+}
+
+function ModeCircle({ label, selected, onClick }: ModeCircleProps) {
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 rounded-2xl border border-border bg-card p-6 md:p-8">
-      <div className="flex flex-col gap-1">
-        <h1 className="font-bold text-2xl text-foreground tracking-tight">Tasmil Agent Strategy</h1>
-        <p className="text-muted-foreground text-sm">
-          Choose your deposit asset, how the agent should allocate, and your risk profile.
-        </p>
-      </div>
-
-      <section className="flex flex-col gap-3">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/80">
-          Deposit asset
-        </p>
-        <div className="grid grid-cols-2 gap-3">
-          <AssetPill
-            asset="USDC"
-            hint={`${fmt(balances.usdc, "USDC")} avail`}
-            selected={asset === "USDC"}
-            onSelect={onAssetChange}
-          />
-          <AssetPill
-            asset="XLM"
-            hint={`${fmt(balances.xlm, "XLM")} avail`}
-            selected={asset === "XLM"}
-            onSelect={onAssetChange}
-          />
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-3">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/80">
-          Allocation mode
-        </p>
-        <InlineModeToggle value={mode} onChange={onModeChange} />
-      </section>
-
-      <section className="flex flex-col gap-3">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/80">
-          {mode === "AUTO" ? "Risk preset" : "Custom mode"}
-        </p>
-        {mode === "AUTO" ? (
-          <StepPreset presets={presets} value={preset} onSelect={onPresetChange} baseAsset={asset} />
-        ) : (
-          <StepPoolPicker value={customMarkets} onChange={onCustomMarketsChange} />
-        )}
-      </section>
-    </div>
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      onClick={onClick}
+      className={cn(
+        "flex h-[280px] w-[280px] items-center justify-center rounded-full font-medium text-2xl text-foreground transition-all duration-200 md:h-[400px] md:w-[400px] md:text-3xl",
+        selected
+          ? "bg-zinc-700/90 ring-2 ring-white/20"
+          : "bg-zinc-800/70 hover:bg-zinc-700/80"
+      )}
+    >
+      {label}
+    </button>
   );
 }

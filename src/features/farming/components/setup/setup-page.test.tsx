@@ -54,12 +54,12 @@ beforeEach(() => {
 describe("SetupPage", () => {
   it("auto-advances past Step 1 when already connected", () => {
     render(<SetupPage />, { wrapper });
-    expect(screen.getByRole("heading", { name: /tasmil agent strategy/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /agent strategy/i })).toBeInTheDocument();
   });
 
   it("walks Strategy -> Create Account -> Deposit -> Done", async () => {
     render(<SetupPage />, { wrapper });
-    await userEvent.click(screen.getByRole("button", { name: /continue/i }));
+    await userEvent.click(screen.getByRole("radio", { name: /auto/i }));
     expect(screen.getByRole("button", { name: /mock-create-account/i })).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: /mock-create-account/i }));
     expect(screen.getByText(/your deposit/i)).toBeInTheDocument();
