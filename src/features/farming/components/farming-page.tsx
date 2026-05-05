@@ -1,40 +1,20 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Loader2, Wallet } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import { useActivity, usePosition, usePresets } from "@/features/account/hooks/use-account-api";
-import type { RiskPreset } from "@/features/account/types";
-import { cn } from "@/lib/utils";
+import { useActivity, usePosition } from "@/features/account/hooks/use-account-api";
 import { Button } from "@/shared/ui/button-v2";
 import { useWalletStore } from "@/store/use-wallet";
 import { useFarmingActions } from "../hooks/use-farming-actions";
 import { usePools } from "../hooks/use-farming-api";
 import type { DiscoveredPool } from "../types";
-import { computeCashflowSummary } from "../utils/cashflow";
 import { ActivityDrawer } from "./activity-drawer";
+import type { AgentHistoryEvent } from "./dashboard/agent-history-card";
+import { FarmingDashboard } from "./farming-dashboard";
 import { FarmingModals, type FarmingModalTab } from "./farming-modals";
-import { FarmingStatusBanners } from "./farming-status-banners";
-import { StatRow } from "./hero/stat-row";
 import { PoolDetailDrawer } from "./pool-detail-drawer";
-import { SettingsButton } from "./settings-button";
-import { ManageTab } from "./tabs/manage-tab";
-import { PerformanceTab } from "./tabs/performance-tab";
-
-type TabValue = "performance" | "manage";
-const VALID_TABS: TabValue[] = ["performance", "manage"];
-const TABS: { value: TabValue; label: string }[] = [
-  { value: "performance", label: "Performance" },
-  { value: "manage", label: "Manage" },
-];
-
-const LEGACY_TAB_MAP: Record<string, TabValue> = {
-  overview: "performance",
-  pools: "manage",
-  strategy: "manage",
-  activity: "performance",
-};
 
 function ConnectPrompt() {
   return (
@@ -60,13 +40,7 @@ function ConnectPrompt() {
  * deploy is still in flight). Click the gradient CTA → routes to the
  * dedicated /farming/setup full-page wizard.
  */
-function GetStartedEmptyState({
-  resuming,
-  onStart,
-}: {
-  resuming: boolean;
-  onStart: () => void;
-}) {
+function GetStartedEmptyState({ resuming, onStart }: { resuming: boolean; onStart: () => void }) {
   return (
     <motion.div
       className="mx-auto flex max-w-lg flex-col items-center py-24 text-center"
@@ -101,19 +75,10 @@ function GetStartedEmptyState({
 function FarmingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const pathname = usePathname();
   const { account } = useWalletStore();
   const publicKey = account ?? undefined;
 
   const tabParam = searchParams.get("tab");
-  const resolvedTab: TabValue = (() => {
-    if (tabParam && VALID_TABS.includes(tabParam as TabValue)) return tabParam as TabValue;
-    if (tabParam) {
-      const mapped = LEGACY_TAB_MAP[tabParam];
-      if (mapped) return mapped;
-    }
-    return "performance";
-  })();
 
   const [activityDrawerOpen, setActivityDrawerOpen] = useState(false);
   const [poolDrawer, setPoolDrawer] = useState<DiscoveredPool | null>(null);
@@ -123,21 +88,9 @@ function FarmingContent() {
     if (tabParam === "activity") setActivityDrawerOpen(true);
   }, []);
 
-  const setActiveTab = useCallback(
-    (tab: TabValue) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (tab === "performance") params.delete("tab");
-      else params.set("tab", tab);
-      const qs = params.toString();
-      router.replace(qs ? `${pathname}?${qs}` : pathname);
-    },
-    [router, searchParams, pathname]
-  );
-
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTab, setModalTab] = useState<FarmingModalTab>("fund");
   const [withdrawAmount, setWithdrawAmount] = useState("");
-  const [selectedPreset, setSelectedPreset] = useState<RiskPreset | null>(null);
 
   const {
     data: position,
@@ -154,15 +107,12 @@ function FarmingContent() {
     if (!position) router.replace("/farming/setup");
   }, [publicKey, position, positionLoading, router]);
 
-  const { data: registryPoolsData, isLoading: registryPoolsLoading } = usePools();
+  const { isLoading: registryPoolsLoading } = usePools();
   const {
     data: activities,
     isLoading: activitiesLoading,
     refetch: refetchActivity,
   } = useActivity(publicKey);
-
-  const [strategyPreviewAsset, setStrategyPreviewAsset] = useState<"USDC" | "XLM">("USDC");
-  const { data: presets, isLoading: presetsLoading } = usePresets(strategyPreviewAsset);
 
   const actions = useFarmingActions(publicKey);
 
@@ -174,30 +124,7 @@ function FarmingContent() {
     [position?.positions]
   );
 
-  const activitiesList = useMemo(
-    () => (Array.isArray(activities) ? activities : []),
-    [activities]
-  );
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: only sync from server preset on first load
-  useEffect(() => {
-    const normalized = position?.preset?.toLowerCase();
-    const mapped: RiskPreset | null =
-      normalized === "safe"
-        ? "Safe"
-        : normalized === "aggressive"
-          ? "Aggressive"
-          : normalized === "balanced"
-            ? "Balanced"
-            : null;
-    if (mapped && selectedPreset === null) setSelectedPreset(mapped);
-  }, [position?.preset]);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: sync preview asset when account base asset changes
-  useEffect(() => {
-    const base = position?.baseAsset?.toUpperCase();
-    if (base === "USDC" || base === "XLM") setStrategyPreviewAsset(base);
-  }, [position?.baseAsset]);
+  const activitiesList = useMemo(() => (Array.isArray(activities) ? activities : []), [activities]);
 
   const { availableUsd, lockedUsd } = useMemo(() => {
     const isBalanceStale = Boolean(position?.balanceStale);
@@ -215,30 +142,6 @@ function FarmingContent() {
     available += walletAvailable;
     return { availableUsd: available, lockedUsd: locked };
   }, [positionsList, position?.totalValueUsd, position?.balanceStale]);
-
-  const deployedInPoolsUsd = useMemo(
-    () => positionsList.reduce((sum, pos) => sum + pos.valueUsd, 0),
-    [positionsList]
-  );
-
-  const unallocatedWalletUsd = useMemo(() => {
-    if (position?.balanceStale) return 0;
-    return Math.max((position?.totalValueUsd ?? 0) - deployedInPoolsUsd, 0);
-  }, [position?.totalValueUsd, deployedInPoolsUsd, position?.balanceStale]);
-
-  const cashflowSummary = useMemo(
-    () =>
-      computeCashflowSummary(
-        position ? { ...position, positions: positionsList } : undefined,
-        activitiesList
-      ),
-    [position, positionsList, activitiesList]
-  );
-
-  const inPositionKeys = useMemo(
-    () => new Set(positionsList.map((p) => `${p.protocol.toLowerCase()}:${p.poolName}`)),
-    [positionsList]
-  );
 
   const userPositionUsd = useMemo(() => {
     if (!poolDrawer) return 0;
@@ -296,12 +199,6 @@ function FarmingContent() {
     }
   }, [actions, refetchPosition, refetchActivity]);
 
-  const handleApplyPreset = async () => {
-    if (!selectedPreset) return;
-    const ok = await actions.applyPreset(selectedPreset);
-    if (ok) await refetchPosition();
-  };
-
   const handlePoolDeposit = useCallback(
     (_pool: DiscoveredPool) => {
       // pool argument unused by handler today; kept for Phase 2 per-pool routing
@@ -345,122 +242,52 @@ function FarmingContent() {
     );
   }
 
-  const registryPools = registryPoolsData ?? [];
   const isRevoked = position.status === "REVOKED";
 
+  const totalBalanceUsd = position.totalValueUsd ?? 0;
+  const totalDepositedUsd = position.totalDepositedUsd ?? 0;
+  const lifetimeEarningsUsd = position.profitUsd ?? 0;
+  const lifetimeEarningsPct = position.profitPercent ?? 0;
+  const netApr = position.currentApy ?? 0;
+  const firstPosition = positionsList[0];
+  const currentMarketName = firstPosition?.poolName ?? "—";
+  const currentPositionApr = firstPosition?.apy ?? 0;
+  const activatedAt = new Date().toISOString();
+
+  const agentEvents: AgentHistoryEvent[] = activitiesList
+    .filter((a) => a.category === "protocol" || a.type === "rebalance")
+    .map((a) => ({
+      id: a.id,
+      title: a.detail ?? "Position reallocated to higher-yield lending market",
+      detail:
+        a.amount !== undefined
+          ? `${a.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${a.token ?? ""} reallocated`
+          : (a.detail ?? ""),
+      occurredAt: a.createdAt,
+    }));
+
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <div className="flex-1 overflow-auto">
-        <div className="flex flex-col gap-6 px-4 py-6 sm:px-6 md:px-8">
-          <FarmingStatusBanners
-            status={position.status}
-            balanceStale={Boolean(position.balanceStale)}
-            sessionKeyStale={Boolean(position.sessionKeyStale)}
-            onRefresh={() => openModal("security")}
-            onDeposit={() => openModal("fund")}
-          />
-
-          <StatRow
-            totalValueUsd={position.totalValueUsd}
-            allTimePnlUsd={cashflowSummary.allTimePnlUsd}
-            allTimePnlPercent={cashflowSummary.allTimePnlPercent}
-            currentApy={position.currentApy}
-          />
-
-          <motion.div
-            className="flex items-center gap-3"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.08 }}
-          >
-            <Button
-              variant="gradient"
-              size="default"
-              className="px-6"
-              onClick={() => openModal("fund")}
-            >
-              Deposit
-            </Button>
-            <Button
-              variant="outline"
-              size="default"
-              className="px-6"
-              onClick={() => openModal("withdraw")}
-              disabled={isRevoked}
-            >
-              Withdraw
-            </Button>
-            <SettingsButton status={position.status} onOpen={openModal} />
-          </motion.div>
-
-          <motion.div
-            role="tablist"
-            className="flex items-center gap-4 border-border border-b pb-0"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-          >
-            {TABS.map((tab) => (
-              <button
-                key={tab.value}
-                role="tab"
-                aria-selected={resolvedTab === tab.value}
-                onClick={() => setActiveTab(tab.value)}
-                className={cn(
-                  "relative pb-3 font-medium text-base transition-colors",
-                  resolvedTab === tab.value
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {tab.label}
-                {resolvedTab === tab.value && (
-                  <motion.div
-                    className="absolute inset-x-0 bottom-0 h-0.5 bg-primary"
-                    layoutId="farming-tab-indicator"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  />
-                )}
-              </button>
-            ))}
-          </motion.div>
-
-          <AnimatePresence mode="wait">
-            {resolvedTab === "performance" && (
-              <PerformanceTab
-                key="performance"
-                position={position}
-                activities={activitiesList}
-                activitiesLoading={activitiesLoading}
-                unallocatedWalletUsd={unallocatedWalletUsd}
-                publicKey={publicKey}
-                onOpenDrawer={() => setActivityDrawerOpen(true)}
-              />
-            )}
-            {resolvedTab === "manage" && (
-              <ManageTab
-                key="manage"
-                presets={presets}
-                presetsLoading={presetsLoading}
-                selectedPreset={selectedPreset}
-                onSelectPreset={setSelectedPreset}
-                currentPreset={position.preset}
-                previewAsset={strategyPreviewAsset}
-                onChangePreviewAsset={setStrategyPreviewAsset}
-                activeAssets={position.activeAssets ?? []}
-                isRevoked={isRevoked}
-                isUpdatingPreset={actions.isUpdatingPreset}
-                actionError={actions.actionError}
-                onApply={handleApplyPreset}
-                pools={registryPools}
-                poolsLoading={registryPoolsLoading}
-                inPositionKeys={inPositionKeys}
-                onSelectPool={setPoolDrawer}
-              />
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
+    <>
+      <FarmingDashboard
+        totalBalanceUsd={totalBalanceUsd}
+        totalDepositedUsd={totalDepositedUsd}
+        lifetimeEarningsUsd={lifetimeEarningsUsd}
+        lifetimeEarningsPct={lifetimeEarningsPct}
+        chartSeries={[]}
+        agentEvents={agentEvents}
+        netApr={netApr}
+        currentPositionApr={currentPositionApr}
+        currentMarketName={currentMarketName}
+        activatedAt={activatedAt}
+        onAddFunds={() => {
+          setModalOpen(true);
+          setModalTab("fund");
+        }}
+        onDeactivate={() => {
+          setModalOpen(true);
+          setModalTab("security");
+        }}
+      />
 
       <FarmingModals
         open={modalOpen}
@@ -499,7 +326,7 @@ function FarmingContent() {
         onDeposit={handlePoolDeposit}
         onWithdraw={handlePoolWithdraw}
       />
-    </div>
+    </>
   );
 }
 
