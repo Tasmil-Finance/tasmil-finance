@@ -76,16 +76,12 @@ export function SetupPage() {
 
   if (state.step === 3) {
     return (
-      <SetupShell
-        currentStep={3}
-        totalSteps={5}
-        ctaLabel="Continue"
-        onCta={advance}
+      <StepCreateAccount
+        publicKey={publicKey}
+        preset={state.preset}
+        onComplete={advance}
         onBack={back}
-        hideCta
-      >
-        <StepCreateAccount publicKey={publicKey} preset={state.preset} onComplete={advance} />
-      </SetupShell>
+      />
     );
   }
 

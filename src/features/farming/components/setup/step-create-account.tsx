@@ -1,20 +1,51 @@
 "use client";
 
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Check, ChevronLeft, Loader2 } from "lucide-react";
 import { useEffect } from "react";
-import { DeployStepper } from "@/features/account/components/deploy-stepper";
 import { useOnboardingDeploy } from "@/features/account/hooks/use-onboarding-deploy";
-import type { RiskPreset } from "@/features/account/types";
+import type { DeploySubStep, RiskPreset } from "@/features/account/types";
 import { cn } from "@/lib/utils";
-import { Button } from "@/shared/ui/button-v2";
 
 interface Props {
   publicKey: string;
   preset: RiskPreset;
   onComplete: () => void;
+  onBack?: () => void;
 }
 
-export function StepCreateAccount({ publicKey, preset, onComplete }: Props) {
+type TxState = "idle" | "active" | "done";
+
+function deployState(subStep: DeploySubStep, deployCompleted: boolean): TxState {
+  if (deployCompleted) return "done";
+  if (
+    subStep === "building_deploy" ||
+    subStep === "signing_deploy" ||
+    subStep === "submitting_deploy"
+  ) {
+    return "active";
+  }
+  return "idle";
+}
+
+function setupTxState(
+  subStep: DeploySubStep,
+  setupCompleted: boolean,
+  deployCompleted: boolean
+): TxState {
+  if (setupCompleted) return "done";
+  if (
+    subStep === "building_setup" ||
+    subStep === "signing_setup" ||
+    subStep === "submitting_setup" ||
+    subStep === "applying_preset"
+  ) {
+    return "active";
+  }
+  if (deployCompleted) return "active";
+  return "idle";
+}
+
+export function StepCreateAccount({ publicKey, preset, onComplete, onBack }: Props) {
   const {
     deploy,
     retry,
@@ -31,83 +62,140 @@ export function StepCreateAccount({ publicKey, preset, onComplete }: Props) {
     if (allDone) onComplete();
   }, [allDone, onComplete]);
 
+  const txDeploy = deployState(deploySubStep, deployCompleted);
+  const txSetup = setupTxState(deploySubStep, setupCompleted, deployCompleted);
+
   const ctaLabel = isDeploying
     ? "Signing…"
     : deployCompleted && !setupCompleted
-      ? "Retry setup (Transaction 2 of 2)"
+      ? "Continue (2 of 2)"
       : "Sign with your wallet";
 
   return (
-    <div className="mx-auto flex w-full max-w-lg flex-col gap-6 rounded-2xl border border-border bg-card p-6 md:p-8">
-      <div className="flex flex-col gap-2">
-        <h1 className="font-bold text-2xl text-foreground tracking-tight">
-          Create your smart account
-        </h1>
-        <p className="text-muted-foreground text-sm leading-relaxed">
-          One-time setup. You'll sign{" "}
-          <span className="font-semibold text-foreground">two transactions</span> in your wallet —
-          one to deploy your smart account, one to grant the agent permission to rebalance. We
-          never hold your keys.
-        </p>
-      </div>
-
-      <Button
-        variant="gradient"
-        size="lg"
-        className="h-11 w-full"
-        onClick={() => void deploy()}
-        disabled={isDeploying}
-      >
-        {isDeploying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {ctaLabel}
-      </Button>
-
-      {(isDeploying || deploySubStep === "done") && (
-        <div className="rounded-lg border border-border bg-muted/40 px-3 py-2.5">
-          <DeployStepper
-            subStep={deploySubStep}
-            deployCompleted={deployCompleted}
-            setupCompleted={setupCompleted}
-          />
-        </div>
-      )}
-
-      {deployError && (
-        <div
-          className={cn(
-            "flex flex-col gap-2 rounded-lg px-3 py-2.5 text-xs",
-            deployErrorWasRejection
-              ? "border border-amber-500/20 bg-amber-500/5"
-              : "border border-destructive/20 bg-destructive/5",
-          )}
+    <div className="relative flex min-h-[calc(100vh-3.5rem)] w-full flex-col items-center bg-background px-6 pt-6">
+      {onBack && (
+        <button
+          type="button"
+          aria-label="Back"
+          onClick={onBack}
+          className="absolute top-4 left-1/2 inline-flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         >
-          <div className="flex items-start gap-2">
-            <AlertCircle
-              className={cn(
-                "mt-0.5 h-3.5 w-3.5 shrink-0",
-                deployErrorWasRejection ? "text-amber-400" : "text-destructive",
-              )}
-            />
-            <p
-              className={cn(
-                "leading-relaxed",
-                deployErrorWasRejection ? "text-amber-200/90" : "text-destructive",
-              )}
-            >
-              {deployError}
-            </p>
-          </div>
-          {deployErrorWasRejection && (
-            <button
-              type="button"
-              onClick={() => void retry()}
-              className="self-end rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 font-medium text-amber-200 text-xs transition-colors hover:bg-amber-500/15"
-            >
-              Retry
-            </button>
-          )}
-        </div>
+          <ChevronLeft className="h-4 w-4" />
+        </button>
       )}
+
+      <div className="flex flex-1 flex-col items-center justify-center gap-10 md:gap-14">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <h1 className="font-bold text-5xl text-foreground tracking-tight md:text-6xl lg:text-7xl">
+            Create Smart wallet
+          </h1>
+          <p className="mx-auto max-w-xl text-muted-foreground text-sm leading-relaxed md:text-base">
+            You'll sign <span className="font-semibold text-foreground">two transactions</span> in
+            your wallet — one to deploy your smart account, one to grant the agent permission to
+            rebalance. We never hold your keys.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3 md:gap-5">
+          <TxLabeledCircle index={1} label="Deploy" state={txDeploy} />
+          <div className="h-px w-12 bg-border md:w-20" />
+          <TxLabeledCircle index={2} label="Setup" state={txSetup} />
+        </div>
+
+        <button
+          type="button"
+          onClick={() => (deployErrorWasRejection ? void retry() : void deploy())}
+          disabled={isDeploying}
+          aria-label={ctaLabel}
+          className={cn(
+            "relative flex h-[240px] w-[240px] shrink-0 items-center justify-center rounded-full font-medium text-lg text-zinc-900 transition-transform duration-200 md:h-[320px] md:w-[320px] md:text-xl",
+            !isDeploying && "hover:scale-[1.02] active:scale-[0.99]",
+            isDeploying && "cursor-not-allowed opacity-90"
+          )}
+          style={{
+            background:
+              "radial-gradient(circle at 30% 25%, rgba(217,249,157,0.95) 0%, rgba(190,242,100,0.9) 25%, rgba(132,204,22,0.85) 55%, rgba(101,163,13,0.85) 100%), radial-gradient(circle at 75% 75%, rgba(74,222,128,0.6), transparent 60%)",
+            boxShadow:
+              "0 0 100px rgba(132,204,22,0.35), inset 0 4px 50px rgba(255,255,255,0.25), inset 0 -8px 50px rgba(34,84,4,0.35)",
+          }}
+        >
+          {isDeploying ? <Loader2 className="h-7 w-7 animate-spin" /> : ctaLabel}
+        </button>
+
+        {deployError && (
+          <div
+            className={cn(
+              "mx-auto flex max-w-md flex-col gap-2 rounded-lg px-4 py-3 text-sm",
+              deployErrorWasRejection
+                ? "border border-amber-500/30 bg-amber-500/10"
+                : "border border-destructive/30 bg-destructive/10"
+            )}
+          >
+            <div className="flex items-start gap-2">
+              <AlertCircle
+                className={cn(
+                  "mt-0.5 h-4 w-4 shrink-0",
+                  deployErrorWasRejection ? "text-amber-400" : "text-destructive"
+                )}
+              />
+              <p
+                className={cn(
+                  "leading-relaxed",
+                  deployErrorWasRejection ? "text-amber-200/95" : "text-destructive"
+                )}
+              >
+                {deployError}
+              </p>
+            </div>
+            {deployErrorWasRejection && (
+              <button
+                type="button"
+                onClick={() => void retry()}
+                className="self-end rounded-md border border-amber-500/40 bg-amber-500/15 px-3 py-1 font-medium text-amber-200 text-xs transition-colors hover:bg-amber-500/25"
+              >
+                Retry
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+interface TxLabeledCircleProps {
+  index: number;
+  label: string;
+  state: TxState;
+}
+
+function TxLabeledCircle({ index, label, state }: TxLabeledCircleProps) {
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div
+        className={cn(
+          "flex h-16 w-16 items-center justify-center rounded-full border-2 font-mono text-sm transition-colors md:h-20 md:w-20 md:text-base",
+          state === "idle" && "border-border bg-zinc-900 text-muted-foreground",
+          state === "active" && "border-emerald-400/60 bg-zinc-800 text-emerald-300",
+          state === "done" && "border-emerald-400/80 bg-emerald-500/15 text-emerald-300"
+        )}
+      >
+        {state === "active" ? (
+          <Loader2 className="h-5 w-5 animate-spin" />
+        ) : state === "done" ? (
+          <Check className="h-5 w-5" />
+        ) : (
+          index
+        )}
+      </div>
+      <span
+        className={cn(
+          "font-medium text-xs",
+          state === "idle" ? "text-muted-foreground" : "text-foreground"
+        )}
+      >
+        {label}
+      </span>
     </div>
   );
 }
