@@ -1,7 +1,11 @@
 "use client";
 
 import { Clock, PanelLeft, X } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { ConnectWalletButton } from "@/shared/components/connect-wallet-button";
 import { useIsMobile } from "@/shared/hooks/use-mobile";
 import { ChatHistoryWrapper } from "@/shared/layout/chat-history-wrapper";
 import { MobileSidebarContent } from "@/shared/layout/mobile-sidebar-content";
@@ -22,25 +26,40 @@ interface MultiSidebarLayoutProps {
   sidebarData?: import("@/shared/layout/sidebar-data").SidebarData;
 }
 
-function MobileHeader({ title, showRightSidebar }: { title: string; showRightSidebar: boolean }) {
+function MobileHeader({
+  sidebarData,
+  showRightSidebar,
+}: {
+  sidebarData: import("@/shared/layout/sidebar-data").SidebarData;
+  showRightSidebar: boolean;
+}) {
   const { toggleLeftSidebar } = useMultiSidebar();
+  const pathname = usePathname();
+  const showClockTrigger = showRightSidebar && pathname.startsWith("/chat");
 
   return (
-    <header className="flex shrink-0 items-center justify-between bg-background px-4 py-3">
-      <div className="flex items-center gap-2">
-        <button
-          onClick={toggleLeftSidebar}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-md font-medium text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-        >
-          <PanelLeft className="h-5 w-5" />
-        </button>
-        <h1 className="font-semibold text-lg">{title}</h1>
+    <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-4">
+      <button
+        type="button"
+        onClick={toggleLeftSidebar}
+        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-foreground transition-colors hover:bg-accent"
+      >
+        <PanelLeft className="h-5 w-5" />
+      </button>
+      <Link href="/chat/new" className="flex items-center gap-2">
+        <Image src={sidebarData.header.logo_url} width={24} height={24} alt="Logo" />
+        <span className="font-semibold text-sm text-foreground">
+          {sidebarData.header.brand_name}
+        </span>
+      </Link>
+      <div className="ml-auto flex items-center gap-2">
+        {showClockTrigger && (
+          <MultiSidebarTrigger side="right">
+            <Clock className="h-4 w-4" />
+          </MultiSidebarTrigger>
+        )}
+        <ConnectWalletButton variant="topbar" />
       </div>
-      {showRightSidebar && (
-        <MultiSidebarTrigger side="right">
-          <Clock className="h-5 w-5" />
-        </MultiSidebarTrigger>
-      )}
     </header>
   );
 }
@@ -49,19 +68,21 @@ function MobileLayout({
   children,
   showRightSidebar,
   showHeader,
-  title,
+  sidebarData,
 }: {
   children: React.ReactNode;
   showRightSidebar: boolean;
   showHeader: boolean;
   title: string;
+  sidebarData?: import("@/shared/layout/sidebar-data").SidebarData;
 }) {
   const { leftSidebarOpen, rightSidebarOpen, setLeftSidebarOpen, setRightSidebarOpen } =
     useMultiSidebar();
+  const data = sidebarData ?? defaultSidebarData;
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden">
-      {showHeader && <MobileHeader title={title} showRightSidebar={showRightSidebar} />}
+      {showHeader && <MobileHeader sidebarData={data} showRightSidebar={showRightSidebar} />}
       <main className="flex-1 overflow-y-auto overscroll-contain">{children}</main>
 
       {/* Left sidebar sheet - no border, custom close button */}
@@ -70,8 +91,8 @@ function MobileLayout({
           <SheetHeader className="sr-only">
             <SheetTitle>Navigation</SheetTitle>
           </SheetHeader>
-          {/* Custom close button like desktop */}
           <button
+            type="button"
             onClick={() => setLeftSidebarOpen(false)}
             className="absolute top-4 right-4 z-10 inline-flex h-8 w-8 items-center justify-center rounded-md text-sidebar-foreground transition-colors hover:bg-sidebar-accent"
           >
@@ -118,9 +139,7 @@ function DesktopLayout({
     <div className="flex h-screen w-full flex-col overflow-hidden">
       <TopNavBar sidebarData={data} showRightSidebar={showRightSidebar} />
       <div className="flex flex-1 overflow-hidden">
-        <main className="flex-1 overflow-y-auto">
-          {children}
-        </main>
+        <main className="flex-1 overflow-y-auto">{children}</main>
         {showRightSidebar && (
           <div
             className={cn(
@@ -153,7 +172,12 @@ function LayoutContent({
 }) {
   const isMobile = useIsMobile();
   return isMobile ? (
-    <MobileLayout showRightSidebar={showRightSidebar} showHeader={showHeader} title={title}>
+    <MobileLayout
+      showRightSidebar={showRightSidebar}
+      showHeader={showHeader}
+      title={title}
+      sidebarData={customSidebarData}
+    >
       {children}
     </MobileLayout>
   ) : (
