@@ -62,29 +62,15 @@ export function SetupPage() {
   }
 
   if (state.step === 2) {
-    const ctaDisabled = state.mode === "CUSTOM" && state.customMarkets.length === 0;
     return (
-      <SetupShell
-        currentStep={2}
-        totalSteps={5}
-        ctaLabel="Continue"
-        ctaDisabled={ctaDisabled}
-        onCta={advance}
+      <StepStrategy
+        mode={state.mode}
+        onSelect={(mode) => {
+          set({ mode });
+          advance();
+        }}
         onBack={back}
-      >
-        <StepStrategy
-          asset={state.asset}
-          mode={state.mode}
-          preset={state.preset}
-          customMarkets={state.customMarkets}
-          balances={balances.data ?? { usdc: 0, xlm: 0 }}
-          presets={presets.data}
-          onAssetChange={(asset) => set({ asset })}
-          onModeChange={(mode) => set({ mode })}
-          onPresetChange={(preset) => set({ preset })}
-          onCustomMarketsChange={(customMarkets) => set({ customMarkets })}
-        />
-      </SetupShell>
+      />
     );
   }
 
