@@ -60,18 +60,11 @@ test.describe("User journey — top nav navigation", () => {
   });
 });
 
-test.describe("User journey — chat history sidebar (right sheet)", () => {
-  test("J07 — Clock button on /chat/new opens right sidebar/sheet", async ({ page }) => {
+test.describe("User journey — chat history (Clock removed from header)", () => {
+  test("J07 — /chat/new top nav has no Clock chat-history button", async ({ page }) => {
     await page.goto("/chat/new");
     const topNav = page.locator('[data-testid="top-nav-bar"]');
-    const clockBtn = topNav.locator("button").filter({ has: page.locator("svg.lucide-clock") });
-    await expect(clockBtn).toBeVisible();
-    await clockBtn.click();
-    // Right sidebar slides in — chat history wrapper renders. Look for any
-    // visible chat-history surface element.
-    await page.waitForTimeout(500);
-    const expanded = await page.locator('div.w-80, [role="dialog"]').count();
-    expect(expanded).toBeGreaterThan(0);
+    await expect(topNav.locator("svg.lucide-clock")).toHaveCount(0);
   });
 });
 
@@ -125,48 +118,42 @@ test.describe("User journey — wallet dropdown actions", () => {
   });
 });
 
-test.describe("User journey — preset card selection", () => {
-  test("J12 — clicking Aggressive preset selects it (ring class) and deselects Balanced", async ({
+test.describe("User journey — wizard preset selection", () => {
+  // Drive the wizard from step 1 to step 3 (preset list).
+  async function gotoStepPreset(page: import("@playwright/test").Page) {
+    await page.goto("/farming/setup");
+    await page.getByRole("button", { name: /^Continue$/i }).click();
+    await page.getByRole("button", { name: /^Continue$/i }).click();
+    await expect(page.getByRole("heading", { name: /Pick risk preset/i })).toBeVisible({
+      timeout: 10000,
+    });
+  }
+
+  test("J12 — Aggressive selection updates aria-checked, deselects Balanced", async ({
     page,
     context,
   }) => {
     await context.clearCookies();
     await loginAsWallet(page, freshWallet());
-    await page.goto("/farming");
-    await page.waitForTimeout(3000);
+    await gotoStepPreset(page);
 
-    const balanced = page
-      .locator("button")
-      .filter({ has: page.getByRole("heading", { name: /^Balanced$/i }) })
-      .first();
-    const aggressive = page
-      .locator("button")
-      .filter({ has: page.getByRole("heading", { name: /^Aggressive$/i }) })
-      .first();
+    const balanced = page.getByRole("radio", { name: /Balanced/ });
+    const aggressive = page.getByRole("radio", { name: /Aggressive/ });
 
-    // Default selected = Balanced
-    expect(((await balanced.getAttribute("class")) ?? "")).toMatch(/ring-2|ring-primary/);
-
+    await expect(balanced).toHaveAttribute("aria-checked", "true");
     await aggressive.click();
-    expect(((await aggressive.getAttribute("class")) ?? "")).toMatch(/ring-2|ring-primary/);
-    expect(((await balanced.getAttribute("class")) ?? "")).not.toMatch(/ring-primary/);
+    await expect(aggressive).toHaveAttribute("aria-checked", "true");
+    await expect(balanced).toHaveAttribute("aria-checked", "false");
   });
 
-  test("J13 — selecting Safe preset switches selection from Balanced", async ({
-    page,
-    context,
-  }) => {
+  test("J13 — Safe selection updates aria-checked", async ({ page, context }) => {
     await context.clearCookies();
     await loginAsWallet(page, freshWallet());
-    await page.goto("/farming");
-    await page.waitForTimeout(3000);
+    await gotoStepPreset(page);
 
-    const safe = page
-      .locator("button")
-      .filter({ has: page.getByRole("heading", { name: /^Safe$/i }) })
-      .first();
+    const safe = page.getByRole("radio", { name: /Safe/ });
     await safe.click();
-    expect(((await safe.getAttribute("class")) ?? "")).toMatch(/ring-2|ring-primary/);
+    await expect(safe).toHaveAttribute("aria-checked", "true");
   });
 });
 
@@ -197,7 +184,7 @@ test.describe("User journey — page-level chrome by route", () => {
     });
   });
 
-  test("J17 — deep link to /chat/some-id renders top nav and Clock trigger", async ({
+  test("J17 — deep link to /chat/<id> renders top nav (no Clock trigger)", async ({
     page,
     context,
   }) => {
@@ -206,7 +193,7 @@ test.describe("User journey — page-level chrome by route", () => {
     await page.goto("/chat/abc-123");
     const topNav = page.locator('[data-testid="top-nav-bar"]');
     await expect(topNav).toBeVisible();
-    await expect(topNav.locator("svg.lucide-clock")).toHaveCount(1);
+    await expect(topNav.locator("svg.lucide-clock")).toHaveCount(0);
   });
 });
 

@@ -35,109 +35,91 @@ test.describe("Redesign UI suite — disconnected /farming", () => {
   });
 });
 
-test.describe("Redesign UI suite — onboarding (authed)", () => {
-  test("04 — page header 'Set up your farming account' renders", async ({ page, context }) => {
-    await context.clearCookies();
-    await loginAsWallet(page, freshWallet());
-    await page.goto("/farming");
-    await expect(page.getByText(/Set up your farming account/i).first()).toBeVisible({
-      timeout: 10000,
-    });
-  });
-
-  test("05 — page explainer paragraph renders", async ({ page, context }) => {
+test.describe("Redesign UI suite — Get Started empty state (authed, no Position)", () => {
+  test("04 — heading 'Set up your farming account' renders", async ({ page, context }) => {
     await context.clearCookies();
     await loginAsWallet(page, freshWallet());
     await page.goto("/farming");
     await expect(
-      page.getByText(/lets the agent rebalance your funds across yield pools/i).first()
+      page.getByRole("heading", { name: /Set up your farming account/i })
     ).toBeVisible({ timeout: 10000 });
   });
 
-  test("06 — authed page-level trust chips visible", async ({ page, context }) => {
+  test("05 — explainer mentions asset + strategy + signatures", async ({ page, context }) => {
     await context.clearCookies();
     await loginAsWallet(page, freshWallet());
     await page.goto("/farming");
-    await expect(page.getByText(/Self-custody — your keys, your funds/i)).toBeVisible({
-      timeout: 10000,
-    });
+    await expect(
+      page.getByText(/Choose the asset and strategy your agent will use/i)
+    ).toBeVisible({ timeout: 10000 });
+  });
+
+  test("06 — Get started CTA button visible and links into wizard", async ({ page, context }) => {
+    await context.clearCookies();
+    await loginAsWallet(page, freshWallet());
+    await page.goto("/farming");
+    const cta = page.getByTestId("setup-cta");
+    await expect(cta).toBeVisible({ timeout: 10000 });
+    await expect(cta).toHaveText(/Get started|Resume setup/i);
   });
 });
 
-test.describe("Redesign UI suite — PresetCard", () => {
-  test("07 — three preset cards render: Safe, Balanced, Aggressive", async ({ page, context }) => {
+test.describe("Redesign UI suite — Setup wizard step 3 (StepPreset)", () => {
+  // Helper: drive the wizard from step 1 to step 3 where the preset list shows.
+  async function gotoStepPreset(page: import("@playwright/test").Page, context: import("@playwright/test").BrowserContext) {
     await context.clearCookies();
     await loginAsWallet(page, freshWallet());
-    await page.goto("/farming");
-    await page.waitForTimeout(3000);
-    await expect(page.getByRole("heading", { name: /^Safe$/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /^Balanced$/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /^Aggressive$/i })).toBeVisible();
-  });
-
-  test("08 — Balanced card has 'Recommended' badge", async ({ page, context }) => {
-    await context.clearCookies();
-    await loginAsWallet(page, freshWallet());
-    await page.goto("/farming");
-    await page.waitForTimeout(3000);
-    const badge = page.getByText(/^Recommended$/i).first();
-    await expect(badge).toBeVisible();
-  });
-
-  test("09 — three tone pills present (Low risk / Diversified / High yield)", async ({
-    page,
-    context,
-  }) => {
-    await context.clearCookies();
-    await loginAsWallet(page, freshWallet());
-    await page.goto("/farming");
-    await page.waitForTimeout(3000);
-    await expect(page.getByText(/Low risk/i).first()).toBeVisible();
-    await expect(page.getByText(/Diversified/i).first()).toBeVisible();
-    await expect(page.getByText(/High yield/i).first()).toBeVisible();
-  });
-
-  test("10 — preset cards bottom-align (risk pill row within 4px across cards)", async ({
-    page,
-    context,
-  }) => {
-    await context.clearCookies();
-    await loginAsWallet(page, freshWallet());
-    await page.goto("/farming");
-    await page.waitForTimeout(3000);
-
-    const cards = page.locator("button").filter({
-      has: page.getByRole("heading", { name: /^(Safe|Balanced|Aggressive)$/i }),
+    await page.goto("/farming/setup");
+    await page.getByRole("button", { name: /^Continue$/i }).click(); // 1 → 2
+    await page.getByRole("button", { name: /^Continue$/i }).click(); // 2 → 3
+    await expect(page.getByRole("heading", { name: /Pick risk preset/i })).toBeVisible({
+      timeout: 10000,
     });
-    const count = await cards.count();
-    expect(count).toBeGreaterThanOrEqual(3);
+  }
 
-    const bottoms: number[] = [];
-    for (let i = 0; i < 3; i++) {
-      const box = await cards.nth(i).boundingBox();
-      if (box) bottoms.push(box.y + box.height);
-    }
-    expect(bottoms.length).toBe(3);
-    const maxDelta = Math.max(...bottoms) - Math.min(...bottoms);
-    expect(maxDelta).toBeLessThanOrEqual(4);
+  test("07 — three preset rows render: Safe, Balanced, Aggressive", async ({ page, context }) => {
+    await gotoStepPreset(page, context);
+    await expect(page.getByRole("radio", { name: /Safe/ })).toBeVisible();
+    await expect(page.getByRole("radio", { name: /Balanced/ })).toBeVisible();
+    await expect(page.getByRole("radio", { name: /Aggressive/ })).toBeVisible();
   });
 
-  test("11 — clicking a preset card switches selected state (ring class)", async ({
-    page,
-    context,
-  }) => {
-    await context.clearCookies();
-    await loginAsWallet(page, freshWallet());
-    await page.goto("/farming");
-    await page.waitForTimeout(3000);
+  test("08 — Balanced row is preselected by default (aria-checked)", async ({ page, context }) => {
+    await gotoStepPreset(page, context);
+    await expect(page.getByRole("radio", { name: /Balanced/ })).toHaveAttribute(
+      "aria-checked",
+      "true"
+    );
+  });
 
-    const aggressive = page
-      .locator("button")
-      .filter({ has: page.getByRole("heading", { name: /^Aggressive$/i }) })
-      .first();
+  test("09 — each preset row shows pool count + risk hint", async ({ page, context }) => {
+    await gotoStepPreset(page, context);
+    // Each row text includes "N pools · {risk}" — assert the dot separator appears
+    const rows = page.getByRole("radio");
+    const count = await rows.count();
+    expect(count).toBeGreaterThanOrEqual(3);
+    for (let i = 0; i < 3; i++) {
+      await expect(rows.nth(i)).toContainText(/pool/i);
+    }
+  });
+
+  test("10 — each preset row exposes a numeric APY value", async ({ page, context }) => {
+    await gotoStepPreset(page, context);
+    const rows = page.getByRole("radio");
+    for (let i = 0; i < 3; i++) {
+      await expect(rows.nth(i)).toContainText(/%/);
+    }
+  });
+
+  test("11 — clicking Aggressive flips aria-checked from Balanced", async ({ page, context }) => {
+    await gotoStepPreset(page, context);
+    const aggressive = page.getByRole("radio", { name: /Aggressive/ });
     await aggressive.click();
-    const cls = (await aggressive.getAttribute("class")) ?? "";
-    expect(cls).toMatch(/ring-2|ring-primary|border-primary/);
+    await expect(aggressive).toHaveAttribute("aria-checked", "true");
+    await expect(page.getByRole("radio", { name: /Balanced/ })).toHaveAttribute(
+      "aria-checked",
+      "false"
+    );
   });
 });
 
@@ -192,7 +174,7 @@ test.describe("Redesign UI suite — farming chrome", () => {
     await expect(page.locator('[data-testid="top-nav-bar"]')).toBeVisible();
   });
 
-  test("18 — /chat/new renders with top nav and Clock trigger present", async ({
+  test("18 — /chat/new renders without Clock trigger (removed from header)", async ({
     page,
     context,
   }) => {
@@ -201,7 +183,7 @@ test.describe("Redesign UI suite — farming chrome", () => {
     await page.goto("/chat/new");
     const topNav = page.locator('[data-testid="top-nav-bar"]');
     await expect(topNav).toBeVisible();
-    await expect(topNav.locator("svg.lucide-clock")).toHaveCount(1);
+    await expect(topNav.locator("svg.lucide-clock")).toHaveCount(0);
   });
 
   test("19 — /portfolio renders without Clock trigger", async ({ page, context }) => {
