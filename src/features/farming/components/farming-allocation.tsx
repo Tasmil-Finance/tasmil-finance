@@ -92,9 +92,6 @@ export function FarmingAllocation({
           <h2 className="text-xl font-semibold text-foreground">Allocation</h2>
           <Info className="h-4 w-4 text-muted-foreground" />
         </div>
-        <span className="text-[28px] font-bold tracking-tight text-foreground">
-          {formatUsd(totalValueUsd)}
-        </span>
         <div className="flex flex-col items-center justify-center gap-2 py-8 text-muted-foreground">
           <Layers className="h-7 w-7 opacity-40" />
           <p className="text-sm">No active positions yet</p>
@@ -120,15 +117,9 @@ export function FarmingAllocation({
         <Info className="h-4 w-4 text-muted-foreground" />
       </div>
 
-      {/* Value */}
-      <div className="flex flex-col gap-1">
-        <span className="text-[28px] font-bold tracking-tight text-foreground">
-          {formatUsd(totalValueUsd)}
-        </span>
-        <span className="text-sm text-muted-foreground">
-          {positions.length} position{positions.length !== 1 ? "s" : ""} across protocols
-        </span>
-      </div>
+      <p className="text-sm text-muted-foreground">
+        {positions.length} position{positions.length !== 1 ? "s" : ""} across protocols
+      </p>
 
       {/* Donut chart + legend */}
       <div className="flex flex-col items-stretch gap-4 sm:gap-6 lg:flex-col xl:flex-row xl:items-center">
