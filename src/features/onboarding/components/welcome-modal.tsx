@@ -135,19 +135,11 @@ export function WelcomeModal() {
           Skip
         </Button>
         {isLastSlide ? (
-          <Button
-            size="sm"
-            onClick={handleGetStarted}
-            className="bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:from-sky-600 hover:to-blue-700"
-          >
+          <Button size="sm" onClick={handleGetStarted}>
             Get Started
           </Button>
         ) : (
-          <Button
-            size="sm"
-            onClick={handleNext}
-            className="bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:from-sky-600 hover:to-blue-700"
-          >
+          <Button size="sm" onClick={handleNext}>
             Next
           </Button>
         )}
