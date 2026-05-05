@@ -1,15 +1,14 @@
 import type { RiskPreset } from "@/features/account/types";
 
-/** UI-level asset identifier for the farming setup wizard. */
 export type Asset = "USDC" | "XLM";
-
-/** Wizard mode: automatic allocation or manual market selection. */
 export type Mode = "AUTO" | "CUSTOM";
 
 export const STORAGE_KEY = "tasmil.setup.state";
 
+export type SetupStep = 1 | 2 | 3 | 4 | 5;
+
 export interface SetupState {
-  step: 1 | 2 | 3 | 4;
+  step: SetupStep;
   asset: Asset;
   mode: Mode;
   preset: RiskPreset;
@@ -24,13 +23,20 @@ const DEFAULT_STATE: SetupState = {
   customMarkets: [],
 };
 
+function normalizeStep(value: unknown): SetupStep {
+  if (value === 1 || value === 2 || value === 3 || value === 4 || value === 5) {
+    return value;
+  }
+  return 1;
+}
+
 export function loadSetupState(): SetupState {
   if (typeof window === "undefined") return { ...DEFAULT_STATE };
   const raw = window.sessionStorage.getItem(STORAGE_KEY);
   if (!raw) return { ...DEFAULT_STATE };
   try {
     const parsed = JSON.parse(raw) as Partial<SetupState>;
-    return { ...DEFAULT_STATE, ...parsed };
+    return { ...DEFAULT_STATE, ...parsed, step: normalizeStep(parsed.step) };
   } catch {
     return { ...DEFAULT_STATE };
   }
