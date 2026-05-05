@@ -9,6 +9,7 @@ import { Button } from "@/shared/ui/button-v2";
 import { useWalletStore } from "@/store/use-wallet";
 import { useFarmingActions } from "../hooks/use-farming-actions";
 import { usePools } from "../hooks/use-farming-api";
+import { usePositionHistory } from "../hooks/use-position-history";
 import type { DiscoveredPool } from "../types";
 import { ActivityDrawer } from "./activity-drawer";
 import type { AgentHistoryEvent } from "./dashboard/agent-history-card";
@@ -108,6 +109,8 @@ function FarmingContent() {
   }, [publicKey, position, positionLoading, router]);
 
   const { isLoading: registryPoolsLoading } = usePools();
+
+  const { data: positionHistory } = usePositionHistory(position?.keeperWalletAddress);
   const {
     data: activities,
     isLoading: activitiesLoading,
@@ -252,7 +255,12 @@ function FarmingContent() {
   const firstPosition = positionsList[0];
   const currentMarketName = firstPosition?.poolName ?? "—";
   const currentPositionApr = firstPosition?.apy ?? 0;
-  const activatedAt = new Date().toISOString();
+  const activatedAt = position.createdAt ?? new Date().toISOString();
+
+  const chartSeries = (positionHistory ?? []).map((s) => ({
+    t: new Date(s.timestamp).getTime(),
+    v: s.totalValueUsd,
+  }));
 
   const agentEvents: AgentHistoryEvent[] = activitiesList
     .filter((a) => a.category === "protocol" || a.type === "rebalance")
@@ -273,7 +281,7 @@ function FarmingContent() {
         totalDepositedUsd={totalDepositedUsd}
         lifetimeEarningsUsd={lifetimeEarningsUsd}
         lifetimeEarningsPct={lifetimeEarningsPct}
-        chartSeries={[]}
+        chartSeries={chartSeries}
         agentEvents={agentEvents}
         netApr={netApr}
         currentPositionApr={currentPositionApr}

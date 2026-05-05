@@ -42,6 +42,10 @@ export interface PositionData {
   /** True when the keeper's on-chain session-key whitelist is missing a
    *  currently-deployed strategy. UI prompts the user to Refresh Session Key. */
   sessionKeyStale?: boolean;
+  /** ISO timestamp the managed account was created (used for `activatedAt` UI). */
+  createdAt: string;
+  /** Keeper wallet address — used by the portfolio history endpoint. */
+  keeperWalletAddress: string;
 }
 
 export type ActivityCategory = "protocol" | "reward" | "wallet";

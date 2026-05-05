@@ -3,10 +3,8 @@
 import type { AgentHistoryEvent } from "./dashboard/agent-history-card";
 import { AgentHistoryCard } from "./dashboard/agent-history-card";
 import { AprSummaryCard } from "./dashboard/apr-summary-card";
-import { LpRewardsCard } from "./dashboard/lp-rewards-card";
 import type { ChartPoint } from "./dashboard/position-value-card";
 import { PositionValueCard } from "./dashboard/position-value-card";
-import { RewardsCard } from "./dashboard/rewards-card";
 
 interface Props {
   totalBalanceUsd: number;
@@ -40,7 +38,6 @@ export function FarmingDashboard(props: Props) {
         <AgentHistoryCard events={props.agentEvents} />
       </div>
       <aside className="flex w-full shrink-0 flex-col gap-6 lg:w-80">
-        <RewardsCard />
         <AprSummaryCard
           netApr={props.netApr}
           currentPositionApr={props.currentPositionApr}
@@ -49,7 +46,6 @@ export function FarmingDashboard(props: Props) {
           activatedAt={props.activatedAt}
           totalDepositsUsd={props.totalDepositedUsd}
         />
-        <LpRewardsCard />
       </aside>
     </div>
   );

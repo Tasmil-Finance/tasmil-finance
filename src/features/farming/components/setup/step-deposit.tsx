@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, Loader2, Lock } from "lucide-react";
+import { ChevronLeft, Loader2 } from "lucide-react";
 import { useId, useState } from "react";
 import type { RiskPreset } from "@/features/account/types";
 import { cn } from "@/lib/utils";
@@ -126,19 +126,8 @@ export function StepDeposit({
 
         <div className="h-px bg-border" />
 
-        {/* Optimizer block + big deposit orb */}
-        <div className="flex items-center justify-between gap-8">
-          <div className="flex max-w-md flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-foreground text-lg">Optimizer locked</h3>
-              <Lock className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Fine-grained controls for exposure and diversification are available for deposits
-              above 25,000 {asset}. System constraints take precedence.
-            </p>
-          </div>
-
+        {/* Big deposit orb */}
+        <div className="flex justify-center">
           <button
             type="button"
             disabled={!canSubmit}
