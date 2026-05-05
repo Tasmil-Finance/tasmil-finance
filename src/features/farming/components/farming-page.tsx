@@ -166,6 +166,19 @@ function FarmingContent() {
 
   const actions = useFarmingActions(publicKey);
 
+  // Defensive guards: backend may return non-array shapes that slip past `?? []`
+  // (which only catches null/undefined). Centralize here so every consumer
+  // routes through a safe array.
+  const positionsList = useMemo(
+    () => (Array.isArray(position?.positions) ? position.positions : []),
+    [position?.positions]
+  );
+
+  const activitiesList = useMemo(
+    () => (Array.isArray(activities) ? activities : []),
+    [activities]
+  );
+
   // biome-ignore lint/correctness/useExhaustiveDependencies: only sync from server preset on first load
   useEffect(() => {
     const normalized = position?.preset?.toLowerCase();
@@ -187,12 +200,11 @@ function FarmingContent() {
   }, [position?.baseAsset]);
 
   const { availableUsd, lockedUsd } = useMemo(() => {
-    const positions = position?.positions ?? [];
     const isBalanceStale = Boolean(position?.balanceStale);
     let available = 0;
     let locked = 0;
     let positionsTotal = 0;
-    for (const pos of positions) {
+    for (const pos of positionsList) {
       positionsTotal += pos.valueUsd;
       if (pos.poolType === "backstop" && pos.q4wExpiresAt) locked += pos.valueUsd;
       else available += pos.valueUsd;
@@ -202,11 +214,11 @@ function FarmingContent() {
       : Math.max((position?.totalValueUsd ?? 0) - positionsTotal, 0);
     available += walletAvailable;
     return { availableUsd: available, lockedUsd: locked };
-  }, [position?.positions, position?.totalValueUsd, position?.balanceStale]);
+  }, [positionsList, position?.totalValueUsd, position?.balanceStale]);
 
   const deployedInPoolsUsd = useMemo(
-    () => (position?.positions ?? []).reduce((sum, pos) => sum + pos.valueUsd, 0),
-    [position?.positions]
+    () => positionsList.reduce((sum, pos) => sum + pos.valueUsd, 0),
+    [positionsList]
   );
 
   const unallocatedWalletUsd = useMemo(() => {
@@ -215,14 +227,17 @@ function FarmingContent() {
   }, [position?.totalValueUsd, deployedInPoolsUsd, position?.balanceStale]);
 
   const cashflowSummary = useMemo(
-    () => computeCashflowSummary(position ?? undefined, activities),
-    [position, activities]
+    () =>
+      computeCashflowSummary(
+        position ? { ...position, positions: positionsList } : undefined,
+        activitiesList
+      ),
+    [position, positionsList, activitiesList]
   );
 
   const inPositionKeys = useMemo(
-    () =>
-      new Set((position?.positions ?? []).map((p) => `${p.protocol.toLowerCase()}:${p.poolName}`)),
-    [position?.positions]
+    () => new Set(positionsList.map((p) => `${p.protocol.toLowerCase()}:${p.poolName}`)),
+    [positionsList]
   );
 
   const userPositionUsd = useMemo(() => {
@@ -230,12 +245,12 @@ function FarmingContent() {
     const drawerName = `${poolDrawer.assetSymbol}${
       poolDrawer.pairedAssetSymbol ? `/${poolDrawer.pairedAssetSymbol}` : ""
     }`;
-    const match = position?.positions.find(
+    const match = positionsList.find(
       (p) =>
         p.protocol.toLowerCase() === poolDrawer.protocol.toLowerCase() && p.poolName === drawerName
     );
     return match?.valueUsd ?? 0;
-  }, [poolDrawer, position?.positions]);
+  }, [poolDrawer, positionsList]);
 
   const openModal = useCallback(
     (tab: FarmingModalTab) => {
@@ -415,7 +430,7 @@ function FarmingContent() {
               <PerformanceTab
                 key="performance"
                 position={position}
-                activities={activities}
+                activities={activitiesList}
                 activitiesLoading={activitiesLoading}
                 unallocatedWalletUsd={unallocatedWalletUsd}
                 publicKey={publicKey}
@@ -469,7 +484,7 @@ function FarmingContent() {
       <ActivityDrawer
         open={activityDrawerOpen}
         onOpenChange={setActivityDrawerOpen}
-        activities={activities}
+        activities={activitiesList}
         isLoading={activitiesLoading}
       />
 
