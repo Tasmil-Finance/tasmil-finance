@@ -1,21 +1,15 @@
 "use client";
 
 import { AlertCircle, CheckCircle, Info, Loader2, ShieldCheck, Wallet, Zap } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-import { activeNetwork } from "@/shared/config/stellar";
 import { useWallet } from "@/shared/context/wallet-context";
 import { Button } from "@/shared/ui/button-v2";
 import { useWalletStore } from "@/store/use-wallet";
 
-import {
-  useDeployAccount,
-  usePresets,
-  useSetupAccount,
-  useSubmitTx,
-  useUpdatePreset,
-} from "../hooks/use-account-api";
+import { useOnboardingDeploy } from "../hooks/use-onboarding-deploy";
+import { usePresets } from "../hooks/use-account-api";
 import type { DeploySubStep, RiskPreset } from "../types";
 import { DeployStepper } from "./deploy-stepper";
 import { PresetCard } from "./preset-card";
@@ -72,201 +66,27 @@ export function OnboardingPage() {
     }
   };
 
-  // Deploy sub-step tracking
-  const [deploySubStep, setDeploySubStep] = useState<DeploySubStep>("idle");
-  const [deployCompleted, setDeployCompleted] = useState(false);
-  const [setupCompleted, setSetupCompleted] = useState(false);
-  const [deployError, setDeployError] = useState<string | null>(null);
-  const [deployErrorWasRejection, setDeployErrorWasRejection] = useState(false);
-
-  // Guard: prevent double-click while flow is in progress
-  const flowInProgressRef = useRef(false);
-
   const { data: presets, isLoading: presetsLoading } = usePresets(selectedBaseAsset);
-  const deployAccount = useDeployAccount();
-  const setupAccount = useSetupAccount();
-  const submitTx = useSubmitTx();
-  const updatePreset = useUpdatePreset();
+  const {
+    deploy: handleDeploy,
+    isDeploying,
+    deploySubStep,
+    deployCompleted,
+    setupCompleted,
+    deployError,
+    deployErrorWasRejection,
+    allDone,
+  } = useOnboardingDeploy({ publicKey, selectedPreset });
 
-  // Helper to get StellarWalletsKit + passphrase
-  const getStellarKit = async () => {
-    const { StellarWalletsKit } = await import("@creit.tech/stellar-wallets-kit/sdk");
-    const passphrase = activeNetwork.networkPassphrase;
-    return { StellarWalletsKit, passphrase };
-  };
-
-  /**
-   * Normalise wallet-signing result: some Stellar wallet adapters RESOLVE
-   * with an empty / undefined signedTxXdr on user rejection instead of
-   * throwing. Treat any non-string / empty result as an explicit cancel.
-   */
-  const assertSigned = (signResult: { signedTxXdr?: string } | null | undefined): string => {
-    const xdr = signResult?.signedTxXdr;
-    if (typeof xdr !== "string" || xdr.length === 0) {
-      const err = new Error("User rejected transaction signing");
-      (err as Error & { userRejected?: boolean }).userRejected = true;
-      throw err;
+  // Navigate to /farming when the full deploy + setup flow finishes successfully.
+  useEffect(() => {
+    if (!allDone) return;
+    if (typeof window !== "undefined") {
+      window.sessionStorage.removeItem("tasmil.onboarding.baseAsset");
     }
-    return xdr;
-  };
+    router.push("/farming");
+  }, [allDone, router]);
 
-  // ---- Step 1a: Deploy keeper wallet contract (TX 1/2) ----
-  const handleDeployTx = async (): Promise<boolean> => {
-    if (!publicKey) return false;
-
-    setDeploySubStep("building_deploy");
-    const result = await deployAccount.mutateAsync(publicKey);
-
-    if (!result?.xdr) {
-      throw new Error("No deploy transaction returned from server");
-    }
-
-    setDeploySubStep("signing_deploy");
-    const { StellarWalletsKit, passphrase } = await getStellarKit();
-    const signed = await StellarWalletsKit.signTransaction(result.xdr, {
-      address: publicKey,
-      networkPassphrase: passphrase,
-    });
-    const signedTxXdr = assertSigned(signed);
-
-    setDeploySubStep("submitting_deploy");
-    await submitTx.mutateAsync({
-      signedXdr: signedTxXdr,
-      publicKey,
-      txType: "deploy",
-    });
-
-    setDeployCompleted(true);
-    return true;
-  };
-
-  // ---- Step 1b: Configure session key (TX 2/2) ----
-  const handleSetupTx = async (): Promise<boolean> => {
-    if (!publicKey) return false;
-
-    setDeploySubStep("building_setup");
-    const setupResult = await setupAccount.mutateAsync(publicKey);
-    const setupXdrs = setupResult?.setupTxs ?? [];
-
-    if (setupXdrs.length === 0) {
-      throw new Error("No setup transaction returned from server");
-    }
-
-    const setupXdr = setupXdrs[0];
-    if (!setupXdr) {
-      throw new Error("Invalid setup transaction payload");
-    }
-
-    setDeploySubStep("signing_setup");
-    const { StellarWalletsKit, passphrase } = await getStellarKit();
-    const signed = await StellarWalletsKit.signTransaction(setupXdr, {
-      address: publicKey,
-      networkPassphrase: passphrase,
-    });
-    const signedTxXdr = assertSigned(signed);
-
-    setDeploySubStep("submitting_setup");
-    await submitTx.mutateAsync({
-      signedXdr: signedTxXdr,
-      publicKey,
-      txType: "setup",
-    });
-
-    setSetupCompleted(true);
-    return true;
-  };
-
-  // ---- Step 2: Apply the chosen preset (skip if Balanced == default) ----
-  const applyChosenPreset = async (): Promise<boolean> => {
-    if (!publicKey) return false;
-
-    // Backend seeds BALANCED on signup, so only push when the user picked
-    // something else. Saves a request + avoids a noop activity row.
-    if (selectedPreset === DEFAULT_PRESET) return true;
-
-    setDeploySubStep("applying_preset");
-    // preset API expects uppercase ("SAFE" | "BALANCED" | "AGGRESSIVE")
-    await updatePreset.mutateAsync({
-      publicKey,
-      preset: selectedPreset.toUpperCase(),
-    });
-    return true;
-  };
-
-  // ---- Combined flow: Deploy → Setup → Apply Preset ----
-  const handleDeploy = async () => {
-    if (!publicKey || flowInProgressRef.current) return;
-
-    flowInProgressRef.current = true;
-    setDeployError(null);
-    setDeployErrorWasRejection(false);
-
-    let allDone = false;
-    try {
-      // TX 1 (skip if already confirmed on a retry)
-      if (!deployCompleted) {
-        await handleDeployTx();
-      }
-      // TX 2 (skip if already confirmed on a rare preset-only retry)
-      if (!setupCompleted) {
-        await handleSetupTx();
-      }
-      // Preset: non-fatal. If it fails, the account still works on BALANCED
-      // and the user can change it later via the Strategy tab.
-      try {
-        await applyChosenPreset();
-      } catch (presetErr: any) {
-        console.warn(
-          "Preset application failed; leaving account on default BALANCED:",
-          presetErr?.message ?? presetErr
-        );
-      }
-      setDeploySubStep("done");
-      allDone = true;
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Unknown error";
-      console.error("Account creation failed:", message);
-
-      const rejected =
-        (err as { userRejected?: boolean })?.userRejected === true ||
-        message.includes("User rejected") ||
-        message.includes("user rejected") ||
-        message.includes("User denied") ||
-        message.includes("declined") ||
-        message.includes("cancelled");
-      if (rejected) {
-        setDeployErrorWasRejection(true);
-        setDeployError(
-          deployCompleted && !setupCompleted
-            ? "Signing was cancelled. Your account was deployed but session-key setup didn't complete — click Retry to finish."
-            : "Signing was cancelled in your wallet. Click Retry to try again."
-        );
-      } else if (message.includes("insufficient") || message.includes("Insufficient")) {
-        setDeployErrorWasRejection(false);
-        setDeployError("Insufficient XLM balance. Please fund your wallet and try again.");
-      } else if (message.includes("timed out")) {
-        setDeployErrorWasRejection(false);
-        setDeployError("Transaction confirmation timed out. Please try again.");
-      } else {
-        setDeployErrorWasRejection(false);
-        setDeployError(message);
-      }
-      setDeploySubStep("idle");
-    } finally {
-      flowInProgressRef.current = false;
-      // Navigate ONLY when the full flow (deploy + setup) succeeded. Preset
-      // apply is best-effort and already caught above, so a preset failure
-      // still lets us navigate to the dashboard where the user can retry.
-      if (allDone) {
-        if (typeof window !== "undefined") {
-          window.sessionStorage.removeItem("tasmil.onboarding.baseAsset");
-        }
-        router.push("/farming");
-      }
-    }
-  };
-
-  const isDeploying = deploySubStep !== "idle" && deploySubStep !== "done";
   const getDeployButtonLabel = (): string => {
     if (isDeploying) return getDeployStatusLabel(deploySubStep);
     if (deployCompleted && !setupCompleted) return "Retry Setup (Transaction 2 of 2)";
@@ -297,8 +117,8 @@ export function OnboardingPage() {
   if (!publicKey) {
     return (
       <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-6 px-6 py-16 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/15">
-          <Wallet className="h-8 w-8 text-primary" />
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
+          <Wallet className="h-8 w-8 text-muted-foreground" />
         </div>
 
         <div className="flex flex-col gap-2">
@@ -310,9 +130,8 @@ export function OnboardingPage() {
         </div>
 
         <Button
-          variant="gradient"
           size="lg"
-          className="h-11 px-8"
+          className="h-11 bg-foreground px-8 text-background hover:bg-foreground/90"
           onClick={() => {
             void connect();
           }}
@@ -373,7 +192,7 @@ export function OnboardingPage() {
       {/* ── Row 1: asset picker (compact inline) ─────────────────────────── */}
       <div className="flex flex-wrap items-center gap-3">
         <span className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-widest">
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/15 text-[10px] text-primary">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-[10px] text-muted-foreground">
             1
           </span>
           Deposit asset
@@ -391,11 +210,11 @@ export function OnboardingPage() {
                 disabled={isDeploying}
                 onClick={() => !isDeploying && updateBaseAsset(asset.id)}
                 className={cn(
-                  "rounded-xl border px-3.5 py-1.5 text-sm transition-all",
+                  "rounded-xl border px-3.5 py-1.5 text-sm transition-colors",
                   "disabled:cursor-not-allowed disabled:opacity-60",
                   isActive
-                    ? "border-primary/50 bg-primary/10 text-foreground ring-1 ring-primary/40"
-                    : "border-white/8 bg-white/3 text-muted-foreground hover:border-white/12 hover:text-foreground"
+                    ? "border-foreground/40 bg-foreground/5 text-foreground"
+                    : "border-white/8 bg-transparent text-muted-foreground hover:border-white/14 hover:text-foreground"
                 )}
               >
                 <span className="font-semibold">{asset.label}</span>
@@ -408,7 +227,7 @@ export function OnboardingPage() {
 
       {/* ── Row 2: strategy cards ────────────────────────────────────────── */}
       <div className="flex items-center gap-2">
-        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/15 text-[10px] text-primary">
+        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-[10px] text-muted-foreground">
           2
         </span>
         <span className="text-muted-foreground text-xs uppercase tracking-widest">Strategy</span>
@@ -451,7 +270,7 @@ export function OnboardingPage() {
       )}
 
       {/* ── Row 3: CTA bar (summary + create button + guarantees) ────────── */}
-      <div className="mt-1 rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/10 via-white/3 to-transparent p-4">
+      <div className="mt-1 rounded-2xl border border-border bg-card/40 p-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
           {/* Selection summary */}
           <div className="flex flex-1 flex-wrap items-center gap-x-6 gap-y-3 text-sm">
@@ -473,7 +292,7 @@ export function OnboardingPage() {
               <p className="text-[10px] text-muted-foreground/60 uppercase tracking-widest">
                 Est. APY
               </p>
-              <p className="font-mono font-semibold text-primary">{selectedApy}%</p>
+              <p className="font-mono font-semibold text-foreground">{selectedApy}%</p>
             </div>
             <div className="h-6 w-px bg-white/8" />
             <div className="min-w-0 flex-1">
@@ -487,24 +306,20 @@ export function OnboardingPage() {
           {/* CTA */}
           <div className="flex flex-col items-stretch gap-1 md:w-[260px]">
             <Button
-              variant="gradient"
               size="lg"
-              className="h-11 w-full"
+              className="h-11 w-full bg-foreground text-background hover:bg-foreground/90"
               onClick={handleDeploy}
               disabled={isDeploying || presetsLoading}
             >
               {isDeploying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {getDeployButtonLabel()}
             </Button>
-            <p className="text-center text-[11px] text-muted-foreground/70">
-              2 wallet signatures · ~30s
-            </p>
           </div>
         </div>
 
         {/* Progress / retry / error banners (inline, below CTA row) */}
         {(isDeploying || deployCompleted) && deploySubStep !== "done" && (
-          <div className="mt-3 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2.5">
+          <div className="mt-3 rounded-lg border border-border bg-muted/40 px-3 py-2.5">
             <DeployStepper
               subStep={deploySubStep}
               deployCompleted={deployCompleted}
