@@ -43,14 +43,12 @@ interface Position {
 
 interface FarmingAllocationProps {
   positions: Position[];
-  totalValueUsd: number;
   unallocatedWalletUsd: number;
   isLoading: boolean;
 }
 
 export function FarmingAllocation({
   positions,
-  totalValueUsd,
   unallocatedWalletUsd,
   isLoading,
 }: FarmingAllocationProps) {

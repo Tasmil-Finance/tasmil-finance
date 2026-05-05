@@ -3,7 +3,6 @@ import type { ActivityItem, PositionData } from "@/features/account/types";
 import { PerformanceTab } from "./performance-tab";
 
 const position = {
-  totalValueUsd: 100,
   positions: [],
   status: "ACTIVE",
   preset: "BALANCED",

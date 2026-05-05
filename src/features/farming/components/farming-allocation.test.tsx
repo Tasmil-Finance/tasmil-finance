@@ -25,7 +25,6 @@ describe("FarmingAllocation color stability", () => {
     const { container: c1 } = render(
       <FarmingAllocation
         positions={positions}
-        totalValueUsd={1000}
         unallocatedWalletUsd={0}
         isLoading={false}
       />
@@ -33,7 +32,6 @@ describe("FarmingAllocation color stability", () => {
     const { container: c2 } = render(
       <FarmingAllocation
         positions={[...positions].reverse()}
-        totalValueUsd={1000}
         unallocatedWalletUsd={0}
         isLoading={false}
       />

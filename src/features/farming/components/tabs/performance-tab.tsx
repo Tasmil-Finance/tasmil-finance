@@ -48,7 +48,6 @@ export function PerformanceTab({
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]">
         <FarmingAllocation
           positions={position.positions}
-          totalValueUsd={position.totalValueUsd}
           unallocatedWalletUsd={unallocatedWalletUsd}
           isLoading={false}
         />
