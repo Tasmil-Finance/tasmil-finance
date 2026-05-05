@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { activeNetwork } from "@/shared/config/stellar";
-import { Button } from "@/shared/ui/button-v2";
 import { useWallet } from "@/shared/context/wallet-context";
+import { Button } from "@/shared/ui/button-v2";
 import { useWalletStore } from "@/store/use-wallet";
 
 import {
@@ -17,8 +17,8 @@ import {
   useUpdatePreset,
 } from "../hooks/use-account-api";
 import type { DeploySubStep, RiskPreset } from "../types";
-import { PresetCard } from "./preset-card";
 import { DeployStepper } from "./deploy-stepper";
+import { PresetCard } from "./preset-card";
 
 /** User-friendly labels for each sub-step */
 function getDeployStatusLabel(subStep: DeploySubStep): string {
@@ -239,7 +239,7 @@ export function OnboardingPage() {
         setDeployError(
           deployCompleted && !setupCompleted
             ? "Signing was cancelled. Your account was deployed but session-key setup didn't complete — click Retry to finish."
-            : "Signing was cancelled in your wallet. Click Retry to try again.",
+            : "Signing was cancelled in your wallet. Click Retry to try again."
         );
       } else if (message.includes("insufficient") || message.includes("Insufficient")) {
         setDeployErrorWasRejection(false);
@@ -266,6 +266,33 @@ export function OnboardingPage() {
     }
   };
 
+  const isDeploying = deploySubStep !== "idle" && deploySubStep !== "done";
+  const getDeployButtonLabel = (): string => {
+    if (isDeploying) return getDeployStatusLabel(deploySubStep);
+    if (deployCompleted && !setupCompleted) return "Retry Setup (Transaction 2 of 2)";
+    return "Create Smart Account";
+  };
+
+  // Warning shown below any preset whose effective APY is below this floor.
+  // Users deserve a heads-up before picking an allocation that pays ~nothing.
+  const LOW_APY_THRESHOLD_PCT = 1;
+  const showLowApyWarning =
+    presets?.some((p) => p.name === selectedPreset && p.estimatedApy < LOW_APY_THRESHOLD_PCT) ??
+    false;
+
+  const selectedApy =
+    presets?.find((p) => p.name === selectedPreset)?.estimatedApy?.toFixed(2) ?? "—";
+
+  const allocationSummary = useMemo(() => {
+    const preset = presets?.find((p) => p.name === selectedPreset);
+    const topPools = preset?.topPools ?? [];
+    if (topPools.length === 0) return "—";
+    return topPools
+      .slice(0, 3)
+      .map((p) => `${p.name} ${Math.round(p.weight)}%`)
+      .join(" · ");
+  }, [presets, selectedPreset]);
+
   // ---- Not connected ----
   if (!publicKey) {
     return (
@@ -275,12 +302,10 @@ export function OnboardingPage() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <h1 className="font-bold text-2xl text-foreground">
-            Earn yield on Stellar, automated.
-          </h1>
-          <p className="max-w-md text-sm text-muted-foreground">
-            Connect your wallet to set up a Smart Account that lets the agent rebalance
-            your funds across audited yield pools.
+          <h1 className="font-bold text-2xl text-foreground">Earn yield on Stellar, automated.</h1>
+          <p className="max-w-md text-muted-foreground text-sm">
+            Connect your wallet to set up a Smart Account that lets the agent rebalance your funds
+            across audited yield pools.
           </p>
         </div>
 
@@ -313,44 +338,16 @@ export function OnboardingPage() {
     );
   }
 
-  const isDeploying = deploySubStep !== "idle" && deploySubStep !== "done";
-  const getDeployButtonLabel = (): string => {
-    if (isDeploying) return getDeployStatusLabel(deploySubStep);
-    if (deployCompleted && !setupCompleted) return "Retry Setup (Transaction 2 of 2)";
-    return "Create Smart Account";
-  };
-
-  // Warning shown below any preset whose effective APY is below this floor.
-  // Users deserve a heads-up before picking an allocation that pays ~nothing.
-  const LOW_APY_THRESHOLD_PCT = 1;
-  const showLowApyWarning =
-    presets?.some((p) => p.name === selectedPreset && p.estimatedApy < LOW_APY_THRESHOLD_PCT) ??
-    false;
-
-  const selectedApy =
-    presets?.find((p) => p.name === selectedPreset)?.estimatedApy?.toFixed(2) ?? "—";
-
-  const allocationSummary = useMemo(() => {
-    const preset = presets?.find((p) => p.name === selectedPreset);
-    const topPools = preset?.topPools ?? [];
-    if (topPools.length === 0) return "—";
-    return topPools
-      .slice(0, 3)
-      .map((p) => `${p.name} ${Math.round(p.weight)}%`)
-      .join(" · ");
-  }, [presets, selectedPreset]);
-
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-6 py-8">
       {/* Header — page title + explainer + page-level trust chips */}
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-1.5">
-          <h1 className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+          <h1 className="font-medium text-muted-foreground text-xs uppercase tracking-widest">
             Set up your farming account
           </h1>
-          <p className="max-w-2xl text-sm text-foreground">
-            A smart account on Stellar that lets the agent rebalance your funds across
-            yield pools.{" "}
+          <p className="max-w-2xl text-foreground text-sm">
+            A smart account on Stellar that lets the agent rebalance your funds across yield pools.{" "}
             <span className="text-muted-foreground">
               You stay in custody and can revoke access any time.
             </span>
@@ -459,29 +456,31 @@ export function OnboardingPage() {
           {/* Selection summary */}
           <div className="flex flex-1 flex-wrap items-center gap-x-6 gap-y-3 text-sm">
             <div>
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60">Asset</p>
+              <p className="text-[10px] text-muted-foreground/60 uppercase tracking-widest">
+                Asset
+              </p>
               <p className="font-semibold text-foreground">{selectedBaseAsset}</p>
             </div>
             <div className="h-6 w-px bg-white/8" />
             <div>
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60">
+              <p className="text-[10px] text-muted-foreground/60 uppercase tracking-widest">
                 Strategy
               </p>
               <p className="font-semibold text-foreground">{selectedPreset}</p>
             </div>
             <div className="h-6 w-px bg-white/8" />
             <div>
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60">
+              <p className="text-[10px] text-muted-foreground/60 uppercase tracking-widest">
                 Est. APY
               </p>
               <p className="font-mono font-semibold text-primary">{selectedApy}%</p>
             </div>
             <div className="h-6 w-px bg-white/8" />
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60">
+              <p className="text-[10px] text-muted-foreground/60 uppercase tracking-widest">
                 Allocation
               </p>
-              <p className="truncate text-xs text-foreground">{allocationSummary}</p>
+              <p className="truncate text-foreground text-xs">{allocationSummary}</p>
             </div>
           </div>
 
@@ -497,7 +496,7 @@ export function OnboardingPage() {
               {isDeploying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {getDeployButtonLabel()}
             </Button>
-            <p className="text-center text-muted-foreground/70 text-[11px]">
+            <p className="text-center text-[11px] text-muted-foreground/70">
               2 wallet signatures · ~30s
             </p>
           </div>
@@ -520,13 +519,13 @@ export function OnboardingPage() {
               "mt-3 flex items-start gap-2 rounded-lg px-3 py-2.5 text-xs",
               deployErrorWasRejection
                 ? "border border-amber-500/20 bg-amber-500/5"
-                : "border border-destructive/20 bg-destructive/5",
+                : "border border-destructive/20 bg-destructive/5"
             )}
           >
             <AlertCircle
               className={cn(
                 "mt-0.5 h-3.5 w-3.5 shrink-0",
-                deployErrorWasRejection ? "text-amber-400" : "text-destructive",
+                deployErrorWasRejection ? "text-amber-400" : "text-destructive"
               )}
             />
             <div className="flex-1">
