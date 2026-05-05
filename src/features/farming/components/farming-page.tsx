@@ -384,7 +384,6 @@ function FarmingContent() {
                 onSelectPool={setPoolDrawer}
               />
             )}
-            )}
           </AnimatePresence>
         </div>
       </div>
