@@ -38,11 +38,12 @@ export function ChatAuthState({ mode, onConnect, onReconnect }: ChatAuthStatePro
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
           <Wallet className="h-6 w-6 text-primary" />
         </div>
-        <h2 className="text-lg font-semibold">{content.title}</h2>
-        <p className="max-w-xs text-sm text-muted-foreground">{content.body}</p>
+        <h2 className="font-semibold text-lg">{content.title}</h2>
+        <p className="max-w-xs text-muted-foreground text-sm">{content.body}</p>
       </div>
       {content.cta ? (
         <Button
+          type="button"
           variant="gradient"
           size="sm"
           onClick={() => onClick?.()}

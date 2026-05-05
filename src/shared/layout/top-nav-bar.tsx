@@ -21,11 +21,11 @@ export function TopNavBar({ sidebarData }: TopNavBarProps) {
   return (
     <nav
       data-testid="top-nav-bar"
-      className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-6 border-b border-border bg-background px-4"
+      className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-6 border-border border-b bg-background px-4"
     >
       <Link href="/chat/new" className="flex items-center gap-2">
         <Image src={sidebarData.header.logo_url} width={36} height={36} alt="Logo" />
-        <span className="animate-shimmer-text bg-gradient-to-r from-[#b5eaff] via-white to-[#00bfff] bg-[length:200%_100%] bg-clip-text font-semibold text-lg text-transparent">
+        <span className="animate-shimmer-text bg-[length:200%_100%] bg-gradient-to-r from-[#b5eaff] via-white to-[#00bfff] bg-clip-text font-semibold text-lg text-transparent">
           {sidebarData.header.brand_name}
         </span>
       </Link>
