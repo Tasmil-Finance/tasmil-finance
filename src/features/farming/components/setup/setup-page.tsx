@@ -24,6 +24,9 @@ export function SetupPage() {
 
   const [state, setState] = useState<SetupState>(() => loadSetupState());
   useEffect(() => saveSetupState(state), [state]);
+  useEffect(() => {
+    if (state.step === 5) clearSetupState();
+  }, [state.step]);
 
   const balances = useStellarBalances(publicKey);
   const presets = usePresets(state.asset);
@@ -53,10 +56,6 @@ export function SetupPage() {
     },
     [actions, advance]
   );
-
-  const finish = useCallback(() => {
-    clearSetupState();
-  }, []);
 
   if (state.step === 1) {
     return (
@@ -132,7 +131,6 @@ export function SetupPage() {
   }
 
   // step 5
-  finish();
   return (
     <SetupShell currentStep={5} totalSteps={5} ctaLabel="Done" onCta={() => {}} hideCta>
       <StepDone />
