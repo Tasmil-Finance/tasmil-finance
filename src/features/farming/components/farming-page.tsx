@@ -111,6 +111,25 @@ function FarmingContent() {
   const { isLoading: registryPoolsLoading } = usePools();
 
   const { data: positionHistory } = usePositionHistory(position?.keeperWalletAddress);
+
+  // Defensive auto-register for portfolio snapshot history. Existing accounts
+  // that predate the backend auto-register need this to start accumulating
+  // chart data. Backend is idempotent — returns {registered:false} if already
+  // tracked. Fire-and-forget; failures don't block the dashboard.
+  useEffect(() => {
+    const addr = position?.keeperWalletAddress;
+    if (!addr) return;
+    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "";
+    fetch(`${apiBase}/api/portfolio/snapshot`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ address: addr }),
+    }).catch(() => {
+      // ignore — idempotent on backend
+    });
+  }, [position?.keeperWalletAddress]);
+
   const {
     data: activities,
     isLoading: activitiesLoading,
