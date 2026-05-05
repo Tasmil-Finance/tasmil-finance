@@ -29,14 +29,14 @@ export function StatCard({ label, value, delta, sparkline }: StatCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <span className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+      <span className="font-medium text-[11px] text-muted-foreground uppercase tracking-widest">
         {label}
       </span>
-      <span className="font-mono text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+      <span className="font-bold font-mono text-3xl text-foreground tracking-tight sm:text-4xl">
         {value}
       </span>
       {delta && (
-        <span className={cn("text-sm font-medium", DELTA_TONE_CLASS[delta.tone])}>
+        <span className={cn("font-medium text-sm", DELTA_TONE_CLASS[delta.tone])}>
           {delta.text}
         </span>
       )}

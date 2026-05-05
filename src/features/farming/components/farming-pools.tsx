@@ -66,7 +66,7 @@ export function FarmingPools({
   if (isLoading) {
     return (
       <motion.div className="flex flex-col gap-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <h2 className="text-xl font-semibold text-foreground">Pools</h2>
+        <h2 className="font-semibold text-foreground text-xl">Pools</h2>
         <div className="overflow-hidden rounded-xl border border-border bg-card">
           <div className="flex items-center gap-3 px-6 py-4">
             <Skeleton className="h-8 w-8 rounded-lg" />
@@ -77,7 +77,7 @@ export function FarmingPools({
             <motion.div
               key={i}
               data-pools-row="true"
-              className={`${POOLS_GRID} border-t border-border px-6 py-3.5`}
+              className={`${POOLS_GRID} border-border border-t px-6 py-3.5`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: i * 0.06 }}
@@ -101,7 +101,7 @@ export function FarmingPools({
   if (sorted.length === 0) {
     return (
       <div className="flex flex-col gap-4">
-        <h2 className="text-xl font-semibold text-foreground">Pools</h2>
+        <h2 className="font-semibold text-foreground text-xl">Pools</h2>
         <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-card p-12 text-muted-foreground">
           <p className="text-sm">No depositable pools available yet.</p>
         </div>
@@ -111,7 +111,7 @@ export function FarmingPools({
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-xl font-semibold text-foreground">Pools</h2>
+      <h2 className="font-semibold text-foreground text-xl">Pools</h2>
 
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         {/* Summary header — like TokenList's "Wallet · $3,556.77 10 assets" */}
@@ -119,7 +119,7 @@ export function FarmingPools({
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
             <TrendingUp className="h-4 w-4 text-primary" />
           </div>
-          <span className="text-base font-medium text-foreground">
+          <span className="font-medium text-base text-foreground">
             Available · {sorted.length} pool{sorted.length !== 1 ? "s" : ""}
           </span>
         </div>
@@ -128,19 +128,19 @@ export function FarmingPools({
 
         {/* Column headers */}
         <div data-pools-row="false" className={`${POOLS_GRID} px-6 py-2.5`}>
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
             Pool
           </span>
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
             Type
           </span>
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
             APY
           </span>
-          <span className="text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <span className="text-right font-semibold text-muted-foreground text-xs uppercase tracking-wider">
             TVL
           </span>
-          <span className="text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <span className="text-right font-semibold text-muted-foreground text-xs uppercase tracking-wider">
             Risk
           </span>
           <span />
@@ -169,8 +169,8 @@ export function FarmingPools({
                   : undefined
               }
               className={cn(
-                `${POOLS_GRID} border-t border-border px-6 py-3.5 transition-colors hover:bg-muted/20`,
-                onSelectPool && "cursor-pointer",
+                `${POOLS_GRID} border-border border-t px-6 py-3.5 transition-colors hover:bg-muted/20`,
+                onSelectPool && "cursor-pointer"
               )}
             >
               {/* Pool name + token pair images */}
@@ -186,21 +186,21 @@ export function FarmingPools({
                 </div>
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-foreground">
+                    <span className="font-medium text-foreground text-sm">
                       {pool.assetSymbol}
                       {pool.pairedAssetSymbol ? `/${pool.pairedAssetSymbol}` : ""}
                     </span>
                     {inPositionKeys?.has(
                       `${pool.protocol.toLowerCase()}:${pool.assetSymbol}${
                         pool.pairedAssetSymbol ? `/${pool.pairedAssetSymbol}` : ""
-                      }`,
+                      }`
                     ) && (
-                      <span className="rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400">
+                      <span className="rounded-full bg-emerald-500/10 px-1.5 py-0.5 font-medium text-[10px] text-emerald-400">
                         Active
                       </span>
                     )}
                   </div>
-                  <span className="text-xs capitalize text-muted-foreground">{pool.protocol}</span>
+                  <span className="text-muted-foreground text-xs capitalize">{pool.protocol}</span>
                 </div>
               </div>
 
@@ -208,7 +208,7 @@ export function FarmingPools({
               <div>
                 <span
                   className={cn(
-                    "inline-block rounded-md px-2 py-0.5 text-sm font-medium uppercase",
+                    "inline-block rounded-md px-2 py-0.5 font-medium text-sm uppercase",
                     typeCn
                   )}
                 >
@@ -217,19 +217,19 @@ export function FarmingPools({
               </div>
 
               {/* APY */}
-              <span className="text-sm font-medium text-primary">
+              <span className="font-medium text-primary text-sm">
                 {formatApyPercent(pool.currentApy)}
               </span>
 
               {/* TVL */}
-              <span className="text-right text-sm text-foreground">
+              <span className="text-right text-foreground text-sm">
                 {formatCompactUsd(pool.tvlUsd)}
               </span>
 
               {/* Risk */}
               <div className="flex justify-end">
                 <span
-                  className={cn("rounded-md px-1.5 py-0.5 text-xs font-medium", risk.className)}
+                  className={cn("rounded-md px-1.5 py-0.5 font-medium text-xs", risk.className)}
                 >
                   {risk.label}
                 </span>
@@ -237,9 +237,7 @@ export function FarmingPools({
 
               {/* Chevron — affordance for click */}
               <div className="flex justify-end">
-                {onSelectPool && (
-                  <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
-                )}
+                {onSelectPool && <ChevronRight className="h-4 w-4 text-muted-foreground/50" />}
               </div>
             </div>
           );

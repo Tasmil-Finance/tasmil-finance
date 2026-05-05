@@ -87,13 +87,13 @@ export function FarmingAllocation({
     return (
       <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 sm:p-6">
         <div className="flex items-center gap-2">
-          <h2 className="text-xl font-semibold text-foreground">Allocation</h2>
+          <h2 className="font-semibold text-foreground text-xl">Allocation</h2>
           <Info className="h-4 w-4 text-muted-foreground" />
         </div>
         <div className="flex flex-col items-center justify-center gap-2 py-8 text-muted-foreground">
           <Layers className="h-7 w-7 opacity-40" />
           <p className="text-sm">No active positions yet</p>
-          <p className="text-xs text-muted-foreground/60">
+          <p className="text-muted-foreground/60 text-xs">
             Deposit funds and the agent will allocate across pools.
           </p>
         </div>
@@ -111,11 +111,11 @@ export function FarmingAllocation({
     >
       {/* Header */}
       <div className="flex items-center gap-2">
-        <h2 className="text-xl font-semibold text-foreground">Allocation</h2>
+        <h2 className="font-semibold text-foreground text-xl">Allocation</h2>
         <Info className="h-4 w-4 text-muted-foreground" />
       </div>
 
-      <p className="text-sm text-muted-foreground">
+      <p className="text-muted-foreground text-sm">
         {positions.length} position{positions.length !== 1 ? "s" : ""} across protocols
       </p>
 
@@ -146,8 +146,8 @@ export function FarmingAllocation({
                   const d = payload[0]?.payload as (typeof pieData)[0];
                   return (
                     <div className="rounded-lg border border-border bg-popover px-3 py-2 shadow-md">
-                      <p className="text-sm font-medium text-foreground">{d.name}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="font-medium text-foreground text-sm">{d.name}</p>
+                      <p className="text-muted-foreground text-xs">
                         {d.protocol} · {formatUsd(d.value)}
                         {d.apy > 0 && ` · ${formatApyPercent(d.apy)}`}
                       </p>
@@ -168,15 +168,15 @@ export function FarmingAllocation({
                 style={{ backgroundColor: entry.fill }}
               />
               <div className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate text-sm text-foreground">{entry.name}</span>
-                <span className="text-xs capitalize text-muted-foreground">{entry.protocol}</span>
+                <span className="truncate text-foreground text-sm">{entry.name}</span>
+                <span className="text-muted-foreground text-xs capitalize">{entry.protocol}</span>
               </div>
               <div className="flex flex-col items-end">
-                <span className="text-sm font-medium text-foreground">
+                <span className="font-medium text-foreground text-sm">
                   {formatUsd(entry.value)}
                 </span>
                 {entry.apy > 0 && (
-                  <span className="text-xs text-primary">{formatApyPercent(entry.apy)}</span>
+                  <span className="text-primary text-xs">{formatApyPercent(entry.apy)}</span>
                 )}
               </div>
             </div>

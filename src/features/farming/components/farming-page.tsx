@@ -5,11 +5,7 @@ import { Loader2, Wallet } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { OnboardingPage } from "@/features/account/components/onboarding-page";
-import {
-  useActivity,
-  usePosition,
-  usePresets,
-} from "@/features/account/hooks/use-account-api";
+import { useActivity, usePosition, usePresets } from "@/features/account/hooks/use-account-api";
 import type { RiskPreset } from "@/features/account/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/shared/ui/button-v2";
@@ -52,7 +48,7 @@ function ConnectPrompt() {
       <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted/20">
         <Wallet className="h-8 w-8 text-muted-foreground" />
       </div>
-      <h2 className="mb-2 text-2xl font-bold text-foreground">Connect Your Wallet</h2>
+      <h2 className="mb-2 font-bold text-2xl text-foreground">Connect Your Wallet</h2>
       <p className="text-muted-foreground">
         Connect your Stellar wallet to view the farming agent.
       </p>
@@ -93,7 +89,7 @@ function FarmingContent() {
       const qs = params.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname);
     },
-    [router, searchParams, pathname],
+    [router, searchParams, pathname]
   );
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -158,7 +154,7 @@ function FarmingContent() {
 
   const deployedInPoolsUsd = useMemo(
     () => (position?.positions ?? []).reduce((sum, pos) => sum + pos.valueUsd, 0),
-    [position?.positions],
+    [position?.positions]
   );
 
   const unallocatedWalletUsd = useMemo(() => {
@@ -168,17 +164,13 @@ function FarmingContent() {
 
   const cashflowSummary = useMemo(
     () => computeCashflowSummary(position ?? undefined, activities),
-    [position, activities],
+    [position, activities]
   );
 
   const inPositionKeys = useMemo(
     () =>
-      new Set(
-        (position?.positions ?? []).map(
-          (p) => `${p.protocol.toLowerCase()}:${p.poolName}`,
-        ),
-      ),
-    [position?.positions],
+      new Set((position?.positions ?? []).map((p) => `${p.protocol.toLowerCase()}:${p.poolName}`)),
+    [position?.positions]
   );
 
   const userPositionUsd = useMemo(() => {
@@ -188,8 +180,7 @@ function FarmingContent() {
     }`;
     const match = position?.positions.find(
       (p) =>
-        p.protocol.toLowerCase() === poolDrawer.protocol.toLowerCase()
-        && p.poolName === drawerName,
+        p.protocol.toLowerCase() === poolDrawer.protocol.toLowerCase() && p.poolName === drawerName
     );
     return match?.valueUsd ?? 0;
   }, [poolDrawer, position?.positions]);
@@ -200,7 +191,7 @@ function FarmingContent() {
       setModalTab(tab);
       setModalOpen(true);
     },
-    [actions],
+    [actions]
   );
 
   const handleFund = async (amount: number, token: "USDC" | "XLM") => {
@@ -255,7 +246,7 @@ function FarmingContent() {
       }
       openModal("fund");
     },
-    [position?.status, handleReactivate, openModal],
+    [position?.status, handleReactivate, openModal]
   );
 
   const handlePoolWithdraw = useCallback(
@@ -265,7 +256,7 @@ function FarmingContent() {
       setPoolDrawer(null);
       openModal("withdraw");
     },
-    [userPositionUsd, openModal],
+    [userPositionUsd, openModal]
   );
 
   if (!publicKey) return <ConnectPrompt />;
@@ -330,7 +321,7 @@ function FarmingContent() {
 
           <motion.div
             role="tablist"
-            className="flex items-center gap-4 border-b border-border pb-0"
+            className="flex items-center gap-4 border-border border-b pb-0"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
@@ -342,10 +333,10 @@ function FarmingContent() {
                 aria-selected={resolvedTab === tab.value}
                 onClick={() => setActiveTab(tab.value)}
                 className={cn(
-                  "relative pb-3 text-base font-medium transition-colors",
+                  "relative pb-3 font-medium text-base transition-colors",
                   resolvedTab === tab.value
                     ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground",
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 {tab.label}

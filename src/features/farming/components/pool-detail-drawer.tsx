@@ -2,13 +2,7 @@
 
 import { TokenImage } from "@/shared/components/token-image";
 import { Button } from "@/shared/ui/button-v2";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/shared/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/shared/ui/sheet";
 import type { DiscoveredPool } from "../types";
 
 function formatCompactUsd(value: number): string {
@@ -96,54 +90,44 @@ export function PoolDetailDrawer({
 
         <div className="mt-6 grid grid-cols-2 gap-3">
           <div className="rounded-lg border border-border/40 bg-muted/10 p-3">
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">APY</p>
-            <p className="mt-1 font-mono text-lg font-semibold text-primary">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">APY</p>
+            <p className="mt-1 font-mono font-semibold text-lg text-primary">
               {formatApyPercent(pool.currentApy)}
             </p>
           </div>
           <div className="rounded-lg border border-border/40 bg-muted/10 p-3">
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">TVL</p>
-            <p className="mt-1 font-mono text-lg font-semibold text-foreground">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">TVL</p>
+            <p className="mt-1 font-mono font-semibold text-foreground text-lg">
               {formatCompactUsd(pool.tvlUsd)}
             </p>
           </div>
           <div className="rounded-lg border border-border/40 bg-muted/10 p-3">
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Type</p>
-            <p className="mt-1 text-sm font-medium capitalize text-foreground">{pool.poolType}</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Type</p>
+            <p className="mt-1 font-medium text-foreground text-sm capitalize">{pool.poolType}</p>
           </div>
           <div className="rounded-lg border border-border/40 bg-muted/10 p-3">
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Asset</p>
-            <p className="mt-1 text-sm font-medium text-foreground">{pool.assetSymbol}</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Asset</p>
+            <p className="mt-1 font-medium text-foreground text-sm">{pool.assetSymbol}</p>
           </div>
         </div>
 
         {hasPosition && (
           <div className="mt-6 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
-            <p className="text-[10px] uppercase tracking-widest text-emerald-400/80">
+            <p className="text-[10px] text-emerald-400/80 uppercase tracking-widest">
               Your Position
             </p>
-            <p className="mt-1 font-mono text-2xl font-bold text-foreground">
+            <p className="mt-1 font-bold font-mono text-2xl text-foreground">
               {formatUsd(userPositionUsd)}
             </p>
           </div>
         )}
 
         <div className="mt-6 flex flex-col gap-2">
-          <Button
-            variant="gradient"
-            size="lg"
-            className="w-full"
-            onClick={() => onDeposit(pool)}
-          >
+          <Button variant="gradient" size="lg" className="w-full" onClick={() => onDeposit(pool)}>
             {isRevoked ? "Reactivate Session" : "Deposit"}
           </Button>
           {hasPosition && !isRevoked && (
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-full"
-              onClick={() => onWithdraw(pool)}
-            >
+            <Button variant="outline" size="lg" className="w-full" onClick={() => onWithdraw(pool)}>
               Withdraw
             </Button>
           )}
