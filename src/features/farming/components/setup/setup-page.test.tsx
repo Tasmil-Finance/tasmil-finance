@@ -4,19 +4,26 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useStellarBalances } from "@/features/account/hooks/use-stellar-balance";
 import { usePresets } from "@/features/account/hooks/use-account-api";
 import { useWalletStore } from "@/store/use-wallet";
+import { useFarmingActions } from "@/features/farming/hooks/use-farming-actions";
 import { SetupPage } from "./setup-page";
 
+const replace = jest.fn();
 jest.mock("@/features/account/hooks/use-stellar-balance");
 jest.mock("@/features/account/hooks/use-account-api");
 jest.mock("@/store/use-wallet");
+jest.mock("@/features/farming/hooks/use-farming-actions");
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({ push: jest.fn() }),
+  useRouter: () => ({ push: jest.fn(), replace }),
   useSearchParams: () => new URLSearchParams(),
 }));
-jest.mock("./step-deploy", () => ({
-  StepDeploy: ({ onComplete }: { onComplete: () => void }) => (
+const mockUseWallet = jest.fn();
+jest.mock("@/shared/context/wallet-context", () => ({
+  useWallet: () => mockUseWallet(),
+}));
+jest.mock("./step-create-account", () => ({
+  StepCreateAccount: ({ onComplete }: { onComplete: () => void }) => (
     <button type="button" onClick={onComplete}>
-      mock-create
+      mock-create-account
     </button>
   ),
 }));
@@ -27,7 +34,9 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 
 beforeEach(() => {
   sessionStorage.clear();
+  replace.mockClear();
   (useWalletStore as unknown as jest.Mock).mockReturnValue({ account: "GABC" });
+  mockUseWallet.mockReturnValue({ isConnected: true, connect: jest.fn() });
   (useStellarBalances as jest.Mock).mockReturnValue({ data: { usdc: 100, xlm: 200 } });
   (usePresets as jest.Mock).mockReturnValue({
     data: [
@@ -36,23 +45,29 @@ beforeEach(() => {
       { name: "Aggressive", estimatedApy: 8.8, poolCount: 4, poolTypes: [], risks: [], topPools: [] },
     ],
   });
+  (useFarmingActions as jest.Mock).mockReturnValue({
+    fund: jest.fn().mockResolvedValue(true),
+    isPending: false,
+  });
 });
 
 describe("SetupPage", () => {
-  it("walks Asset -> Strategy -> Preset -> Deploy", async () => {
+  it("auto-advances past Step 1 when already connected", () => {
     render(<SetupPage />, { wrapper });
-    expect(screen.getByRole("heading", { name: /Choose deposit asset/ })).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: /Continue/ }));
-    expect(screen.getByRole("heading", { name: /Agent strategy/ })).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: /Continue/ }));
-    expect(screen.getByRole("heading", { name: /Pick risk preset/ })).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: /Continue/ }));
-    expect(screen.getByRole("heading", { name: /Create your smart account/ })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /tasmil agent strategy/i })).toBeInTheDocument();
   });
 
-  it("locks Custom mode behind Coming soon (Phase 1)", async () => {
+  it("walks Strategy -> Create Account -> Deposit -> Done", async () => {
     render(<SetupPage />, { wrapper });
-    await userEvent.click(screen.getByRole("button", { name: /Continue/ }));
-    expect(screen.getByRole("button", { name: "Custom" })).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: /continue/i }));
+    expect(screen.getByRole("button", { name: /mock-create-account/i })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /mock-create-account/i }));
+    expect(screen.getByText(/your deposit/i)).toBeInTheDocument();
+  });
+
+  it("shows Step 1 connect screen when wallet disconnected", () => {
+    mockUseWallet.mockReturnValue({ isConnected: false, connect: jest.fn() });
+    render(<SetupPage />, { wrapper });
+    expect(screen.getByRole("heading", { name: /get started/i })).toBeInTheDocument();
   });
 });
