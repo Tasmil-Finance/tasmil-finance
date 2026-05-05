@@ -1,10 +1,9 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { usePresets } from "@/features/account/hooks/use-account-api";
 import { useStellarBalances } from "@/features/account/hooks/use-stellar-balance";
-import type { RiskPreset } from "@/features/account/types";
+import { useFarmingActions } from "@/features/farming/hooks/use-farming-actions";
 import { useWalletStore } from "@/store/use-wallet";
 import {
   type SetupState,
@@ -12,26 +11,14 @@ import {
   loadSetupState,
   saveSetupState,
 } from "../../utils/setup-state";
-import type { Asset } from "../shared/asset-pill";
-import type { Mode } from "../shared/mode-toggle";
-import { StepAsset } from "./step-asset";
-import { StepDeploy } from "./step-deploy";
-import { StepFrame } from "./step-frame";
-import { StepPoolPicker } from "./step-pool-picker";
-import { StepPreset } from "./step-preset";
+import { SetupShell } from "./setup-shell";
+import { StepConnect } from "./step-connect";
+import { StepCreateAccount } from "./step-create-account";
+import { StepDeposit } from "./step-deposit";
+import { StepDone } from "./step-done";
 import { StepStrategy } from "./step-strategy";
 
-interface SetupPageProps {
-  /** Optional callback fired when the wizard finishes (deploy + setup done). */
-  onComplete?: () => void;
-  /** When true, derived from `?reconfigure=1` even outside the URL — modal callers can pass it explicitly. */
-  reconfigureOverride?: boolean;
-}
-
-export function SetupPage({ onComplete, reconfigureOverride }: SetupPageProps = {}) {
-  const router = useRouter();
-  const search = useSearchParams();
-  const reconfigure = reconfigureOverride ?? search.get("reconfigure") === "1";
+export function SetupPage() {
   const { account } = useWalletStore();
   const publicKey = account ?? "";
 
@@ -40,122 +27,115 @@ export function SetupPage({ onComplete, reconfigureOverride }: SetupPageProps = 
 
   const balances = useStellarBalances(publicKey);
   const presets = usePresets(state.asset);
+  const actions = useFarmingActions(publicKey);
 
   const set = useCallback(
     (patch: Partial<SetupState>) => setState((prev) => ({ ...prev, ...patch })),
     []
   );
 
-  const advance = () => set({ step: Math.min(state.step + 1, 4) as SetupState["step"] });
+  const advance = useCallback(
+    () => set({ step: Math.min(state.step + 1, 5) as SetupState["step"] }),
+    [state.step, set]
+  );
   const back = () => set({ step: Math.max(state.step - 1, 1) as SetupState["step"] });
 
-  const goHome = useCallback(() => {
-    clearSetupState();
-    if (onComplete) {
-      onComplete();
-      return;
-    }
-    router.push("/farming/deposit");
-  }, [router, onComplete]);
+  const selectedPresetData = presets.data?.find((p) => p.name === state.preset);
+  const reviewApy = selectedPresetData?.estimatedApy ?? 0;
+  const poolCount = selectedPresetData?.poolCount ?? 0;
+  const balanceForAsset =
+    state.asset === "USDC" ? (balances.data?.usdc ?? 0) : (balances.data?.xlm ?? 0);
 
-  const reviewApy =
-    presets.data?.find((p) => p.name === state.preset)?.estimatedApy ?? 0;
+  const handleFund = useCallback(
+    async (amount: number, asset: "USDC" | "XLM") => {
+      const ok = await actions.fund(amount, asset);
+      if (ok) advance();
+    },
+    [actions, advance]
+  );
+
+  const finish = useCallback(() => {
+    clearSetupState();
+  }, []);
 
   if (state.step === 1) {
     return (
-      <StepFrame
-        currentStep={1}
-        totalSteps={reconfigure ? 3 : 4}
-        title="Choose deposit asset"
-        ctaLabel="Continue"
-        onCta={advance}
-      >
-        <StepAsset
-          value={state.asset}
-          balances={balances.data ?? { usdc: 0, xlm: 0 }}
-          onSelect={(asset: Asset) => set({ asset })}
-          reconfigure={reconfigure}
-        />
-      </StepFrame>
+      <SetupShell currentStep={1} totalSteps={5} ctaLabel="Continue" onCta={advance} hideCta>
+        <StepConnect onConnected={() => set({ step: 2 })} />
+      </SetupShell>
     );
   }
 
   if (state.step === 2) {
+    const ctaDisabled = state.mode === "CUSTOM" && state.customMarkets.length === 0;
     return (
-      <StepFrame
+      <SetupShell
         currentStep={2}
-        totalSteps={reconfigure ? 3 : 4}
-        title="Agent strategy"
+        totalSteps={5}
         ctaLabel="Continue"
+        ctaDisabled={ctaDisabled}
         onCta={advance}
         onBack={back}
       >
         <StepStrategy
-          value={state.mode}
-          onChange={(mode: Mode) => set({ mode })}
-          customComingSoon
+          asset={state.asset}
+          mode={state.mode}
+          preset={state.preset}
+          customMarkets={state.customMarkets}
+          balances={balances.data ?? { usdc: 0, xlm: 0 }}
+          presets={presets.data}
+          onAssetChange={(asset) => set({ asset })}
+          onModeChange={(mode) => set({ mode })}
+          onPresetChange={(preset) => set({ preset })}
+          onCustomMarketsChange={(customMarkets) => set({ customMarkets })}
         />
-      </StepFrame>
+      </SetupShell>
     );
   }
 
   if (state.step === 3) {
     return (
-      <StepFrame
+      <SetupShell
         currentStep={3}
-        totalSteps={reconfigure ? 3 : 4}
-        title={state.mode === "AUTO" ? "Pick risk preset" : "Pick markets"}
-        ctaLabel={reconfigure ? "Save changes" : "Continue"}
-        ctaDisabled={state.mode === "CUSTOM" && state.customMarkets.length === 0}
-        onCta={() => {
-          if (reconfigure) {
-            // TODO Phase 3 - call applyPreset / applyMode then router.push("/farming")
-            router.push("/farming");
-            return;
-          }
-          advance();
-        }}
+        totalSteps={5}
+        ctaLabel="Continue"
+        onCta={advance}
         onBack={back}
+        hideCta
       >
-        {state.mode === "AUTO" ? (
-          <StepPreset
-            presets={presets.data}
-            value={state.preset}
-            baseAsset={state.asset}
-            onSelect={(preset: RiskPreset) => set({ preset })}
-          />
-        ) : (
-          <StepPoolPicker
-            value={state.customMarkets}
-            onChange={(customMarkets) => set({ customMarkets })}
-          />
-        )}
-      </StepFrame>
+        <StepCreateAccount publicKey={publicKey} preset={state.preset} onComplete={advance} />
+      </SetupShell>
     );
   }
 
-  // step 4
+  if (state.step === 4) {
+    return (
+      <SetupShell
+        currentStep={4}
+        totalSteps={5}
+        ctaLabel="Continue"
+        onCta={advance}
+        onBack={back}
+        hideCta
+      >
+        <StepDeposit
+          asset={state.asset}
+          preset={state.preset}
+          estimatedApy={reviewApy}
+          poolCount={poolCount}
+          balance={balanceForAsset}
+          isFunding={actions.isPending}
+          onFund={handleFund}
+        />
+      </SetupShell>
+    );
+  }
+
+  // step 5
+  finish();
   return (
-    <StepFrame
-      currentStep={4}
-      totalSteps={4}
-      title="Create your smart account"
-      ctaLabel="Sign with your wallet"
-      onCta={() => {
-        /* CTA wired by StepDeploy itself */
-      }}
-      ctaDisabled
-      onBack={back}
-    >
-      <StepDeploy
-        publicKey={publicKey}
-        asset={state.asset}
-        mode={state.mode}
-        preset={state.preset}
-        estimatedApy={reviewApy}
-        customMarkets={state.customMarkets}
-        onComplete={goHome}
-      />
-    </StepFrame>
+    <SetupShell currentStep={5} totalSteps={5} ctaLabel="Done" onCta={() => {}} hideCta>
+      <StepDone />
+    </SetupShell>
   );
 }
