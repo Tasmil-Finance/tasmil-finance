@@ -79,3 +79,15 @@ export interface ActivityListResponse {
   items: ActivityItem[];
   nextCursor: string | null;
 }
+
+/** Sub-steps within the OnboardingPage deploy + setup flow */
+export type DeploySubStep =
+  | "idle"
+  | "building_deploy"
+  | "signing_deploy"
+  | "submitting_deploy"
+  | "building_setup"
+  | "signing_setup"
+  | "submitting_setup"
+  | "applying_preset"
+  | "done";

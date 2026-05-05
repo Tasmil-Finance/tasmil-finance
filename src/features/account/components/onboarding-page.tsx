@@ -15,20 +15,8 @@ import {
   useSubmitTx,
   useUpdatePreset,
 } from "../hooks/use-account-api";
-import type { RiskPreset } from "../types";
+import type { DeploySubStep, RiskPreset } from "../types";
 import { PresetCard } from "./preset-card";
-
-/** Sub-steps within Step 1 (Create Account) */
-type DeploySubStep =
-  | "idle" // Not started
-  | "building_deploy" // Building deploy TX from backend
-  | "signing_deploy" // Waiting for user to sign TX 1/2
-  | "submitting_deploy" // Submitting + confirming deploy TX
-  | "building_setup" // Building setup TX from backend
-  | "signing_setup" // Waiting for user to sign TX 2/2
-  | "submitting_setup" // Submitting + confirming setup TX
-  | "applying_preset" // Calling updatePreset after deploy+setup succeed
-  | "done"; // Everything confirmed
 
 /** User-friendly labels for each sub-step */
 function getDeployStatusLabel(subStep: DeploySubStep): string {
