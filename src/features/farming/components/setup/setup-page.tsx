@@ -58,11 +58,7 @@ export function SetupPage() {
   );
 
   if (state.step === 1) {
-    return (
-      <SetupShell currentStep={1} totalSteps={5} ctaLabel="Continue" onCta={advance} hideCta>
-        <StepConnect onConnected={() => set({ step: 2 })} />
-      </SetupShell>
-    );
+    return <StepConnect onConnected={() => set({ step: 2 })} />;
   }
 
   if (state.step === 2) {
