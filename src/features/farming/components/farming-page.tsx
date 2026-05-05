@@ -6,15 +6,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useActivity, usePosition, usePresets } from "@/features/account/hooks/use-account-api";
 import type { RiskPreset } from "@/features/account/types";
-import { SetupPage } from "@/features/farming/components/setup/setup-page";
 import { cn } from "@/lib/utils";
 import { Button } from "@/shared/ui/button-v2";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/dialog";
 import { useWalletStore } from "@/store/use-wallet";
 import { useFarmingActions } from "../hooks/use-farming-actions";
 import { usePools } from "../hooks/use-farming-api";
@@ -63,35 +56,9 @@ function ConnectPrompt() {
 }
 
 /**
- * Modal that hosts the multi-step setup wizard. Renders SetupPage inside a
- * centered Dialog with a backdrop. Closing dismisses it; completing the
- * flow (deploy + setup TXs done) auto-closes via the onComplete callback.
- */
-function SetupWizardDialog({
-  open,
-  onOpenChange,
-}: {
-  open: boolean;
-  onOpenChange: (next: boolean) => void;
-}) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl gap-0 p-0">
-        <DialogHeader className="sr-only">
-          <DialogTitle>Set up your farming account</DialogTitle>
-        </DialogHeader>
-        <div className="p-6">
-          <SetupPage onComplete={() => onOpenChange(false)} />
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-/**
  * Empty state shown to a connected user who has no Position yet (or whose
- * deploy is still in flight). Click the gradient CTA → opens the multi-step
- * setup wizard inside a Dialog overlay (no URL change).
+ * deploy is still in flight). Click the gradient CTA → routes to the
+ * dedicated /farming/setup full-page wizard.
  */
 function GetStartedEmptyState({
   resuming,
@@ -150,7 +117,6 @@ function FarmingContent() {
 
   const [activityDrawerOpen, setActivityDrawerOpen] = useState(false);
   const [poolDrawer, setPoolDrawer] = useState<DiscoveredPool | null>(null);
-  const [setupOpen, setSetupOpen] = useState(false);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: open drawer once on mount when ?tab=activity
   useEffect(() => {
@@ -178,6 +144,16 @@ function FarmingContent() {
     isLoading: positionLoading,
     refetch: refetchPosition,
   } = usePosition(publicKey);
+
+  // Redirect connected-but-no-account users to the dedicated /farming/setup
+  // full-page wizard. Guard waits for the position fetch to settle so we
+  // don't redirect before the API has confirmed there's no managed account.
+  useEffect(() => {
+    if (!publicKey) return;
+    if (positionLoading) return;
+    if (!position) router.replace("/farming/setup");
+  }, [publicKey, position, positionLoading, router]);
+
   const { data: registryPoolsData, isLoading: registryPoolsLoading } = usePools();
   const {
     data: activities,
@@ -347,13 +323,10 @@ function FarmingContent() {
 
   if (!position || position.status === "DEPLOYING") {
     return (
-      <>
-        <GetStartedEmptyState
-          resuming={position?.status === "DEPLOYING"}
-          onStart={() => setSetupOpen(true)}
-        />
-        <SetupWizardDialog open={setupOpen} onOpenChange={setSetupOpen} />
-      </>
+      <GetStartedEmptyState
+        resuming={position?.status === "DEPLOYING"}
+        onStart={() => router.push("/farming/setup")}
+      />
     );
   }
 
