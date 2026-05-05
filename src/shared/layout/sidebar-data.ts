@@ -131,6 +131,7 @@ const _sidebarData: SidebarData = {
           title: "Quest",
           url: "/quest",
           icon: Trophy,
+          testnetOnly: true,
         },
       ],
     },
