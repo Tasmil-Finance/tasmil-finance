@@ -9,6 +9,7 @@ import { ConnectWalletButton } from "@/shared/components/connect-wallet-button";
 import { useIsMobile } from "@/shared/hooks/use-mobile";
 import { ChatHistoryWrapper } from "@/shared/layout/chat-history-wrapper";
 import { MobileSidebarContent } from "@/shared/layout/mobile-sidebar-content";
+import type { SidebarData } from "@/shared/layout/sidebar-data";
 import { sidebarData as defaultSidebarData } from "@/shared/layout/sidebar-data";
 import { TopNavBar } from "@/shared/layout/top-nav-bar";
 import {
@@ -23,14 +24,16 @@ interface MultiSidebarLayoutProps {
   className?: string;
   showRightSidebar?: boolean;
   showHeader?: boolean;
-  sidebarData?: import("@/shared/layout/sidebar-data").SidebarData;
+  // Currently unused; kept for API compat with external callers that still pass it.
+  title?: string;
+  sidebarData?: SidebarData;
 }
 
 function MobileHeader({
   sidebarData,
   showRightSidebar,
 }: {
-  sidebarData: import("@/shared/layout/sidebar-data").SidebarData;
+  sidebarData: SidebarData;
   showRightSidebar: boolean;
 }) {
   const { toggleLeftSidebar } = useMultiSidebar();
@@ -73,8 +76,7 @@ function MobileLayout({
   children: React.ReactNode;
   showRightSidebar: boolean;
   showHeader: boolean;
-  title: string;
-  sidebarData?: import("@/shared/layout/sidebar-data").SidebarData;
+  sidebarData?: SidebarData;
 }) {
   const { leftSidebarOpen, rightSidebarOpen, setLeftSidebarOpen, setRightSidebarOpen } =
     useMultiSidebar();
@@ -125,8 +127,7 @@ function DesktopLayout({
   children: React.ReactNode;
   showRightSidebar: boolean;
   showHeader: boolean;
-  title: string;
-  sidebarData?: import("@/shared/layout/sidebar-data").SidebarData;
+  sidebarData?: SidebarData;
 }) {
   const { rightSidebarOpen } = useMultiSidebar();
   // Fall back to the default sidebarData export when the caller doesn't thread
@@ -161,21 +162,18 @@ function LayoutContent({
   children,
   showRightSidebar,
   showHeader,
-  title,
   sidebarData: customSidebarData,
 }: {
   children: React.ReactNode;
   showRightSidebar: boolean;
   showHeader: boolean;
-  title: string;
-  sidebarData?: import("@/shared/layout/sidebar-data").SidebarData;
+  sidebarData?: SidebarData;
 }) {
   const isMobile = useIsMobile();
   return isMobile ? (
     <MobileLayout
       showRightSidebar={showRightSidebar}
       showHeader={showHeader}
-      title={title}
       sidebarData={customSidebarData}
     >
       {children}
@@ -184,7 +182,6 @@ function LayoutContent({
     <DesktopLayout
       showRightSidebar={showRightSidebar}
       showHeader={showHeader}
-      title={title}
       sidebarData={customSidebarData}
     >
       {children}
@@ -197,18 +194,13 @@ export function MultiSidebarLayout({
   className,
   showRightSidebar = true,
   showHeader = true,
-  title = "",
   sidebarData: customSidebarData,
-}: MultiSidebarLayoutProps & {
-  title?: string;
-  sidebarData?: import("@/shared/layout/sidebar-data").SidebarData;
-}) {
+}: MultiSidebarLayoutProps) {
   return (
     <MultiSidebarProvider className={className || ""}>
       <LayoutContent
         showRightSidebar={showRightSidebar}
         showHeader={showHeader}
-        title={title}
         sidebarData={customSidebarData}
       >
         {children}
