@@ -114,9 +114,9 @@ export function StepCreateAccount({ publicKey, preset, onComplete, onBack }: Pro
           )}
           style={{
             background:
-              "radial-gradient(circle at 30% 25%, rgba(217,249,157,0.95) 0%, rgba(190,242,100,0.9) 25%, rgba(132,204,22,0.85) 55%, rgba(101,163,13,0.85) 100%), radial-gradient(circle at 75% 75%, rgba(74,222,128,0.6), transparent 60%)",
+              "radial-gradient(circle at 30% 25%, rgba(197,240,255,0.95) 0%, rgba(125,217,255,0.92) 25%, rgba(56,182,240,0.88) 55%, rgba(0,140,200,0.85) 100%), radial-gradient(circle at 75% 75%, rgba(0,191,255,0.55), transparent 60%)",
             boxShadow:
-              "0 0 100px rgba(132,204,22,0.35), inset 0 4px 50px rgba(255,255,255,0.25), inset 0 -8px 50px rgba(34,84,4,0.35)",
+              "0 0 100px rgba(0,191,255,0.35), inset 0 4px 50px rgba(255,255,255,0.3), inset 0 -8px 50px rgba(2,80,120,0.4)",
           }}
         >
           {isDeploying ? <Loader2 className="h-7 w-7 animate-spin" /> : ctaLabel}
@@ -176,8 +176,8 @@ function TxLabeledCircle({ index, label, state }: TxLabeledCircleProps) {
         className={cn(
           "flex h-16 w-16 items-center justify-center rounded-full border-2 font-mono text-sm transition-colors md:h-20 md:w-20 md:text-base",
           state === "idle" && "border-border bg-zinc-900 text-muted-foreground",
-          state === "active" && "border-emerald-400/60 bg-zinc-800 text-emerald-300",
-          state === "done" && "border-emerald-400/80 bg-emerald-500/15 text-emerald-300"
+          state === "active" && "border-primary/60 bg-zinc-800 text-primary",
+          state === "done" && "border-primary/80 bg-primary/15 text-primary"
         )}
       >
         {state === "active" ? (
