@@ -6,6 +6,7 @@ import { TokenImage } from "@/shared/components/token-image";
 import {
   Command,
   CommandEmpty,
+  CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
@@ -91,27 +92,29 @@ export function AssetPicker({ value, onChange, excludeKeys, disabled }: AssetPic
             {!isLoading && !isError && visible.length > 0 && (
               <>
                 <CommandEmpty>No matches.</CommandEmpty>
-                {visible.map((t) => (
-                  <CommandItem
-                    key={`${t.symbol}:${t.issuer}`}
-                    value={`${t.symbol} ${t.name ?? ""}`}
-                    onSelect={() => {
-                      onChange({ code: t.symbol, issuer: t.issuer });
-                      setOpen(false);
-                    }}
-                  >
-                    <TokenImage
-                      alt={t.symbol}
-                      className="h-6 w-6 shrink-0 rounded-full text-[10px]"
-                    />
-                    <div className="flex min-w-0 flex-col">
-                      <span className="font-medium text-foreground">{t.symbol}</span>
-                      {t.name && (
-                        <span className="truncate text-xs text-muted-foreground">{t.name}</span>
-                      )}
-                    </div>
-                  </CommandItem>
-                ))}
+                <CommandGroup>
+                  {visible.map((t) => (
+                    <CommandItem
+                      key={`${t.symbol}:${t.issuer}`}
+                      value={`${t.symbol} ${t.name ?? ""}`}
+                      onSelect={() => {
+                        onChange({ code: t.symbol, issuer: t.issuer });
+                        setOpen(false);
+                      }}
+                    >
+                      <TokenImage
+                        alt={t.symbol}
+                        className="h-6 w-6 shrink-0 rounded-full text-[10px]"
+                      />
+                      <div className="flex min-w-0 flex-col">
+                        <span className="font-medium text-foreground">{t.symbol}</span>
+                        {t.name && (
+                          <span className="truncate text-xs text-muted-foreground">{t.name}</span>
+                        )}
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
               </>
             )}
           </CommandList>
