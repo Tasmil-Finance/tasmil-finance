@@ -60,13 +60,13 @@ export function PresetCard({ preset, selected, onSelect }: PresetCardProps) {
       type="button"
       onClick={onSelect}
       className={cn(
-        "group relative w-full cursor-pointer rounded-2xl border border-white/6 bg-white/3 p-5 text-left",
+        "group relative flex h-full w-full cursor-pointer flex-col rounded-2xl border border-white/6 bg-white/3 p-5 text-left",
         "transition-all duration-200 ease-out",
         "hover:border-white/12 hover:bg-white/5",
         selected && "border-primary/40 shadow-lg shadow-primary/15 ring-2 ring-primary/40"
       )}
     >
-      <div className="relative flex flex-col gap-4">
+      <div className="relative flex flex-1 flex-col gap-4">
         {/* Header: icon + name + recommended + tone pill */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
@@ -154,8 +154,8 @@ export function PresetCard({ preset, selected, onSelect }: PresetCardProps) {
           ))}
         </div>
 
-        {/* Risk tags — neutral */}
-        <div className="flex flex-wrap gap-1.5">
+        {/* Risk tags — neutral, pinned to bottom so cards align across grid row */}
+        <div className="mt-auto flex flex-wrap gap-1.5">
           {preset.risks.map((risk) => (
             <span
               key={risk}
