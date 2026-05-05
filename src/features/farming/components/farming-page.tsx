@@ -4,7 +4,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, Wallet } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import { OnboardingPage } from "@/features/account/components/onboarding-page";
 import { useActivity, usePosition, usePresets } from "@/features/account/hooks/use-account-api";
 import type { RiskPreset } from "@/features/account/types";
 import { cn } from "@/lib/utils";
@@ -53,6 +52,22 @@ function ConnectPrompt() {
         Connect your Stellar wallet to view the farming agent.
       </p>
     </motion.div>
+  );
+}
+
+/**
+ * First-time user (no Position) is redirected from /farming → /farming/setup
+ * where the multi-step wizard lives. Shows a brief loader during the swap.
+ */
+function SetupRedirect() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace("/farming/setup");
+  }, [router]);
+  return (
+    <div className="flex items-center justify-center py-24">
+      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+    </div>
   );
 }
 
@@ -269,7 +284,9 @@ function FarmingContent() {
     );
   }
 
-  if (!position || position.status === "DEPLOYING") return <OnboardingPage />;
+  if (!position || position.status === "DEPLOYING") {
+    return <SetupRedirect />;
+  }
 
   const registryPools = registryPoolsData ?? [];
   const isRevoked = position.status === "REVOKED";
