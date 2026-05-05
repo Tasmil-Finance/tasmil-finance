@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useWallet } from "@/shared/context/wallet-context";
 
 interface Props {
@@ -9,10 +8,6 @@ interface Props {
 
 export function StepConnect({ onConnected }: Props) {
   const { isConnected, connect } = useWallet();
-
-  useEffect(() => {
-    if (isConnected) onConnected();
-  }, [isConnected, onConnected]);
 
   const handleClick = () => {
     if (isConnected) {
@@ -34,9 +29,9 @@ export function StepConnect({ onConnected }: Props) {
         className="relative mt-12 flex h-[280px] w-[280px] shrink-0 items-center justify-center rounded-full font-medium text-xl text-zinc-900 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.99] md:mt-16 md:h-[400px] md:w-[400px] md:text-2xl"
         style={{
           background:
-            "radial-gradient(circle at 30% 25%, rgba(217,249,157,0.95) 0%, rgba(190,242,100,0.9) 25%, rgba(132,204,22,0.85) 55%, rgba(101,163,13,0.85) 100%), radial-gradient(circle at 75% 75%, rgba(74,222,128,0.6), transparent 60%)",
+            "radial-gradient(circle at 30% 25%, rgba(197,240,255,0.95) 0%, rgba(125,217,255,0.92) 25%, rgba(56,182,240,0.88) 55%, rgba(0,140,200,0.85) 100%), radial-gradient(circle at 75% 75%, rgba(0,191,255,0.55), transparent 60%)",
           boxShadow:
-            "0 0 120px rgba(132,204,22,0.4), inset 0 4px 60px rgba(255,255,255,0.25), inset 0 -10px 60px rgba(34,84,4,0.35)",
+            "0 0 120px rgba(0,191,255,0.4), inset 0 4px 60px rgba(255,255,255,0.3), inset 0 -10px 60px rgba(2,80,120,0.4)",
         }}
       >
         Continue

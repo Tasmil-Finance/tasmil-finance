@@ -30,18 +30,7 @@ describe("StepConnect", () => {
     const onConnected = jest.fn();
     mockUseWallet.mockReturnValue({ isConnected: true, connect });
     render(<StepConnect onConnected={onConnected} />);
-    // The useEffect fires onConnected on mount; clear and verify click also fires it
-    onConnected.mockClear();
     await userEvent.click(screen.getByRole("button", { name: /continue/i }));
-    expect(onConnected).toHaveBeenCalled();
-  });
-
-  it("auto-fires onConnected when isConnected becomes true", () => {
-    const onConnected = jest.fn();
-    const { rerender } = render(<StepConnect onConnected={onConnected} />);
-    expect(onConnected).not.toHaveBeenCalled();
-    mockUseWallet.mockReturnValue({ isConnected: true, connect });
-    rerender(<StepConnect onConnected={onConnected} />);
     expect(onConnected).toHaveBeenCalled();
   });
 
