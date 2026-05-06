@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, Layers, Loader2 } from "lucide-react";
+import { ChevronDown, Layers, Loader2, PieChart as PieChartIcon } from "lucide-react";
 import { useState } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { cn } from "@/lib/utils";
@@ -391,15 +391,13 @@ export function ProtocolPositions({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.05 }}
       >
-        <div className="flex items-center gap-3 px-6 py-4">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-500/20">
-            <Layers className="h-5 w-5 text-violet-400" />
-          </div>
-          <span className="font-medium text-foreground text-lg">
-            Protocols · {formatUsd(totalValueUsd)}
+        <div className="flex items-center gap-2.5 px-6 py-4">
+          <PieChartIcon className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
+          <span className="text-lg font-medium text-foreground tabular-nums">
+            Protocols - {formatUsd(totalValueUsd)}
           </span>
           <span className="text-base text-muted-foreground">
-            {cards.length} protocol{cards.length !== 1 ? "s" : ""}
+            - {cards.length} protocol{cards.length !== 1 ? "s" : ""}
           </span>
         </div>
 

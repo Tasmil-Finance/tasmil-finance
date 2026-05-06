@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Gift } from "lucide-react";
+import { Coins } from "lucide-react";
 import { useMemo } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -103,15 +103,13 @@ export function ProtocolRewardsCard({ groups, className }: ProtocolRewardsCardPr
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.05 }}
     >
-      <div className="flex items-center gap-3 px-6 py-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/15">
-          <Gift className="h-5 w-5 text-emerald-400" />
-        </div>
+      <div className="flex items-center gap-2.5 px-6 py-4">
+        <Coins className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
         <span className="text-lg font-medium text-foreground tabular-nums">
           Rewards - {formatUsd(totalUsd)}
         </span>
         <span className="text-base text-muted-foreground">
-          {rewards.length} protocol{rewards.length !== 1 ? "s" : ""}
+          - {rewards.length} protocol{rewards.length !== 1 ? "s" : ""}
         </span>
         <Button
           variant="default"
