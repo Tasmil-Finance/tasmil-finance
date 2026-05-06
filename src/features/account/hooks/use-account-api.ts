@@ -32,6 +32,7 @@ export function usePosition(publicKey: string | undefined) {
     query: {
       ...$bLive.query,
       enabled: !!publicKey,
+      staleTime: 30_000,
       select: (res: unknown): PositionData | null => (res as { data?: PositionData }).data ?? null,
     },
   });
