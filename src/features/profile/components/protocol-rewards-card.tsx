@@ -2,13 +2,14 @@
 
 import { motion } from "framer-motion";
 import { Coins } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PROTOCOL_ICONS as CDN_PROTOCOL_ICONS } from "@/shared/constants/asset-manifest";
 import { Button } from "@/shared/ui/button-v2";
 import type { ProtocolPositionGroup } from "../hooks/use-defi-positions";
 import { getCachedPrices } from "../hooks/use-wallet-tokens";
+import { type AquariusPoolReward, AquariusClaimDialog } from "./aquarius-claim-dialog";
 
 const PROTOCOL_ICONS: Record<string, string> = {
   blend: CDN_PROTOCOL_ICONS.blend!,
@@ -78,6 +79,26 @@ interface ProtocolRewardsCardProps {
 
 export function ProtocolRewardsCard({ groups, className }: ProtocolRewardsCardProps) {
   const rewards = useMemo(() => aggregateRewards(groups), [groups]);
+  const [aquariusDialogOpen, setAquariusDialogOpen] = useState(false);
+
+  const aquariusPools = useMemo<AquariusPoolReward[]>(() => {
+    const out: AquariusPoolReward[] = [];
+    for (const g of groups) {
+      if (g.protocol !== "aquarius") continue;
+      for (const p of g.positions) {
+        if (!p.rewards || p.rewards.amount <= 0) continue;
+        out.push({
+          key: `${g.protocol}:${p.name}`,
+          name: p.name.replace(/ LP$/, "").replace("/", " / "),
+          poolType: p.pair?.poolType,
+          fee: p.pair?.fee,
+          amount: p.rewards.amount,
+          token: p.rewards.token,
+        });
+      }
+    }
+    return out.sort((a, b) => b.amount - a.amount);
+  }, [groups]);
 
   const totalUsd = rewards.reduce((s, r) => s + r.amountUsd, 0);
 
@@ -88,6 +109,10 @@ export function ProtocolRewardsCard({ groups, className }: ProtocolRewardsCardPr
   };
 
   const handleClaim = (r: ProtocolReward) => {
+    if (r.protocol === "aquarius") {
+      setAquariusDialogOpen(true);
+      return;
+    }
     toast.info(`Claim ${r.displayName} coming soon`, {
       description: `${r.amount.toLocaleString(undefined, { maximumFractionDigits: 4 })} ${r.token}`,
     });
@@ -168,6 +193,12 @@ export function ProtocolRewardsCard({ groups, className }: ProtocolRewardsCardPr
           </ul>
         )}
       </div>
+
+      <AquariusClaimDialog
+        open={aquariusDialogOpen}
+        onOpenChange={setAquariusDialogOpen}
+        pools={aquariusPools}
+      />
     </motion.div>
   );
 }
