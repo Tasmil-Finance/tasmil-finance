@@ -2,14 +2,13 @@
 
 import { motion } from "framer-motion";
 import { Coins } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PROTOCOL_ICONS as CDN_PROTOCOL_ICONS } from "@/shared/constants/asset-manifest";
 import { Button } from "@/shared/ui/button-v2";
 import type { ProtocolPositionGroup } from "../hooks/use-defi-positions";
 import { getCachedPrices } from "../hooks/use-wallet-tokens";
-import { type AquariusPoolReward, AquariusClaimDialog } from "./aquarius-claim-dialog";
 
 const PROTOCOL_ICONS: Record<string, string> = {
   blend: CDN_PROTOCOL_ICONS.blend!,
@@ -25,42 +24,63 @@ const PROTOCOL_NAMES: Record<string, string> = {
   phoenix: "Phoenix",
 };
 
-interface ProtocolReward {
+interface PoolReward {
+  key: string;
   protocol: string;
-  displayName: string;
+  protocolName: string;
+  /** Pool-specific display name (e.g. "Etherfuse Pool", "XLM/USDC"). */
+  poolName: string;
   icon: string | null;
   token: string;
   amount: number;
   amountUsd: number;
 }
 
-function aggregateRewards(groups: ProtocolPositionGroup[]): ProtocolReward[] {
+function expandRewards(groups: ProtocolPositionGroup[]): PoolReward[] {
   const priceMap = getCachedPrices();
-  const map = new Map<string, ProtocolReward>();
+  const out: PoolReward[] = [];
 
   for (const g of groups) {
-    if (!g.rewards || g.rewards.amount <= 0) continue;
-    const key = g.protocol;
-    const existing = map.get(key);
-    const price = priceMap[g.rewards.token.toUpperCase()] ?? 0;
-    const usd = g.rewards.amount * price;
+    const protocolName = PROTOCOL_NAMES[g.protocol] ?? g.protocol;
+    const icon = PROTOCOL_ICONS[g.protocol] ?? null;
 
-    if (existing) {
-      existing.amount += g.rewards.amount;
-      existing.amountUsd += usd;
-    } else {
-      map.set(key, {
-        protocol: key,
-        displayName: PROTOCOL_NAMES[key] ?? key.replace(/\b\w/g, (c) => c.toUpperCase()),
-        icon: PROTOCOL_ICONS[key] ?? null,
+    // Group-level rewards (Blend uses this)
+    if (g.rewards && g.rewards.amount > 0) {
+      const price = priceMap[g.rewards.token.toUpperCase()] ?? 0;
+      const poolName = g.displayName.includes("·")
+        ? g.displayName.split("·").slice(1).join("·").trim()
+        : g.displayName;
+      out.push({
+        key: `${g.protocol}:group:${g.displayName}`,
+        protocol: g.protocol,
+        protocolName,
+        poolName,
+        icon,
         token: g.rewards.token,
         amount: g.rewards.amount,
-        amountUsd: usd,
+        amountUsd: g.rewards.amount * price,
+      });
+    }
+
+    // Position-level rewards (Aquarius uses this — one row per pool)
+    for (const p of g.positions) {
+      if (!p.rewards || p.rewards.amount <= 0) continue;
+      const price = priceMap[p.rewards.token.toUpperCase()] ?? 0;
+      const poolName = p.name.replace(/ LP$/, "");
+      out.push({
+        key: `${g.protocol}:pool:${p.name}`,
+        protocol: g.protocol,
+        protocolName,
+        poolName,
+        icon,
+        token: p.rewards.token,
+        amount: p.rewards.amount,
+        amountUsd: p.rewards.amount * price,
       });
     }
   }
 
-  return Array.from(map.values()).sort((a, b) => b.amountUsd - a.amountUsd);
+  return out.sort((a, b) => b.amountUsd - a.amountUsd);
 }
 
 function formatUsd(value: number): string {
@@ -78,42 +98,21 @@ interface ProtocolRewardsCardProps {
 }
 
 export function ProtocolRewardsCard({ groups, className }: ProtocolRewardsCardProps) {
-  const rewards = useMemo(() => aggregateRewards(groups), [groups]);
-  const [aquariusDialogOpen, setAquariusDialogOpen] = useState(false);
-
-  const aquariusPools = useMemo<AquariusPoolReward[]>(() => {
-    const out: AquariusPoolReward[] = [];
-    for (const g of groups) {
-      if (g.protocol !== "aquarius") continue;
-      for (const p of g.positions) {
-        if (!p.rewards || p.rewards.amount <= 0) continue;
-        out.push({
-          key: `${g.protocol}:${p.name}`,
-          name: p.name.replace(/ LP$/, "").replace("/", " / "),
-          poolType: p.pair?.poolType,
-          fee: p.pair?.fee,
-          amount: p.rewards.amount,
-          token: p.rewards.token,
-        });
-      }
-    }
-    return out.sort((a, b) => b.amount - a.amount);
-  }, [groups]);
-
+  const rewards = useMemo(() => expandRewards(groups), [groups]);
   const totalUsd = rewards.reduce((s, r) => s + r.amountUsd, 0);
+  const protocolCount = useMemo(
+    () => new Set(rewards.map((r) => r.protocol)).size,
+    [rewards],
+  );
 
   const handleClaimAll = () => {
-    toast.info("Claim flow coming soon", {
-      description: `Total: ${formatUsd(totalUsd)} across ${rewards.length} protocol${rewards.length !== 1 ? "s" : ""}`,
+    toast.info("Claim all coming soon", {
+      description: `Total ${formatUsd(totalUsd)} across ${rewards.length} pool${rewards.length !== 1 ? "s" : ""}`,
     });
   };
 
-  const handleClaim = (r: ProtocolReward) => {
-    if (r.protocol === "aquarius") {
-      setAquariusDialogOpen(true);
-      return;
-    }
-    toast.info(`Claim ${r.displayName} coming soon`, {
+  const handleClaim = (r: PoolReward) => {
+    toast.info(`Claim ${r.protocolName} · ${r.poolName} — coming soon`, {
       description: `${r.amount.toLocaleString(undefined, { maximumFractionDigits: 4 })} ${r.token}`,
     });
   };
@@ -134,7 +133,7 @@ export function ProtocolRewardsCard({ groups, className }: ProtocolRewardsCardPr
           Rewards - {formatUsd(totalUsd)}
         </span>
         <span className="text-base text-muted-foreground">
-          - {rewards.length} protocol{rewards.length !== 1 ? "s" : ""}
+          - {protocolCount} protocol{protocolCount !== 1 ? "s" : ""}
         </span>
         <Button
           variant="default"
@@ -149,7 +148,7 @@ export function ProtocolRewardsCard({ groups, className }: ProtocolRewardsCardPr
 
       <div className="border-t border-border" />
 
-      <div className="max-h-[180px] overflow-y-auto">
+      <div className="max-h-[200px] overflow-y-auto">
         {rewards.length === 0 ? (
           <div className="flex items-center justify-center px-6 py-8 text-sm text-muted-foreground">
             No claimable rewards
@@ -157,23 +156,22 @@ export function ProtocolRewardsCard({ groups, className }: ProtocolRewardsCardPr
         ) : (
           <ul className="flex flex-col divide-y divide-border">
             {rewards.map((r) => (
-              <li
-                key={r.protocol}
-                className="flex items-center gap-3 px-6 py-3"
-              >
+              <li key={r.key} className="flex items-center gap-3 px-6 py-3">
                 {r.icon ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={r.icon}
-                    alt={r.displayName}
+                    alt={r.protocolName}
                     className="h-7 w-7 shrink-0 rounded-full"
                   />
                 ) : (
                   <div className="h-7 w-7 shrink-0 rounded-full bg-muted/30" />
                 )}
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium text-foreground">{r.displayName}</span>
-                  <span className="text-xs text-muted-foreground tabular-nums">
+                <div className="flex min-w-0 flex-col">
+                  <span className="truncate text-sm font-medium text-foreground">
+                    {r.protocolName} · {r.poolName}
+                  </span>
+                  <span className="text-xs tabular-nums text-muted-foreground">
                     {r.amount.toLocaleString(undefined, { maximumFractionDigits: 4 })} {r.token}
                     {r.amountUsd > 0 && (
                       <span className="ml-1.5">({formatUsd(r.amountUsd)})</span>
@@ -193,12 +191,6 @@ export function ProtocolRewardsCard({ groups, className }: ProtocolRewardsCardPr
           </ul>
         )}
       </div>
-
-      <AquariusClaimDialog
-        open={aquariusDialogOpen}
-        onOpenChange={setAquariusDialogOpen}
-        pools={aquariusPools}
-      />
     </motion.div>
   );
 }
