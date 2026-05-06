@@ -171,7 +171,6 @@ export function TransactionList({ address }: { address: string }) {
   if (groups.length === 0) {
     return (
       <div className="flex flex-col gap-4">
-        <h2 className="text-xl font-semibold text-foreground">Transaction History</h2>
         <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-card py-20">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted/20">
             <Clock className="h-8 w-8 text-muted-foreground opacity-50" />
@@ -186,13 +185,12 @@ export function TransactionList({ address }: { address: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-foreground">Transaction History</h2>
-        <span className="text-sm text-muted-foreground">{groups.length} transactions</span>
-      </div>
-
-      <TransactionFilterBar value={filterState} onChange={setFilterState} />
+    <div className="flex flex-col gap-3">
+      <TransactionFilterBar
+        value={filterState}
+        onChange={setFilterState}
+        totalCount={groups.length}
+      />
 
       {filtered.length === 0 && (
         <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
