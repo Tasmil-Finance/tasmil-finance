@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Coins } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -92,13 +93,75 @@ function formatUsd(value: number): string {
   }).format(value);
 }
 
+// ─── Mock data for visual testing ─────────────────────────────────────────
+// Toggle via ?mock=rewards (full data) | ?mock=empty (no rewards) | (none = real)
+const MOCK_REWARDS: PoolReward[] = [
+  {
+    key: "aquarius:pool:XLM/USDC",
+    protocol: "aquarius",
+    protocolName: "Aquarius",
+    poolName: "XLM/USDC",
+    icon: PROTOCOL_ICONS.aquarius ?? null,
+    token: "AQUA",
+    amount: 0.4253,
+    amountUsd: 0.27,
+  },
+  {
+    key: "aquarius:pool:XLM/EURC",
+    protocol: "aquarius",
+    protocolName: "Aquarius",
+    poolName: "XLM/EURC",
+    icon: PROTOCOL_ICONS.aquarius ?? null,
+    token: "AQUA",
+    amount: 12.4881,
+    amountUsd: 7.92,
+  },
+  {
+    key: "aquarius:pool:USDC/EURC",
+    protocol: "aquarius",
+    protocolName: "Aquarius",
+    poolName: "USDC/EURC",
+    icon: PROTOCOL_ICONS.aquarius ?? null,
+    token: "AQUA",
+    amount: 0.082,
+    amountUsd: 0.05,
+  },
+  {
+    key: "blend:group:Etherfuse Pool",
+    protocol: "blend",
+    protocolName: "Blend",
+    poolName: "Etherfuse Pool",
+    icon: PROTOCOL_ICONS.blend ?? null,
+    token: "BLND",
+    amount: 1.2345,
+    amountUsd: 0.12,
+  },
+  {
+    key: "blend:group:Fixed Pool",
+    protocol: "blend",
+    protocolName: "Blend",
+    poolName: "Fixed Pool",
+    icon: PROTOCOL_ICONS.blend ?? null,
+    token: "BLND",
+    amount: 0.0341,
+    amountUsd: 0.0,
+  },
+];
+
 interface ProtocolRewardsCardProps {
   groups: ProtocolPositionGroup[];
   className?: string;
 }
 
 export function ProtocolRewardsCard({ groups, className }: ProtocolRewardsCardProps) {
-  const rewards = useMemo(() => expandRewards(groups), [groups]);
+  const searchParams = useSearchParams();
+  const mockMode = searchParams.get("mock");
+
+  const rewards = useMemo(() => {
+    if (mockMode === "empty") return [] as PoolReward[];
+    if (mockMode === "rewards") return MOCK_REWARDS;
+    return expandRewards(groups);
+  }, [groups, mockMode]);
   const totalUsd = rewards.reduce((s, r) => s + r.amountUsd, 0);
   const protocolCount = useMemo(
     () => new Set(rewards.map((r) => r.protocol)).size,
