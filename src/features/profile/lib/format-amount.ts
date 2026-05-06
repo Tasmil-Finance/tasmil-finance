@@ -25,7 +25,7 @@ export function formatAmount(value: string): string {
     return `${sign}${abs.toFixed(4, BigNumber.ROUND_HALF_EVEN).replace(/\.?0+$/, "")}`;
   }
   if (abs.isZero()) return "0";
-  return `${sign}${abs.toPrecision(4)}`;
+  return `${sign}${abs.toFixed(7).replace(/\.?0+$/, "")}`;
 }
 
 export function signedAmount(value: string, isCredit: boolean): string {
