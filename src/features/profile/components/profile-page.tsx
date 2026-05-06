@@ -16,7 +16,6 @@ import { useWalletTokens } from "../hooks/use-wallet-tokens";
 import { HistorySidebar } from "./history-sidebar";
 import { ProtocolOverview } from "./protocol-overview";
 import { RewardDistribution } from "./reward-distribution";
-import { NftPlaceholder } from "./nft-placeholder";
 import { PerformanceChart } from "./performance-chart";
 import { ProtocolHistoryView } from "./protocol-history";
 import { ProtocolPositions } from "./protocol-positions";
@@ -25,13 +24,12 @@ import { TokenList } from "./token-list";
 import { TransactionList } from "./transaction-list";
 import { WalletHeader } from "./wallet-header";
 
-type TabValue = "tokens" | "positions" | "nfts" | "history" | "credits";
-const VALID_TABS: TabValue[] = ["tokens", "positions", "nfts", "history", "credits"];
+type TabValue = "tokens" | "positions" | "history" | "credits";
+const VALID_TABS: TabValue[] = ["tokens", "positions", "history", "credits"];
 
 const TABS: { value: TabValue; label: string }[] = [
   { value: "tokens", label: "Tokens" },
   { value: "positions", label: "Positions" },
-  { value: "nfts", label: "NFTs" },
   { value: "history", label: "Transaction History" },
   { value: "credits", label: "Credits" },
 ];
@@ -188,18 +186,6 @@ function ProfileContent({ packages }: ProfileContentProps) {
                   loadingProtocols={loadingProtocols}
                   totalValueUsd={positionsTotalUsd}
                 />
-              </motion.div>
-            )}
-
-            {activeTab === "nfts" && (
-              <motion.div
-                key="nfts"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.25 }}
-              >
-                <NftPlaceholder />
               </motion.div>
             )}
 
