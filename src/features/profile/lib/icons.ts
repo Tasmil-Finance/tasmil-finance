@@ -24,10 +24,17 @@ export interface IconStyle {
   bg: string;
   fg: string;
   label: string;
+  /** Secondary action verb shown beneath the primary label (Freighter UX). */
+  sublabel?: string;
 }
 
 const STYLES: Record<OpKind, IconStyle> = {
-  send: { icon: ArrowUpRight, bg: "bg-destructive/10", fg: "text-destructive", label: "Sent" },
+  send: {
+    icon: ArrowUpRight,
+    bg: "bg-destructive/10",
+    fg: "text-destructive",
+    label: "Sent",
+  },
   receive: {
     icon: ArrowDownLeft,
     bg: "bg-emerald-500/10",
@@ -38,68 +45,84 @@ const STYLES: Record<OpKind, IconStyle> = {
     icon: ArrowLeftRight,
     bg: "bg-violet-500/10",
     fg: "text-violet-400",
-    label: "Swapped",
+    label: "Swap",
+    sublabel: "Swapped",
   },
   "lp-deposit": {
     icon: Droplets,
     bg: "bg-violet-500/10",
     fg: "text-violet-400",
     label: "Added Liquidity",
+    sublabel: "Sent",
   },
   "lp-withdraw": {
     icon: Droplets,
     bg: "bg-amber-500/10",
     fg: "text-amber-400",
     label: "Removed Liquidity",
+    sublabel: "Received",
   },
   "lend-deposit": {
     icon: PiggyBank,
     bg: "bg-emerald-500/10",
     fg: "text-emerald-400",
-    label: "Deposited",
+    label: "Deposit",
+    sublabel: "Sent",
   },
   "lend-withdraw": {
     icon: Wallet,
     bg: "bg-amber-500/10",
     fg: "text-amber-400",
-    label: "Withdrew",
+    label: "Withdraw",
+    sublabel: "Received",
   },
-  harvest: { icon: Zap, bg: "bg-emerald-500/10", fg: "text-emerald-400", label: "Harvested" },
+  harvest: {
+    icon: Zap,
+    bg: "bg-emerald-500/10",
+    fg: "text-emerald-400",
+    label: "Harvest",
+    sublabel: "Received",
+  },
   "trustline-add": {
     icon: Shield,
     bg: "bg-blue-500/10",
     fg: "text-blue-400",
-    label: "Added Trustline",
+    label: "Add trustline",
+    sublabel: "Added",
   },
   "trustline-remove": {
     icon: ShieldOff,
     bg: "bg-muted/30",
     fg: "text-muted-foreground",
-    label: "Removed Trustline",
+    label: "Remove trustline",
+    sublabel: "Removed",
   },
   "create-account": {
     icon: UserPlus,
     bg: "bg-emerald-500/10",
     fg: "text-emerald-400",
-    label: "Created Account",
+    label: "Create Account",
+    sublabel: "Sent",
   },
   "merge-account": {
     icon: Link2,
     bg: "bg-muted/30",
     fg: "text-muted-foreground",
-    label: "Merged Account",
+    label: "Merge Account",
   },
   "claim-balance": {
     icon: Coins,
     bg: "bg-emerald-500/10",
     fg: "text-emerald-400",
-    label: "Claimed Balance",
+    label: "Claim Balance",
+    sublabel: "Received",
   },
   "lock-balance": {
     icon: Lock,
     bg: "bg-amber-500/10",
     fg: "text-amber-400",
-    label: "Locked Balance",
+    label: "Lock Balance",
+    sublabel: "Sent",
   },
   "dex-offer": {
     icon: TrendingUp,
@@ -111,7 +134,8 @@ const STYLES: Record<OpKind, IconStyle> = {
     icon: Layers,
     bg: "bg-muted/30",
     fg: "text-muted-foreground",
-    label: "Contract Call",
+    label: "Contract Function",
+    sublabel: "Interacted",
   },
   "classic-other": {
     icon: Layers,
@@ -126,6 +150,7 @@ export const FAILED_STYLE: IconStyle = {
   bg: "bg-destructive/10",
   fg: "text-destructive",
   label: "Transaction Failed",
+  sublabel: "Failed",
 };
 
 export function getIconStyle(kind: OpKind, successful: boolean): IconStyle {

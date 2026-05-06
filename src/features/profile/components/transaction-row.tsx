@@ -4,6 +4,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { TokenImage } from "@/shared/components/token-image";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/shared/ui/collapsible";
+import { formatRowDate } from "@/shared/utils/date-group";
 import { formatAmount, signedAmount } from "../lib/format-amount";
 import { getIconStyle } from "../lib/icons";
 import type { DecodedOp, TxGroup } from "../lib/types";
@@ -17,32 +18,37 @@ const PROTOCOL_LABEL: Record<string, string> = {
   stellar: "Stellar",
 };
 
-function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
-}
-
 function shortenAddr(a: string | undefined): string {
   if (!a) return "";
   if (a.length < 10) return a;
   return `${a.slice(0, 6)}…${a.slice(-4)}`;
 }
 
-function renderSwapAmounts(primary: DecodedOp) {
+/**
+ * Decide whether to render "Multiple" in place of an explicit amount.
+ * Mirrors Freighter's `assetDiffs.length > 1` rule plus our own multi-op signal.
+ */
+function isMultiAmount(group: TxGroup): boolean {
+  if (group.ops.length > 1) return true;
+  const totalDeltas = group.primary.deltas.length;
+  if (group.primary.kind === "swap") return false; // swap is always 2 deltas (handled below)
+  return totalDeltas > 1;
+}
+
+function renderSwapAmount(primary: DecodedOp) {
   const src = primary.deltas.find((d) => !d.isCredit);
   const dst = primary.deltas.find((d) => d.isCredit);
   if (!src || !dst) return null;
   return (
     <div
       data-testid="primary-amount"
-      className="flex items-center gap-2 font-semibold text-sm leading-none"
+      className="flex items-center gap-1.5 text-sm font-semibold leading-none tabular-nums"
     >
       <span className="text-destructive">{signedAmount(formatAmount(src.amount), false)}</span>
-      <TokenImage alt={src.code} className="h-5 w-5 rounded-full text-[10px]" />
-      <span>{src.code}</span>
+      <span className="text-muted-foreground">{src.code}</span>
       <span className="text-muted-foreground">→</span>
       <span className="text-emerald-400">{signedAmount(formatAmount(dst.amount), true)}</span>
-      <TokenImage alt={dst.code} className="h-5 w-5 rounded-full text-[10px]" />
-      <span>{dst.code}</span>
+      <span className="text-muted-foreground">{dst.code}</span>
     </div>
   );
 }
@@ -54,10 +60,13 @@ function renderSingleAmount(primary: DecodedOp) {
   return (
     <div
       data-testid="primary-amount"
-      className={cn("flex items-center gap-2 font-semibold text-sm leading-none", colour)}
+      className={cn(
+        "flex items-center gap-1.5 text-sm font-semibold leading-none tabular-nums",
+        colour,
+      )}
     >
       <span>{signedAmount(formatAmount(delta.amount), delta.isCredit)}</span>
-      <TokenImage alt={delta.code} className="h-5 w-5 rounded-full text-[10px]" />
+      <TokenImage alt={delta.code} className="h-4 w-4 shrink-0 rounded-full text-[9px]" />
       <span className="text-foreground">{delta.code}</span>
     </div>
   );
@@ -74,13 +83,17 @@ export function TransactionRow({ group, address: _address }: TransactionRowProps
   const style = getIconStyle(primary.kind, successful);
   const Icon = style.icon;
 
-  const subLabel = primary.protocol
-    ? PROTOCOL_LABEL[primary.protocol]
-    : primary.counterparty
-      ? shortenAddr(primary.counterparty)
-      : null;
+  const subline =
+    style.sublabel ??
+    (primary.protocol
+      ? PROTOCOL_LABEL[primary.protocol]
+      : primary.counterparty
+        ? shortenAddr(primary.counterparty)
+        : null);
 
-  const moreOps = ops.length - 1;
+  const showMultiple = isMultiAmount(group);
+  const moreOpsLabel = ops.length > 1 ? ` + ${ops.length - 1} ops` : "";
+  const dateLabel = formatRowDate(new Date(group.createdAt));
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
@@ -93,33 +106,37 @@ export function TransactionRow({ group, address: _address }: TransactionRowProps
           <div
             className={cn(
               "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
-              style.bg
+              style.bg,
             )}
           >
             <Icon className={cn("h-[15px] w-[15px]", style.fg)} />
           </div>
 
-          <div className="w-44 min-w-0 shrink-0">
-            <p className="truncate font-medium text-foreground text-sm">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-foreground">
               {style.label}
-              {moreOps > 0 && (
-                <span className="ml-1.5 font-normal text-muted-foreground text-xs">
-                  + {moreOps} ops
+              {moreOpsLabel && (
+                <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                  {moreOpsLabel}
                 </span>
               )}
             </p>
-            <p className="text-muted-foreground text-xs">
-              {subLabel ? `${subLabel} · ` : ""}
-              {formatTime(group.createdAt)}
-            </p>
+            {subline && (
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">{subline}</p>
+            )}
           </div>
 
-          <div className="flex flex-1 items-center gap-2.5">
-            {!successful
-              ? null
-              : primary.kind === "swap"
-                ? renderSwapAmounts(primary)
-                : renderSingleAmount(primary)}
+          <div className="flex shrink-0 flex-col items-end gap-0.5">
+            {!successful ? null : showMultiple ? (
+              <span className="text-sm font-semibold leading-none text-foreground">Multiple</span>
+            ) : primary.kind === "swap" ? (
+              renderSwapAmount(primary)
+            ) : (
+              renderSingleAmount(primary)
+            )}
+            <span className="text-xs leading-none text-muted-foreground tabular-nums">
+              {dateLabel}
+            </span>
           </div>
         </button>
       </CollapsibleTrigger>

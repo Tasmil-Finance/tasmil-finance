@@ -4,7 +4,7 @@ import { Clock, Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { groupByDate } from "@/shared/utils/date-group";
+import { groupByMonth } from "@/shared/utils/date-group";
 import { useSorobanTokenMeta } from "../hooks/use-soroban-token-meta";
 import { useStellarTransactions } from "../hooks/use-stellar-transactions";
 import { decodeOperation } from "../lib/decode-operation";
@@ -120,7 +120,7 @@ export function TransactionList({ address }: { address: string }) {
     [groups, filterState],
   );
 
-  const datedGroups = useMemo(() => groupByDate<DatedGroup>(filtered), [filtered]);
+  const datedGroups = useMemo(() => groupByMonth<DatedGroup>(filtered), [filtered]);
 
   const sentinelRef = useRef<HTMLDivElement>(null);
   const loadMore = useCallback(() => {
