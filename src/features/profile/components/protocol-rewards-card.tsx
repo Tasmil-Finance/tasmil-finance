@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { Coins } from "lucide-react";
-import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -72,40 +71,13 @@ function formatUsd(value: number): string {
   }).format(value);
 }
 
-// Mock data for visual testing — toggled via ?mock=rewards | ?mock=empty
-const MOCK_REWARDS: ProtocolReward[] = [
-  {
-    protocol: "blend",
-    displayName: "Blend",
-    icon: PROTOCOL_ICONS.blend ?? null,
-    token: "BLND",
-    amount: 1.2345,
-    amountUsd: 0.12,
-  },
-  {
-    protocol: "aquarius",
-    displayName: "Aquarius",
-    icon: PROTOCOL_ICONS.aquarius ?? null,
-    token: "AQUA",
-    amount: 250.789,
-    amountUsd: 0.27,
-  },
-];
-
 interface ProtocolRewardsCardProps {
   groups: ProtocolPositionGroup[];
   className?: string;
 }
 
 export function ProtocolRewardsCard({ groups, className }: ProtocolRewardsCardProps) {
-  const searchParams = useSearchParams();
-  const mockMode = searchParams.get("mock");
-
-  const rewards = useMemo(() => {
-    if (mockMode === "empty") return [];
-    if (mockMode === "rewards") return MOCK_REWARDS;
-    return aggregateRewards(groups);
-  }, [groups, mockMode]);
+  const rewards = useMemo(() => aggregateRewards(groups), [groups]);
 
   const totalUsd = rewards.reduce((s, r) => s + r.amountUsd, 0);
 
