@@ -2,7 +2,6 @@
 
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { useRef } from "react";
 import { usePosition } from "@/features/account/hooks/use-account-api";
 import { useAquariusPositions } from "./use-aquarius-positions";
@@ -196,111 +195,11 @@ export function useDefiPositions(address: string | null | undefined) {
   if (blendLoading && stableBlend.length === 0) loadingProtocols.push("Blend");
   if (aquaLoading && stableAqua.length === 0) loadingProtocols.push("Aquarius");
 
-  // ─── Mock injection for visual testing ─────────────────────────────────
-  // ?mock=rewards   → Aquarius (3 LP pools) + Blend (1 pool with reward)
-  // ?mock=aquarius  → Aquarius only (6 LP pools)
-  // (none)          → real data
-  const searchParams = useSearchParams();
-  const mockMode = searchParams.get("mock");
-  if (mockMode === "rewards" || mockMode === "aquarius") {
-    return buildMockResult(mockMode);
-  }
-
   return {
     groups,
     vaultPnl,
     isLoading: tasmilLoading || blendLoading || aquaLoading,
     loadingProtocols,
     totalValueUsd: groups.reduce((s, g) => s + g.totalValueUsd, 0),
-  };
-}
-
-// ─── Mock data ─────────────────────────────────────────────────────────────
-
-function aquaPool(
-  pair: string,
-  poolType: "Volatile" | "Stable" | "Concentrated",
-  fee: string,
-  shares: number,
-  valueUsd: number,
-  rewardAmount: number,
-): PositionItem {
-  const [token0, token1] = pair.split("/").map((s) => s.trim());
-  return {
-    name: `${pair} LP`,
-    type: "lp",
-    asset: pair,
-    valueUsd,
-    apy: 4.21,
-    extra: `${shares.toFixed(4)} shares`,
-    pair: {
-      token0: token0!,
-      token1: token1!,
-      pooled0: (shares / 2).toFixed(4),
-      pooled1: (shares / 2).toFixed(4),
-      shares: shares.toFixed(4),
-      sharePct: "0.0001",
-      poolType,
-      fee,
-    },
-    rewards: rewardAmount > 0 ? { amount: rewardAmount, token: "AQUA", daily: rewardAmount / 30 } : undefined,
-  };
-}
-
-function buildMockResult(mode: "rewards" | "aquarius") {
-  const aquariusPositions: PositionItem[] =
-    mode === "aquarius"
-      ? [
-          aquaPool("XLM/USDC", "Volatile", "0.10%", 12.5, 12.84, 4.523),
-          aquaPool("XLM/EURC", "Volatile", "0.30%", 8.2, 7.62, 12.4881),
-          aquaPool("AQUA/XLM", "Volatile", "0.30%", 1500, 5.04, 8.0014),
-          aquaPool("USDC/EURC", "Stable", "0.05%", 4.6, 4.6, 0.082),
-          aquaPool("yXLM/XLM", "Concentrated", "0.10%", 0.91, 0.85, 0.4521),
-          aquaPool("BTC/XLM", "Volatile", "0.30%", 0.0008, 0.6, 0.0007),
-        ]
-      : [
-          aquaPool("XLM/USDC", "Volatile", "0.10%", 12.5, 12.84, 0.4253),
-          aquaPool("XLM/EURC", "Volatile", "0.30%", 8.2, 7.62, 12.4881),
-          aquaPool("USDC/EURC", "Stable", "0.05%", 4.6, 4.6, 0.082),
-        ];
-
-  const aquariusGroup: ProtocolPositionGroup = {
-    protocol: "aquarius",
-    displayName: "Aquarius AMM",
-    icon: null,
-    totalValueUsd: aquariusPositions.reduce((s, p) => s + p.valueUsd, 0),
-    positions: aquariusPositions,
-  };
-
-  const groups: ProtocolPositionGroup[] = [aquariusGroup];
-
-  if (mode === "rewards") {
-    groups.push({
-      protocol: "blend",
-      displayName: "Blend · Etherfuse Pool",
-      icon: null,
-      totalValueUsd: 0.73,
-      positions: [
-        {
-          name: "XLM Collateral",
-          type: "supply",
-          asset: "XLM",
-          valueUsd: 0.73,
-          apy: 0,
-          extra: "4.6 XLM",
-        },
-      ],
-      rewards: { amount: 1.2345, token: "BLND" },
-    });
-  }
-
-  const totalValueUsd = groups.reduce((s, g) => s + g.totalValueUsd, 0);
-
-  return {
-    groups,
-    vaultPnl: null,
-    isLoading: false,
-    loadingProtocols: [] as string[],
-    totalValueUsd,
   };
 }
