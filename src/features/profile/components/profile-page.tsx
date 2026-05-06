@@ -8,14 +8,11 @@ import { ReferralsBody } from "@/features/referrals";
 import { PackageGrid } from "@/features/topup/components/topup-page";
 import type { CreditPackage } from "@/features/topup/types";
 import { cn } from "@/lib/utils";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { useWalletStore } from "@/store/use-wallet";
 import { useDefiPositions } from "../hooks/use-defi-positions";
 import { useSnapshotSubmitter } from "../hooks/use-snapshot-submitter";
 import { useWalletTokens } from "../hooks/use-wallet-tokens";
 import { HistorySidebar } from "./history-sidebar";
-import { ProtocolOverview } from "./protocol-overview";
-import { RewardDistribution } from "./reward-distribution";
 import { PerformanceChart } from "./performance-chart";
 import { ProtocolHistoryView } from "./protocol-history";
 import { ProtocolPositions } from "./protocol-positions";
@@ -197,22 +194,7 @@ function ProfileContent({ packages }: ProfileContentProps) {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.25 }}
               >
-                <Tabs defaultValue="wallet" className="flex flex-col gap-4">
-                  <TabsList>
-                    <TabsTrigger value="wallet">Wallet</TabsTrigger>
-                    <TabsTrigger value="protocol">Protocol</TabsTrigger>
-                    <TabsTrigger value="reward">Reward</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="wallet">
-                    <TransactionList address={account} />
-                  </TabsContent>
-                  <TabsContent value="protocol">
-                    <ProtocolOverview walletAddress={account} />
-                  </TabsContent>
-                  <TabsContent value="reward">
-                    <RewardDistribution walletAddress={account} />
-                  </TabsContent>
-                </Tabs>
+                <TransactionList address={account} />
               </motion.div>
             )}
 
