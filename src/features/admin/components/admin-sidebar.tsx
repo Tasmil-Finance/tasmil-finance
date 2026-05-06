@@ -45,18 +45,18 @@ function AdminNavItem({
 
 export function AdminSidebar() {
   return (
-    <aside className="flex h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar">
+    <aside className="flex h-screen w-64 flex-col border-sidebar-border border-r bg-sidebar">
       {/* Header */}
-      <div className="flex h-14 items-center gap-2 border-b border-sidebar-border px-4">
+      <div className="flex h-14 items-center gap-2 border-sidebar-border border-b px-4">
         <Link href="/admin/dashboard" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent">
             <Bot className="h-4 w-4 text-white" />
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-semibold text-sidebar-foreground">
+            <span className="font-semibold text-sidebar-foreground text-sm">
               {adminSidebarData.header.brand_name}
             </span>
-            <span className="text-xs text-sidebar-foreground/60">Admin Panel</span>
+            <span className="text-sidebar-foreground/60 text-xs">Admin Panel</span>
           </div>
         </Link>
       </div>
@@ -66,7 +66,7 @@ export function AdminSidebar() {
         {adminSidebarData.navGroups.map((group, gi) => (
           <div key={gi} className={gi > 0 ? "mt-4" : ""}>
             {group.title && (
-              <p className="mb-1 px-4 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
+              <p className="mb-1 px-4 font-semibold text-[10px] text-sidebar-foreground/40 uppercase tracking-widest">
                 {group.title}
               </p>
             )}
@@ -80,15 +80,15 @@ export function AdminSidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="flex items-center gap-2 border-t border-sidebar-border p-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-sm font-semibold">
+      <div className="flex items-center gap-2 border-sidebar-border border-t p-4">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary font-semibold text-sm text-white">
           A
         </div>
-        <div className="flex flex-col min-w-0">
-          <span className="truncate text-sm font-medium text-sidebar-foreground">
+        <div className="flex min-w-0 flex-col">
+          <span className="truncate font-medium text-sidebar-foreground text-sm">
             {adminSidebarData.user.name}
           </span>
-          <span className="truncate text-xs text-sidebar-foreground/60">
+          <span className="truncate text-sidebar-foreground/60 text-xs">
             {adminSidebarData.user.email}
           </span>
         </div>

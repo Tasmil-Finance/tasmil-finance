@@ -17,7 +17,7 @@ function formatTime(iso: string): string {
 function ReasonBadge({ reason }: { reason: CreditLedgerEntry["reason"] }) {
   const label = REASON_LABELS[reason] ?? reason.replace(/_/g, " ");
   return (
-    <span className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">{label}</span>
+    <span className="rounded-md bg-muted px-2 py-0.5 text-muted-foreground text-xs">{label}</span>
   );
 }
 
@@ -31,7 +31,7 @@ export function CreditsPage() {
 
   return (
     <div data-testid="credits-page" className="flex flex-col gap-6 p-6">
-      <h1 className="text-2xl font-semibold">Credits & Points</h1>
+      <h1 className="font-semibold text-2xl">Credits & Points</h1>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Card data-testid="credits-card">
@@ -45,7 +45,7 @@ export function CreditsPage() {
             {snap.isLoading ? (
               <Skeleton className="h-10 w-32" />
             ) : (
-              <span data-testid="credits-balance" className="text-4xl font-bold">
+              <span data-testid="credits-balance" className="font-bold text-4xl">
                 {formatNumber(credits)}
               </span>
             )}
@@ -63,7 +63,7 @@ export function CreditsPage() {
             {snap.isLoading ? (
               <Skeleton className="h-10 w-32" />
             ) : (
-              <span data-testid="points-balance" className="text-4xl font-bold">
+              <span data-testid="points-balance" className="font-bold text-4xl">
                 {formatNumber(points)}
               </span>
             )}
@@ -79,7 +79,7 @@ export function CreditsPage() {
           {ledger.isLoading ? (
             <Skeleton className="h-32 w-full" />
           ) : rows.length === 0 ? (
-            <p data-testid="ledger-empty" className="text-sm text-muted-foreground">
+            <p data-testid="ledger-empty" className="text-muted-foreground text-sm">
               No activity yet.
             </p>
           ) : (

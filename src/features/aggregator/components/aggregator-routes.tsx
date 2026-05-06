@@ -88,23 +88,23 @@ function RouteCard({
       type="button"
       onClick={onClick}
       className={cn(
-        "w-full text-left rounded-2xl p-4 transition-all duration-200 relative border",
+        "relative w-full rounded-2xl border p-4 text-left transition-all duration-200",
         "active:scale-[0.98]",
         isSelected
-          ? "bg-secondary border-primary/30"
-          : "bg-secondary border-border hover:border-primary/20"
+          ? "border-primary/30 bg-secondary"
+          : "border-border bg-secondary hover:border-primary/20"
       )}
     >
       {/* Row 1: Protocol + badges */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <TokenImage src={proto.icon} alt={proto.label} className="h-7 w-7 rounded-lg shrink-0" />
-          <span className="text-sm font-semibold text-foreground">{proto.label}</span>
+          <TokenImage src={proto.icon} alt={proto.label} className="h-7 w-7 shrink-0 rounded-lg" />
+          <span className="font-semibold text-foreground text-sm">{proto.label}</span>
           <ChainBadge chainIn={chainIn} chainOut={chainOut} className="ml-1" />
         </div>
         <div className="flex items-center gap-2">
           {isBest && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/15 px-2.5 py-1 font-bold text-[10px] text-emerald-400 uppercase tracking-wider">
               <svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
@@ -112,7 +112,7 @@ function RouteCard({
             </span>
           )}
           {isSelected && (
-            <div className="h-5 w-5 rounded-full flex items-center justify-center bg-primary">
+            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
               <Check className="h-3 w-3 text-primary-foreground" strokeWidth={3} />
             </div>
           )}
@@ -120,15 +120,15 @@ function RouteCard({
       </div>
 
       {/* Row 2: Amount output */}
-      <div className="flex items-baseline gap-1.5 mb-0.5">
-        <span className="text-[22px] font-bold tabular-nums tracking-tight text-foreground">
+      <div className="mb-0.5 flex items-baseline gap-1.5">
+        <span className="font-bold text-[22px] text-foreground tabular-nums tracking-tight">
           {formatAmount(quote.amountOut, decimalsOut)}
         </span>
-        <span className="text-sm font-medium text-muted-foreground">{tokenOutSymbol}</span>
+        <span className="font-medium text-muted-foreground text-sm">{tokenOutSymbol}</span>
       </div>
 
       {/* Row 3: Exchange rate */}
-      <p className="text-xs text-muted-foreground/60 mb-2.5">
+      <p className="mb-2.5 text-muted-foreground/60 text-xs">
         1 {tokenInSymbol} = {formatRate(rate)} {tokenOutSymbol}
       </p>
 
@@ -136,7 +136,7 @@ function RouteCard({
       {showRateWarning && (
         <div
           className={cn(
-            "flex items-center gap-1.5 mb-2.5 text-[11px] font-medium",
+            "mb-2.5 flex items-center gap-1.5 font-medium text-[11px]",
             rateDiffPct > 50 ? "text-red-400" : "text-amber-400"
           )}
         >
@@ -221,7 +221,7 @@ export function SlippageSettings({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-xl transition-colors bg-secondary text-muted-foreground"
+        className="flex items-center gap-1.5 rounded-xl bg-secondary px-2.5 py-1.5 font-medium text-muted-foreground text-xs transition-colors"
       >
         <Settings2 className="h-3.5 w-3.5" />
         <span>{isAuto ? "Auto" : `${(slippageBps / 100).toFixed(1)}%`}</span>
@@ -234,10 +234,10 @@ export function SlippageSettings({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -5, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-10 z-50 w-72 rounded-2xl p-4 space-y-4 shadow-xl bg-popover border border-border"
+            className="absolute top-10 right-0 z-50 w-72 space-y-4 rounded-2xl border border-border bg-popover p-4 shadow-xl"
           >
             <div>
-              <p className="text-xs font-medium mb-2.5 text-muted-foreground">Slippage Tolerance</p>
+              <p className="mb-2.5 font-medium text-muted-foreground text-xs">Slippage Tolerance</p>
               <div className="flex gap-1.5">
                 {presets.map(({ label, value }) => {
                   const active = label === "Auto" ? isAuto : slippageBps === value && !isAuto;
@@ -247,7 +247,7 @@ export function SlippageSettings({
                       type="button"
                       onClick={() => setSlippageBps(value)}
                       className={cn(
-                        "flex-1 py-2 text-xs font-medium rounded-xl transition-all",
+                        "flex-1 rounded-xl py-2 font-medium text-xs transition-all",
                         active
                           ? "bg-primary text-primary-foreground"
                           : "bg-secondary text-muted-foreground"
@@ -261,7 +261,7 @@ export function SlippageSettings({
             </div>
 
             <div>
-              <p className="text-xs font-medium mb-2.5 text-muted-foreground">Protocols</p>
+              <p className="mb-2.5 font-medium text-muted-foreground text-xs">Protocols</p>
               <div className="flex flex-wrap gap-2">
                 {Object.entries(PROTOCOL_META).map(([id, { label, icon }]) => {
                   const active = enabledProtocols.has(id);
@@ -271,7 +271,7 @@ export function SlippageSettings({
                       type="button"
                       onClick={() => toggleProtocol(id)}
                       className={cn(
-                        "flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-xl transition-all",
+                        "flex items-center gap-2 rounded-xl px-3 py-2 font-medium text-xs transition-all",
                         active ? "bg-accent text-foreground" : "bg-secondary text-ring opacity-50"
                       )}
                     >
@@ -327,7 +327,7 @@ export function AggregatorRoutePanel({
 
   const inner = (children: React.ReactNode) => (
     <BorderGlow
-      className="w-[360px] h-full"
+      className="h-full w-[360px]"
       backgroundColor="var(--card)"
       borderRadius={24}
       glowColor="203 100 73"
@@ -336,31 +336,31 @@ export function AggregatorRoutePanel({
       colors={["hsl(203 100% 73%)", "hsl(195 90% 55%)", "hsl(210 80% 50%)"]}
       fillOpacity={0.15}
     >
-      <div className="p-4 flex flex-col h-full min-h-0">{children}</div>
+      <div className="flex h-full min-h-0 flex-col p-4">{children}</div>
     </BorderGlow>
   );
 
   if (isLoading && quotes.length === 0) {
     return inner(
       <>
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold text-foreground">Finding routes</p>
-            <p className="text-[11px] mt-0.5 text-muted-foreground/50">Comparing protocols...</p>
+            <p className="font-semibold text-foreground text-sm">Finding routes</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground/50">Comparing protocols...</p>
           </div>
-          <div className="h-8 w-8 rounded-xl flex items-center justify-center bg-secondary">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary">
             <RefreshCw className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
           </div>
         </div>
-        <div className="flex flex-col gap-2.5 flex-1">
+        <div className="flex flex-1 flex-col gap-2.5">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="rounded-2xl p-4 bg-secondary/50 space-y-3">
+            <div key={i} className="space-y-3 rounded-2xl bg-secondary/50 p-4">
               <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-xl animate-pulse bg-input/30" />
-                <div className="h-4 w-16 rounded-lg animate-pulse bg-input/30" />
+                <div className="h-8 w-8 animate-pulse rounded-xl bg-input/30" />
+                <div className="h-4 w-16 animate-pulse rounded-lg bg-input/30" />
               </div>
-              <div className="h-6 w-28 rounded-lg animate-pulse bg-input/20" />
-              <div className="h-3 w-36 rounded animate-pulse bg-input/15" />
+              <div className="h-6 w-28 animate-pulse rounded-lg bg-input/20" />
+              <div className="h-3 w-36 animate-pulse rounded bg-input/15" />
             </div>
           ))}
         </div>
@@ -370,18 +370,18 @@ export function AggregatorRoutePanel({
 
   if (okQuotes.length === 0) {
     return inner(
-      <div className="flex flex-col items-center justify-center flex-1 gap-3 py-8">
-        <div className="h-12 w-12 rounded-2xl flex items-center justify-center bg-secondary">
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 py-8">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary">
           <AlertTriangle className="h-5 w-5 text-muted-foreground" />
         </div>
-        <p className="text-sm font-semibold text-foreground">No routes found</p>
-        <p className="text-xs text-center max-w-[200px] text-muted-foreground/60">
+        <p className="font-semibold text-foreground text-sm">No routes found</p>
+        <p className="max-w-[200px] text-center text-muted-foreground/60 text-xs">
           Try a different pair or amount
         </p>
         <button
           type="button"
           onClick={onRefresh}
-          className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded-xl transition-all hover:brightness-110 mt-1 bg-secondary text-muted-foreground"
+          className="mt-1 flex items-center gap-1.5 rounded-xl bg-secondary px-4 py-2 font-medium text-muted-foreground text-xs transition-all hover:brightness-110"
         >
           <RefreshCw className="h-3 w-3" /> Retry
         </button>
@@ -391,17 +391,17 @@ export function AggregatorRoutePanel({
 
   return inner(
     <>
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <div>
-          <p className="text-sm font-semibold text-foreground">Select a route</p>
-          <p className="text-[11px] mt-0.5 text-muted-foreground/50">
+          <p className="font-semibold text-foreground text-sm">Select a route</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground/50">
             {okQuotes.length} route{okQuotes.length !== 1 ? "s" : ""} found
           </p>
         </div>
         <button
           type="button"
           onClick={onRefresh}
-          className="h-8 w-8 rounded-xl flex items-center justify-center transition-all bg-secondary hover:bg-accent active:scale-90"
+          className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary transition-all hover:bg-accent active:scale-90"
           title="Refresh quotes"
         >
           <RefreshCw
@@ -409,7 +409,7 @@ export function AggregatorRoutePanel({
           />
         </button>
       </div>
-      <div className="flex flex-col gap-2.5 overflow-y-auto flex-1 min-h-0">
+      <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto">
         {okQuotes.map((quote, i) => {
           const id = quote.protocol || quote.provider || `route-${i}`;
           const isBest =

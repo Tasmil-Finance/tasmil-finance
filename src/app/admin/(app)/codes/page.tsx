@@ -53,14 +53,14 @@ export default function AdminCodesPage() {
           <Typography variant="h2" className="font-bold text-xl">
             Generate Codes
           </Typography>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-muted-foreground text-sm">
             Creates standalone EARLY_ACCESS codes
           </p>
         </div>
 
         <div className="space-y-3">
           <div>
-            <label htmlFor="quantity" className="mb-1.5 block text-sm font-medium">
+            <label htmlFor="quantity" className="mb-1.5 block font-medium text-sm">
               Quantity (1–100)
             </label>
             <Input
@@ -93,7 +93,7 @@ export default function AdminCodesPage() {
         {lastBatch.length > 0 && (
           <div className="space-y-2 rounded-lg border border-border p-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
                 Last Batch ({lastBatch.length})
               </p>
               <Button
@@ -106,9 +106,9 @@ export default function AdminCodesPage() {
                 Copy All
               </Button>
             </div>
-            <div className="max-h-64 overflow-y-auto space-y-1">
+            <div className="max-h-64 space-y-1 overflow-y-auto">
               {lastBatch.map((code) => (
-                <p key={code} className="font-mono text-xs text-emerald-400">
+                <p key={code} className="font-mono text-emerald-400 text-xs">
                   {code}
                 </p>
               ))}
@@ -124,7 +124,7 @@ export default function AdminCodesPage() {
             All Codes
           </Typography>
           {data && (
-            <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
+            <span className="rounded-full bg-muted px-2.5 py-0.5 font-semibold text-xs">
               {data.total}
             </span>
           )}
@@ -138,7 +138,7 @@ export default function AdminCodesPage() {
           <>
             <div className="flex-1 overflow-auto rounded-lg border border-border">
               <table className="w-full text-sm">
-                <thead className="sticky top-0 border-b border-border bg-card">
+                <thead className="sticky top-0 border-border border-b bg-card">
                   <tr className="text-left">
                     <th className="px-4 py-3 font-medium text-muted-foreground">Code</th>
                     <th className="px-4 py-3 font-medium text-muted-foreground">Status</th>
@@ -194,7 +194,7 @@ export default function AdminCodesPage() {
 
             {totalPages > 1 && (
               <div className="mt-3 flex items-center justify-between">
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-xs">
                   Page {page} of {totalPages}
                 </p>
                 <div className="flex gap-2">

@@ -23,7 +23,7 @@ export interface PortfolioHistory {
  */
 export function usePortfolioHistory(
   _publicKey: string | undefined,
-  range: HistoryRange,
+  range: HistoryRange
 ): PortfolioHistory {
   return {
     data: [],

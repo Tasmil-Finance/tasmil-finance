@@ -62,13 +62,13 @@ export function BlendPositionsCard({
     >
       {!isChat && <CardHeader icon={<Shield className="h-3.5 w-3.5" />} title="Position" />}
       {summary && (
-        <div className="grid grid-cols-4 gap-1.5 px-3 py-3 border-b border-border">
+        <div className="grid grid-cols-4 gap-1.5 border-border border-b px-3 py-3">
           <MetricBox label="Supplied" value={`$${fmt(summary.totalSuppliedUsd)}`} />
           <MetricBox label="Borrowed" value={`$${fmt(summary.totalBorrowedUsd)}`} />
           <MetricBox label="Available" value={`$${fmt(summary.availableBorrowUsd)}`} />
           <div className="rounded-lg bg-secondary px-2.5 py-2">
-            <p className="text-[10px] text-muted-foreground mb-0.5">Health</p>
-            <p className={cn("text-sm font-semibold tabular-nums", hfColor)}>
+            <p className="mb-0.5 text-[10px] text-muted-foreground">Health</p>
+            <p className={cn("font-semibold text-sm tabular-nums", hfColor)}>
               {Number.isFinite(hf) ? hf.toFixed(2) : "\u2014"}
             </p>
           </div>
@@ -93,10 +93,10 @@ function PositionSection({
     <div
       className={cn(
         "px-4 py-2.5",
-        type === "supply" && positions.length > 0 && "border-b border-border"
+        type === "supply" && positions.length > 0 && "border-border border-b"
       )}
     >
-      <div className="flex items-center gap-1.5 mb-1.5">
+      <div className="mb-1.5 flex items-center gap-1.5">
         <Tag type={type} />
         <span className="text-[10px] text-muted-foreground">{positions.length}</span>
       </div>
@@ -106,12 +106,12 @@ function PositionSection({
         const amount = type === "borrow" ? (p.borrowedAmount ?? p.amount) : p.suppliedAmount;
         const apy = type === "borrow" ? (p.borrowApy ?? p.apy) : (p.supplyApy ?? p.apy);
         return (
-          <div key={i} className="flex items-center py-1.5 gap-2">
+          <div key={i} className="flex items-center gap-2 py-1.5">
             <TokenImage src={null} alt={sym} className="h-5 w-5 rounded-full" />
-            <span className="text-xs font-medium text-foreground flex-1">{sym}</span>
+            <span className="flex-1 font-medium text-foreground text-xs">{sym}</span>
             {showCollateral && p.isCollateral === true && <Tag type="collateral" />}
-            <span className="text-xs text-foreground tabular-nums">{fmt(amount, 2)}</span>
-            <span className="text-[11px] text-muted-foreground tabular-nums w-14 text-right">
+            <span className="text-foreground text-xs tabular-nums">{fmt(amount, 2)}</span>
+            <span className="w-14 text-right text-[11px] text-muted-foreground tabular-nums">
               <Apy value={apy} />
             </span>
           </div>

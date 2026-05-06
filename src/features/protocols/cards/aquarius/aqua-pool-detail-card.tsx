@@ -85,8 +85,8 @@ export function AquaPoolDetailCard({ pool, mode = "playground" }: AquaPoolDetail
   // Playground mode
   return (
     <ProtocolCard mode="playground">
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
-        <div className="flex -space-x-1.5">
+      <div className="flex items-center gap-3 border-border border-b px-4 py-3">
+        <div className="-space-x-1.5 flex">
           {(pool.tokens ?? []).map((t, i) => (
             <TokenImage
               key={t.address || i}
@@ -97,13 +97,13 @@ export function AquaPoolDetailCard({ pool, mode = "playground" }: AquaPoolDetail
           ))}
         </div>
         <div>
-          <p className="text-sm font-medium text-foreground">{label}</p>
+          <p className="font-medium text-foreground text-sm">{label}</p>
           <p className="text-[10px] text-muted-foreground capitalize">
             {pool.poolType?.replace(/_/g, " ") ?? "AMM"} Pool
           </p>
         </div>
       </div>
-      <div className="p-4 space-y-3">
+      <div className="space-y-3 p-4">
         <div className="grid grid-cols-3 gap-2">
           <MetricBox label="Fee APY" value={pct(pool.feeApy)} />
           <MetricBox label="Reward APY" value={pct(pool.rewardApy)} />

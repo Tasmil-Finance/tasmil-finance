@@ -357,7 +357,18 @@ export function BlendExecuteCard({
         return { success: false, error: cardResult.message };
       }
     },
-    [xdr, stream, operation, toolCallId, respond, cacheTxResult, reportTransaction, walletAddress]
+    [
+      xdr,
+      stream,
+      operation,
+      toolCallId,
+      respond,
+      cacheTxResult,
+      reportTransaction,
+      walletAddress,
+      args?.amount,
+      args?.asset,
+    ]
   );
 
   const renderDetails = () => (

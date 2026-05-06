@@ -31,7 +31,7 @@ describe("PoolDetailDrawer", () => {
         isRevoked={false}
         onDeposit={noop}
         onWithdraw={noop}
-      />,
+      />
     );
     expect(screen.queryByText(/Soroswap/i)).toBeNull();
   });
@@ -46,7 +46,7 @@ describe("PoolDetailDrawer", () => {
         isRevoked={false}
         onDeposit={noop}
         onWithdraw={noop}
-      />,
+      />
     );
     expect(screen.getByText(/USDC\/XLM/i)).toBeInTheDocument();
     expect(screen.getByText(/12\.34%/)).toBeInTheDocument();
@@ -63,7 +63,7 @@ describe("PoolDetailDrawer", () => {
         isRevoked={false}
         onDeposit={noop}
         onWithdraw={noop}
-      />,
+      />
     );
     expect(screen.getByRole("button", { name: /^deposit$/i })).toBeInTheDocument();
   });
@@ -78,7 +78,7 @@ describe("PoolDetailDrawer", () => {
         isRevoked={false}
         onDeposit={noop}
         onWithdraw={noop}
-      />,
+      />
     );
     expect(screen.queryByRole("button", { name: /withdraw/i })).toBeNull();
   });
@@ -93,7 +93,7 @@ describe("PoolDetailDrawer", () => {
         isRevoked={false}
         onDeposit={noop}
         onWithdraw={noop}
-      />,
+      />
     );
     expect(screen.getByRole("button", { name: /withdraw/i })).toBeInTheDocument();
     expect(screen.getByText(/your position/i)).toBeInTheDocument();
@@ -110,7 +110,7 @@ describe("PoolDetailDrawer", () => {
         isRevoked={true}
         onDeposit={noop}
         onWithdraw={noop}
-      />,
+      />
     );
     expect(screen.queryByRole("button", { name: /^deposit$/i })).toBeNull();
     expect(screen.getByRole("button", { name: /reactivate/i })).toBeInTheDocument();
@@ -127,7 +127,7 @@ describe("PoolDetailDrawer", () => {
         isRevoked={false}
         onDeposit={onDeposit}
         onWithdraw={noop}
-      />,
+      />
     );
     fireEvent.click(screen.getByRole("button", { name: /^deposit$/i }));
     expect(onDeposit).toHaveBeenCalledWith(samplePool);
@@ -144,7 +144,7 @@ describe("PoolDetailDrawer", () => {
         isRevoked={false}
         onDeposit={noop}
         onWithdraw={onWithdraw}
-      />,
+      />
     );
     fireEvent.click(screen.getByRole("button", { name: /withdraw/i }));
     expect(onWithdraw).toHaveBeenCalledWith(samplePool);
@@ -160,7 +160,7 @@ describe("PoolDetailDrawer", () => {
         isRevoked={false}
         onDeposit={noop}
         onWithdraw={noop}
-      />,
+      />
     );
     expect(screen.queryByText(/your position/i)).toBeNull();
   });

@@ -13,8 +13,8 @@ export function AdminHeader({ title }: AdminHeaderProps) {
   const { logout } = useAdminAuth();
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-border bg-background px-6">
-      <h1 className="font-semibold text-xl text-foreground">{title}</h1>
+    <header className="flex h-14 items-center justify-between border-border border-b bg-background px-6">
+      <h1 className="font-semibold text-foreground text-xl">{title}</h1>
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"

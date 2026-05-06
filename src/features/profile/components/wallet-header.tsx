@@ -56,7 +56,7 @@ export function WalletHeader({
         <div className="flex items-center gap-3">
           <button
             onClick={handleCopy}
-            className="flex items-center gap-1.5 text-base font-medium text-foreground transition-colors hover:text-muted-foreground"
+            className="flex items-center gap-1.5 font-medium text-base text-foreground transition-colors hover:text-muted-foreground"
           >
             <span>{shortenAddress(address)}</span>
             <AnimatePresence mode="wait">
@@ -98,10 +98,10 @@ export function WalletHeader({
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.15 }}
           >
-            <span className="text-5xl font-bold tracking-tight text-foreground">
+            <span className="font-bold text-5xl text-foreground tracking-tight">
               {formatUsd(totalUsd)}
             </span>
-            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <div className="flex items-center gap-3 text-muted-foreground text-sm">
               <span className="flex items-center gap-1">
                 <Wallet className="h-3.5 w-3.5" />
                 {formatUsd(walletUsd)}

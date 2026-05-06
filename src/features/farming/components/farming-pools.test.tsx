@@ -52,7 +52,7 @@ describe("FarmingPools assetFilter", () => {
 
   it("filters to USDC pools when assetFilter=USDC", () => {
     const { container } = render(
-      <FarmingPools pools={[usdcPool, xlmPool]} isLoading={false} assetFilter="USDC" />,
+      <FarmingPools pools={[usdcPool, xlmPool]} isLoading={false} assetFilter="USDC" />
     );
     const dataRows = container.querySelectorAll('[data-pools-row="true"]');
     expect(dataRows.length).toBe(1);
@@ -87,7 +87,7 @@ describe("FarmingPools inPositionKeys", () => {
         pools={[blendUsdcPool, soroswapLpPool]}
         isLoading={false}
         inPositionKeys={inPositionKeys}
-      />,
+      />
     );
     expect(screen.getAllByText(/^Active$/).length).toBe(1);
   });
@@ -99,7 +99,7 @@ describe("FarmingPools inPositionKeys", () => {
         pools={[blendUsdcPool, soroswapLpPool]}
         isLoading={false}
         inPositionKeys={inPositionKeys}
-      />,
+      />
     );
     expect(screen.getAllByText(/^Active$/).length).toBe(1);
   });
@@ -111,7 +111,7 @@ describe("FarmingPools inPositionKeys", () => {
         pools={[blendUsdcPool, soroswapLpPool]}
         isLoading={false}
         inPositionKeys={inPositionKeys}
-      />,
+      />
     );
     expect(screen.queryByText(/^Active$/)).toBeNull();
   });
@@ -119,9 +119,7 @@ describe("FarmingPools inPositionKeys", () => {
   it("matches with case-insensitive protocol on the row side", () => {
     const inPositionKeys = new Set(["blend:USDC"]);
     const upperPool = { ...blendUsdcPool, protocol: "BLEND" } as unknown as DiscoveredPool;
-    render(
-      <FarmingPools pools={[upperPool]} isLoading={false} inPositionKeys={inPositionKeys} />,
-    );
+    render(<FarmingPools pools={[upperPool]} isLoading={false} inPositionKeys={inPositionKeys} />);
     expect(screen.getAllByText(/^Active$/).length).toBe(1);
   });
 });
@@ -137,7 +135,7 @@ describe("FarmingPools onSelectPool", () => {
   it("invokes onSelectPool when row is clicked", () => {
     const onSelectPool = jest.fn();
     const { container } = render(
-      <FarmingPools pools={[pool]} isLoading={false} onSelectPool={onSelectPool} />,
+      <FarmingPools pools={[pool]} isLoading={false} onSelectPool={onSelectPool} />
     );
     const row = container.querySelector('[data-pools-row="true"]') as HTMLElement;
     fireEvent.click(row);
@@ -148,7 +146,7 @@ describe("FarmingPools onSelectPool", () => {
   it("invokes onSelectPool when row receives Enter key", () => {
     const onSelectPool = jest.fn();
     const { container } = render(
-      <FarmingPools pools={[pool]} isLoading={false} onSelectPool={onSelectPool} />,
+      <FarmingPools pools={[pool]} isLoading={false} onSelectPool={onSelectPool} />
     );
     const row = container.querySelector('[data-pools-row="true"]') as HTMLElement;
     fireEvent.keyDown(row, { key: "Enter" });

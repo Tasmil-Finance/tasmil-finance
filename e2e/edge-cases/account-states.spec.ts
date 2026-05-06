@@ -1,4 +1,4 @@
-import { test, expect } from "../fixtures/chat.fixture";
+import { expect, test } from "../fixtures/chat.fixture";
 
 test.describe("Edge Cases — Account States (Funded Wallet)", () => {
   test.describe.configure({ mode: "serial" });
@@ -14,7 +14,12 @@ test.describe("Edge Cases — Account States (Funded Wallet)", () => {
 
     const { type, locator: card } = await chatPage.waitForAnyCard();
     // Should show account strategy card (with or without existing account)
-    expect(["card-account-strategy", "card-strategy-preset", "card-account-setup", "card-clarify"]).toContain(type);
+    expect([
+      "card-account-strategy",
+      "card-strategy-preset",
+      "card-account-setup",
+      "card-clarify",
+    ]).toContain(type);
     await expect(card).toBeVisible();
     await chatPage.screenshotLastCard("account-funded-status");
   });

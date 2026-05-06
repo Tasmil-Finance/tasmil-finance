@@ -31,15 +31,18 @@ export function ExecutionCard({
   const previousStepsConfirmed = step > 1;
 
   return (
-    <div data-testid="card-execution" className="rounded-xl border border-white/[0.07] bg-[#131715] p-4">
+    <div
+      data-testid="card-execution"
+      className="rounded-xl border border-white/[0.07] bg-[#131715] p-4"
+    >
       {/* Previous steps confirmed */}
       {previousStepsConfirmed && (
-        <div className="mb-2 text-xs text-[#9aada4]">Step {step - 1} confirmed.</div>
+        <div className="mb-2 text-[#9aada4] text-xs">Step {step - 1} confirmed.</div>
       )}
 
       {/* Current status */}
       {status === "submitting" && (
-        <div className="text-xs text-[#f0f2f1]">
+        <div className="text-[#f0f2f1] text-xs">
           Submitting step {step} of {totalSteps}: {description}...
         </div>
       )}
@@ -47,9 +50,9 @@ export function ExecutionCard({
       {status === "confirmed" && (
         <div className="space-y-2">
           {isDone ? (
-            <div className="text-sm font-medium text-[#00C278]">Done. Position opened.</div>
+            <div className="font-medium text-[#00C278] text-sm">Done. Position opened.</div>
           ) : (
-            <div className="text-xs text-[#9aada4]">Step {step} confirmed.</div>
+            <div className="text-[#9aada4] text-xs">Step {step} confirmed.</div>
           )}
 
           {txHash && (
@@ -69,13 +72,13 @@ export function ExecutionCard({
 
       {status === "failed" && (
         <div className="space-y-2">
-          {error && <div className="text-xs text-[#f87171]">{error}</div>}
+          {error && <div className="text-[#f87171] text-xs">{error}</div>}
           {onRetry && (
             <button
               type="button"
               aria-label="Try again"
               onClick={onRetry}
-              className="rounded-lg px-3 py-1.5 text-xs font-medium text-[#f87171] hover:bg-[#f87171]/10"
+              className="rounded-lg px-3 py-1.5 font-medium text-[#f87171] text-xs hover:bg-[#f87171]/10"
             >
               Try again
             </button>

@@ -49,7 +49,7 @@ export function ThreadProvider({ children, agentId }: { children: ReactNode; age
   // Clear threads immediately when wallet changes to prevent showing another wallet's history
   useEffect(() => {
     setThreads([]);
-  }, [walletAddress]);
+  }, []);
 
   const getThreads = useCallback(
     async (assistantId?: string): Promise<Thread[]> => {

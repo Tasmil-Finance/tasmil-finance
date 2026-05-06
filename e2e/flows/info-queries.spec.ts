@@ -1,4 +1,4 @@
-import { test, expect } from "../fixtures/chat.fixture";
+import { expect, test } from "../fixtures/chat.fixture";
 
 test.describe("Info Queries — Non-execution Requests", () => {
   test.describe.configure({ mode: "serial" });
@@ -40,7 +40,9 @@ test.describe("Info Queries — Non-execution Requests", () => {
     await chatPage.waitForResponse();
 
     const { type, locator: card } = await chatPage.waitForAnyCard();
-    expect(["card-swap-quote", "card-pool-info", "card-account-info", "card-clarify"]).toContain(type);
+    expect(["card-swap-quote", "card-pool-info", "card-account-info", "card-clarify"]).toContain(
+      type
+    );
     await expect(card).toBeVisible();
 
     await chatPage.screenshotLastCard("info-swap-quote");

@@ -68,7 +68,7 @@ function ProtocolSidebar({
                           ? "bg-emerald-400"
                           : h.status === "error"
                             ? "bg-red-400"
-                            : "bg-amber-400 animate-pulse"
+                            : "animate-pulse bg-amber-400"
                       )}
                     />
                   )}

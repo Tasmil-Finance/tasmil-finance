@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 /**
  * Playground card UI tests — screenshot each card variant
@@ -17,7 +17,7 @@ test.describe("Playground Chat Cards — Visual UI Tests", () => {
     // Dismiss tunnel/ngrok interstitial if present
     try {
       const btn = page.locator(
-        'button:has-text("Continue"), button:has-text("Visit Site"), a:has-text("Visit Site")',
+        'button:has-text("Continue"), button:has-text("Visit Site"), a:has-text("Visit Site")'
       );
       await btn.first().click({ timeout: 3_000 });
       await page.waitForLoadState("load");

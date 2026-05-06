@@ -56,8 +56,7 @@ async function submitSignedXdr(signedXdr: string): Promise<{ hash: string }> {
   // Detect classic vs Soroban: if ALL operations are non-invokeHostFunction
   // (e.g. changeTrust, payment) → submit via Horizon.  Otherwise → Soroban RPC.
   const ops = (signedTx as any).operations ?? [];
-  const isClassic =
-    ops.length > 0 && ops.every((op: any) => op.type !== "invokeHostFunction");
+  const isClassic = ops.length > 0 && ops.every((op: any) => op.type !== "invokeHostFunction");
 
   if (isClassic) {
     const horizon = new Horizon.Server(activeNetwork.horizonUrl, {

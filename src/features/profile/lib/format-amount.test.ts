@@ -1,4 +1,4 @@
-import { formatAmount, signedAmount, scaleByDecimals } from "./format-amount";
+import { formatAmount, scaleByDecimals, signedAmount } from "./format-amount";
 
 describe("scaleByDecimals", () => {
   it("scales raw 7-decimal stroops to a human string", () => {

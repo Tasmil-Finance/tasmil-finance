@@ -144,7 +144,7 @@ interface SwapExecuteCardComponentProps {
 
 function priceImpactColor(impact: string): string {
   const n = parseFloat(impact);
-  if (isNaN(n)) return "text-foreground";
+  if (Number.isNaN(n)) return "text-foreground";
   if (n > 5) return "text-red-400";
   if (n > 1) return "text-amber-400";
   return "text-emerald-400";
@@ -279,7 +279,7 @@ function BridgeAddressPicker({
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
+  }, [open, handleOpen]);
 
   const label = direction === "source" ? "From Address" : "To Address";
   const chainLabel = chainType === "stellar" ? "Stellar" : "EVM";
@@ -290,18 +290,18 @@ function BridgeAddressPicker({
       {/* Trigger */}
       <button
         type="button"
-        className="flex items-center gap-1.5 rounded-lg py-1 px-2 text-sm text-muted-foreground hover:bg-input/50 transition-colors cursor-pointer"
+        className="flex cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1 text-muted-foreground text-sm transition-colors hover:bg-input/50"
         onClick={() => handleOpen(!open)}
       >
         {selectedAddress ? (
           <>
-            <TokenImage alt={chainType} className="h-4 w-4 rounded-full shrink-0" />
+            <TokenImage alt={chainType} className="h-4 w-4 shrink-0 rounded-full" />
             <span className="font-mono text-sm">{trunc(selectedAddress, 6, 4)}</span>
             <ChevronDown className="h-3.5 w-3.5 shrink-0" />
           </>
         ) : (
           <>
-            <Plus className="w-4 h-4" />
+            <Plus className="h-4 w-4" />
             <span>Add Address</span>
           </>
         )}
@@ -309,13 +309,13 @@ function BridgeAddressPicker({
 
       {/* Popover inside card — backdrop handled at card level */}
       {open && (
-        <div className="absolute left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-[420px] max-w-[calc(100%-2rem)] rounded-2xl border border-border bg-card p-4 shadow-2xl">
+        <div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 z-50 w-[420px] max-w-[calc(100%-2rem)] rounded-2xl border border-border bg-card p-4 shadow-2xl">
           {/* Header */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4 flex items-center justify-between">
             <h3 className="font-semibold text-lg">{label}</h3>
             <button
               type="button"
-              className="p-1 rounded hover:bg-secondary transition-colors"
+              className="rounded p-1 transition-colors hover:bg-secondary"
               onClick={() => handleOpen(false)}
             >
               <X className="h-4 w-4 text-muted-foreground" />
@@ -325,11 +325,11 @@ function BridgeAddressPicker({
           <div className="flex flex-col gap-4">
             {/* Manual input */}
             <div className="space-y-2">
-              <span className="text-sm font-medium text-muted-foreground">
+              <span className="font-medium text-muted-foreground text-sm">
                 Enter {chainLabel} address
               </span>
               <div className="relative">
-                <Pencil className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
+                <Pencil className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground/50" />
                 <Input
                   value={manualInput}
                   onChange={(e) => {
@@ -340,23 +340,23 @@ function BridgeAddressPicker({
                     if (e.key === "Enter" && isValidManual) handleManualSubmit();
                   }}
                   placeholder={placeholder}
-                  className="pl-9 pr-9"
+                  className="pr-9 pl-9"
                 />
                 {manualInput.length > 0 && (
                   <button
                     type="button"
-                    className="absolute right-3 top-1/2 -translate-y-1/2"
+                    className="-translate-y-1/2 absolute top-1/2 right-3"
                     onClick={() => setManualInput("")}
                   >
                     <X className="h-4 w-4 text-muted-foreground/50" />
                   </button>
                 )}
               </div>
-              {manualError && <p className="text-xs text-destructive">{manualError}</p>}
+              {manualError && <p className="text-destructive text-xs">{manualError}</p>}
               {isValidManual && (
                 <button
                   type="button"
-                  className="w-full rounded-lg bg-secondary px-3 py-2 text-sm text-muted-foreground text-left font-mono hover:bg-secondary/80 transition-colors"
+                  className="w-full rounded-lg bg-secondary px-3 py-2 text-left font-mono text-muted-foreground text-sm transition-colors hover:bg-secondary/80"
                   onClick={handleManualSubmit}
                 >
                   Use {trunc(manualInput.trim(), 10, 10)}
@@ -367,14 +367,14 @@ function BridgeAddressPicker({
             {/* Connected wallets */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+                <div className="flex items-center gap-1.5 font-medium text-muted-foreground text-sm">
                   <Wallet className="h-4 w-4" />
                   <span>Connected Wallets</span>
                 </div>
                 {onConnectWallet && (
                   <button
                     type="button"
-                    className="text-xs text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-50"
+                    className="text-blue-400 text-xs transition-colors hover:text-blue-300 disabled:opacity-50"
                     onClick={handleConnectNew}
                     disabled={connecting}
                   >
@@ -383,9 +383,9 @@ function BridgeAddressPicker({
                 )}
               </div>
 
-              <div className="max-h-[280px] overflow-y-auto space-y-1.5">
+              <div className="max-h-[280px] space-y-1.5 overflow-y-auto">
                 {connectedAddresses.length === 0 ? (
-                  <p className="text-sm text-muted-foreground/50 text-center py-6">
+                  <p className="py-6 text-center text-muted-foreground/50 text-sm">
                     No wallets connected
                   </p>
                 ) : (
@@ -395,15 +395,15 @@ function BridgeAddressPicker({
                       <button
                         key={entry.address}
                         type="button"
-                        className="w-full flex items-center gap-3 rounded-xl p-3 bg-secondary hover:bg-secondary/80 transition-colors text-left"
+                        className="flex w-full items-center gap-3 rounded-xl bg-secondary p-3 text-left transition-colors hover:bg-secondary/80"
                         onClick={() => handleSelectEntry(entry.address)}
                       >
-                        <TokenImage alt={chainType} className="h-9 w-9 rounded-full shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate">
+                        <TokenImage alt={chainType} className="h-9 w-9 shrink-0 rounded-full" />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-medium text-foreground text-sm">
                             {trunc(entry.address, 6, 4)}
                           </p>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                          <div className="mt-0.5 flex items-center gap-1 text-muted-foreground text-xs">
                             {entry.source === "connected" ? (
                               <>
                                 <Wallet className="h-3 w-3" />
@@ -417,17 +417,17 @@ function BridgeAddressPicker({
                             )}
                           </div>
                         </div>
-                        {isSelected && <Check className="h-5 w-5 text-blue-400 shrink-0" />}
+                        {isSelected && <Check className="h-5 w-5 shrink-0 text-blue-400" />}
                         {entry.source === "connected" && onDisconnect ? (
                           <button
                             type="button"
-                            className="shrink-0 p-1 hover:bg-destructive/10 rounded transition-colors"
+                            className="shrink-0 rounded p-1 transition-colors hover:bg-destructive/10"
                             onClick={(e) => {
                               e.stopPropagation();
                               onDisconnect();
                             }}
                           >
-                            <X className="h-4 w-4 text-muted-foreground hover:text-destructive transition-colors" />
+                            <X className="h-4 w-4 text-muted-foreground transition-colors hover:text-destructive" />
                           </button>
                         ) : null}
                       </button>
@@ -532,8 +532,8 @@ function BridgeDirectionCard({
     <div className="flex flex-col px-5 pb-1">
       {/* ── You pay ── */}
       <div className="rounded-2xl bg-secondary p-4 pb-[15px]">
-        <div className="grid grid-cols-9 gap-2 items-center h-7">
-          <span className="col-span-5 text-sm font-normal text-muted-foreground">You pay</span>
+        <div className="grid h-7 grid-cols-9 items-center gap-2">
+          <span className="col-span-5 font-normal text-muted-foreground text-sm">You pay</span>
           <div className="col-span-4 justify-self-end">
             <BridgeAddressPicker
               chainType={sourceChainType}
@@ -545,31 +545,31 @@ function BridgeDirectionCard({
             />
           </div>
         </div>
-        <div className="mt-[10px] grid grid-cols-[1fr_auto] gap-1 w-full">
+        <div className="mt-[10px] grid w-full grid-cols-[1fr_auto] gap-1">
           <div className="min-w-0 overflow-hidden">
-            <span className="text-2xl font-normal text-foreground tabular-nums truncate block">
+            <span className="block truncate font-normal text-2xl text-foreground tabular-nums">
               {fmt(humanAmount, 7)}
             </span>
-            <div className="flex items-center mt-0.5 h-5 gap-1.5">
-              <span className="text-sm font-medium leading-5 text-muted-foreground">$0</span>
+            <div className="mt-0.5 flex h-5 items-center gap-1.5">
+              <span className="font-medium text-muted-foreground text-sm leading-5">$0</span>
               {sourceBalance != null && sourceBalance > 0 ? (
                 <>
-                  <span className="text-sm leading-5 text-muted-foreground/40">|</span>
-                  <span className="text-sm font-medium leading-5 text-muted-foreground">
+                  <span className="text-muted-foreground/40 text-sm leading-5">|</span>
+                  <span className="font-medium text-muted-foreground text-sm leading-5">
                     Balance: {formatBalanceShort(sourceBalance)} {firstToken}
                   </span>
                 </>
               ) : null}
             </div>
           </div>
-          <div className="justify-self-end self-start shrink-0">
+          <div className="shrink-0 self-start justify-self-end">
             <div className="flex items-center gap-2.5">
               <TokenImage alt={firstToken} className="h-8 w-8 rounded-full" />
-              <span className="flex flex-col text-left min-w-0">
-                <span className="text-base font-semibold leading-5 text-foreground">
+              <span className="flex min-w-0 flex-col text-left">
+                <span className="font-semibold text-base text-foreground leading-5">
                   {firstToken}
                 </span>
-                <span className="text-sm font-normal leading-4 truncate text-muted-foreground">
+                <span className="truncate font-normal text-muted-foreground text-sm leading-4">
                   {srcChainLabel}
                 </span>
               </span>
@@ -579,7 +579,7 @@ function BridgeDirectionCard({
       </div>
 
       {/* ── Arrow ── */}
-      <div className="flex justify-center -my-2 relative z-10">
+      <div className="-my-2 relative z-10 flex justify-center">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary">
           <ArrowRightLeft className="h-5 w-5 text-muted-foreground" />
         </div>
@@ -587,13 +587,11 @@ function BridgeDirectionCard({
 
       {/* ── You receive ── */}
       <div className="rounded-2xl bg-secondary p-4 pb-[15px]">
-        <div className="grid grid-cols-9 gap-2 items-center h-7">
-          <span className="col-span-5 text-sm font-normal text-muted-foreground">
-            You receive
-          </span>
+        <div className="grid h-7 grid-cols-9 items-center gap-2">
+          <span className="col-span-5 font-normal text-muted-foreground text-sm">You receive</span>
           <div className="col-span-4 justify-self-end">
             {isDestEvm && !isEvmWalletAvailable() ? (
-              <span className="text-sm text-muted-foreground/60">Wallet not detected</span>
+              <span className="text-muted-foreground/60 text-sm">Wallet not detected</span>
             ) : (
               <BridgeAddressPicker
                 chainType={destChainType}
@@ -608,23 +606,23 @@ function BridgeDirectionCard({
             )}
           </div>
         </div>
-        <div className="mt-[10px] grid grid-cols-[1fr_auto] gap-1 w-full">
+        <div className="mt-[10px] grid w-full grid-cols-[1fr_auto] gap-1">
           <div className="min-w-0 overflow-hidden">
-            <span className="text-2xl font-normal text-foreground tabular-nums truncate block">
+            <span className="block truncate font-normal text-2xl text-foreground tabular-nums">
               {humanOutput != null ? fmt(humanOutput, 7) : "\u2014"}
             </span>
-            <div className="flex items-center mt-0.5 h-5 gap-1.5">
-              <span className="text-sm font-medium leading-5 text-muted-foreground">$0</span>
+            <div className="mt-0.5 flex h-5 items-center gap-1.5">
+              <span className="font-medium text-muted-foreground text-sm leading-5">$0</span>
             </div>
           </div>
-          <div className="justify-self-end self-start shrink-0">
+          <div className="shrink-0 self-start justify-self-end">
             <div className="flex items-center gap-2.5">
               <TokenImage alt={lastToken} className="h-8 w-8 rounded-full" />
-              <span className="flex flex-col text-left min-w-0">
-                <span className="text-base font-semibold leading-5 text-foreground">
+              <span className="flex min-w-0 flex-col text-left">
+                <span className="font-semibold text-base text-foreground leading-5">
                   {lastToken}
                 </span>
-                <span className="text-sm font-normal leading-4 truncate text-muted-foreground">
+                <span className="truncate font-normal text-muted-foreground text-sm leading-4">
                   {dstChainLabel}
                 </span>
               </span>
@@ -634,7 +632,7 @@ function BridgeDirectionCard({
       </div>
 
       {evmError ? (
-        <p className="text-[10px] text-destructive/80 text-center mt-1">{evmError}</p>
+        <p className="mt-1 text-center text-[10px] text-destructive/80">{evmError}</p>
       ) : null}
     </div>
   );
@@ -652,14 +650,14 @@ function TokenDirectionDisplay({
       <div className="relative flex items-center gap-3">
         <div className="flex flex-1 items-center gap-2.5 rounded-2xl bg-secondary/60 px-4 py-3">
           <TokenImage alt={firstToken} className="h-8 w-8 rounded-full" />
-          <p className="font-medium text-base text-foreground truncate">{firstToken}</p>
+          <p className="truncate font-medium text-base text-foreground">{firstToken}</p>
         </div>
-        <div className="absolute left-1/2 top-1/2 z-10 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-card shadow-sm">
+        <div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card shadow-sm">
           <span className="text-muted-foreground text-sm">{"\u2192"}</span>
         </div>
         <div className="flex flex-1 items-center gap-2.5 rounded-2xl bg-secondary/60 px-4 py-3">
           <TokenImage alt={lastToken} className="h-8 w-8 rounded-full" />
-          <p className="font-medium text-base text-foreground truncate">{lastToken}</p>
+          <p className="truncate font-medium text-base text-foreground">{lastToken}</p>
         </div>
       </div>
     </div>
@@ -676,7 +674,7 @@ function DetailRow({
   last?: boolean;
 }) {
   return (
-    <div className={`flex justify-between py-2.5 ${last ? "" : "border-b border-border/30"}`}>
+    <div className={`flex justify-between py-2.5 ${last ? "" : "border-border/30 border-b"}`}>
       <span className="text-muted-foreground text-sm">{label}</span>
       {children}
     </div>
@@ -821,14 +819,14 @@ function XdrToggle({
       <button
         type="button"
         onClick={onToggle}
-        className="flex items-center gap-1 text-muted-foreground/60 text-xs hover:text-muted-foreground transition-colors"
+        className="flex items-center gap-1 text-muted-foreground/60 text-xs transition-colors hover:text-muted-foreground"
       >
         <span className="font-mono tracking-tight">
           {showXdr ? "\u25BC Hide XDR" : "\u25B6 Show XDR"}
         </span>
       </button>
       {showXdr && (
-        <pre className="mt-2 max-h-[120px] overflow-auto rounded-xl border border-border/20 bg-secondary/50 p-3 font-mono text-[11px] text-muted-foreground break-all leading-relaxed">
+        <pre className="mt-2 max-h-[120px] overflow-auto break-all rounded-xl border border-border/20 bg-secondary/50 p-3 font-mono text-[11px] text-muted-foreground leading-relaxed">
           {xdr}
         </pre>
       )}
@@ -861,7 +859,7 @@ function ActionBar({
         href={getExplorerUrl("tx", txResult.hash ?? "")}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 py-2.5 text-center font-semibold text-emerald-400 text-sm hover:bg-emerald-500/15 transition-colors"
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 py-2.5 text-center font-semibold text-emerald-400 text-sm transition-colors hover:bg-emerald-500/15"
       >
         <span className="h-2 w-2 rounded-full bg-emerald-400" />
         Confirmed {"\u00B7"} {trunc(txResult.hash ?? "")}
@@ -889,7 +887,7 @@ function ActionBar({
     <div className="flex items-center gap-3">
       <button
         type="button"
-        className="flex-1 rounded-xl border border-border py-2.5 font-semibold text-muted-foreground text-sm hover:bg-secondary hover:text-foreground transition-all active:scale-[0.98]"
+        className="flex-1 rounded-xl border border-border py-2.5 font-semibold text-muted-foreground text-sm transition-all hover:bg-secondary hover:text-foreground active:scale-[0.98]"
         disabled={signing}
         onClick={onCancel}
       >
@@ -897,7 +895,7 @@ function ActionBar({
       </button>
       <button
         type="button"
-        className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] py-2.5 font-semibold text-black text-sm shadow-sm hover:from-[#C5F0FF] hover:to-[#1CCFFF] transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
+        className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] py-2.5 font-semibold text-black text-sm shadow-sm transition-all hover:from-[#C5F0FF] hover:to-[#1CCFFF] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
         onClick={onSign}
         disabled={signing || !hasXdr}
       >
@@ -981,14 +979,11 @@ export function SwapExecuteCard({
   // Source-chain balance (Stellar: use wallet tokens; EVM: not yet supported)
   const walletStore = useWalletStore();
   const isSourceStellar = tx.fromChain?.toLowerCase() === "stellar";
-  const { data: walletData } = useWalletTokens(
-    isSourceStellar ? walletStore.account : null,
-  );
+  const { data: walletData } = useWalletTokens(isSourceStellar ? walletStore.account : null);
   const walletTokens = walletData?.tokens ?? [];
   const sourceBalance: number | null = isSourceStellar
-    ? (walletTokens.find(
-        (t) => t.assetCode.toUpperCase() === firstToken.toUpperCase(),
-      )?.balance ?? null)
+    ? (walletTokens.find((t) => t.assetCode.toUpperCase() === firstToken.toUpperCase())?.balance ??
+      null)
     : null;
 
   const handleConnectEVM = async () => {
@@ -1013,10 +1008,13 @@ export function SwapExecuteCard({
   };
 
   return (
-    <div data-testid="card-swap-execute" className="relative rounded-xl border border-border bg-card">
+    <div
+      data-testid="card-swap-execute"
+      className="relative rounded-xl border border-border bg-card"
+    >
       {/* Blur overlay when address picker is open */}
       {pickerOpen && (
-        <div className="absolute inset-0 z-40 bg-card/60 backdrop-blur-sm rounded-xl" />
+        <div className="absolute inset-0 z-40 rounded-xl bg-card/60 backdrop-blur-sm" />
       )}
 
       <SwapBridgeHeader

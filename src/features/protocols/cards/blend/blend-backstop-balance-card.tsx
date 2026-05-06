@@ -87,7 +87,7 @@ export function BlendBackstopBalanceCard({
   return (
     <ProtocolCard mode="playground">
       <CardHeader icon={<Wallet className="h-3.5 w-3.5" />} title="Backstop Balance" />
-      <div className="p-4 space-y-3 text-xs">
+      <div className="space-y-3 p-4 text-xs">
         {/* Pool */}
         {data.pool && (
           <div className="flex justify-between py-0.5">
@@ -112,15 +112,15 @@ export function BlendBackstopBalanceCard({
 
         {/* Queued withdrawals */}
         {queued.length > 0 && (
-          <div className="space-y-2 border-t border-border pt-3">
+          <div className="space-y-2 border-border border-t pt-3">
             <div className="flex items-center gap-1.5">
               <Clock className="h-3 w-3 text-muted-foreground" />
-              <span className="text-[10px] text-muted-foreground font-medium">
+              <span className="font-medium text-[10px] text-muted-foreground">
                 Queued Withdrawals ({queued.length})
               </span>
             </div>
             {queued.map((q, i) => (
-              <div key={i} className="rounded-lg bg-secondary px-3 py-2 space-y-1">
+              <div key={i} className="space-y-1 rounded-lg bg-secondary px-3 py-2">
                 <Row label="Amount" value={String(q.amountHuman ?? q.amount)} />
                 {q.expiration != null && (
                   <Row label="Expiration (ledger)" value={String(q.expiration)} />

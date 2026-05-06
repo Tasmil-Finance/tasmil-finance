@@ -208,7 +208,7 @@ export function useTrustlineCheck(
   const [hasTrustline, setHasTrustline] = useState(true); // assume true until checked
   const [checking, setChecking] = useState(false);
   const [adding, setAdding] = useState(false);
-  const [checkId, setCheckId] = useState(0);
+  const [_checkId, setCheckId] = useState(0);
 
   const isNative = isNativeAsset(assetContract, symbol);
 
@@ -239,7 +239,7 @@ export function useTrustlineCheck(
     return () => {
       cancelled = true;
     };
-  }, [walletAddress, assetContract, isNative, symbol, checkId]);
+  }, [walletAddress, assetContract, isNative, symbol]);
 
   const recheck = useCallback(() => setCheckId((id) => id + 1), []);
 

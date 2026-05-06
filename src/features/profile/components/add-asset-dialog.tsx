@@ -115,7 +115,7 @@ export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
 
         <div className="flex flex-col gap-3 py-2">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search assets…"
               value={query}
@@ -145,7 +145,7 @@ export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
 
           {status === "error" && (
             <div className="flex flex-col items-center gap-2 py-6 text-center">
-              <p className="text-sm text-muted-foreground">Couldn&rsquo;t load assets.</p>
+              <p className="text-muted-foreground text-sm">Couldn&rsquo;t load assets.</p>
               <Button variant="outline" size="sm" onClick={fetchTokens}>
                 Retry
               </Button>
@@ -153,13 +153,13 @@ export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
           )}
 
           {status === "ready" && debounced && filtered.length === 0 && (
-            <p className="text-sm text-muted-foreground py-6 text-center">
+            <p className="py-6 text-center text-muted-foreground text-sm">
               No matches for &ldquo;{debounced}&rdquo;.
             </p>
           )}
 
           {status === "ready" && (
-            <ul className="flex flex-col gap-1 max-h-72 overflow-y-auto">
+            <ul className="flex max-h-72 flex-col gap-1 overflow-y-auto">
               {filtered.map((t) => {
                 const k = keyOf({
                   symbol: t.symbol,
@@ -173,10 +173,10 @@ export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
                     className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-muted/30"
                   >
                     <TokenImage alt={t.symbol} className="h-8 w-8 rounded-full text-[10px]" />
-                    <div className="flex-1 min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="font-medium text-foreground">{t.symbol}</div>
                       {t.addresses?.stellar && (
-                        <div className="font-mono text-xs text-muted-foreground">
+                        <div className="font-mono text-muted-foreground text-xs">
                           {shorten(t.addresses.stellar)}
                         </div>
                       )}

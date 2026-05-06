@@ -92,14 +92,14 @@ test.describe("/portfolio?tab=history", () => {
         JSON.stringify({
           state: { connected: true, account: addr },
           version: 0,
-        }),
+        })
       );
       window.localStorage.setItem(
         "tasmil-onboarding",
         JSON.stringify({
           state: { hasCompletedWelcome: true },
           version: 0,
-        }),
+        })
       );
       (window as unknown as { __TASMIL_E2E_BYPASS_KIT__?: boolean }).__TASMIL_E2E_BYPASS_KIT__ =
         true;

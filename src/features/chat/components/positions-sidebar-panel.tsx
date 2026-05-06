@@ -27,7 +27,7 @@ function PositionsSkeleton({ count = 2 }: { count?: number }) {
       </div>
       {Array.from({ length: count }).map((_, i) => (
         <div key={i}>
-          <div className="flex items-center gap-3 border-t border-sidebar-border py-2.5">
+          <div className="flex items-center gap-3 border-sidebar-border border-t py-2.5">
             <Skeleton className="h-6 w-6 shrink-0 rounded-full bg-sidebar-accent" />
             <div className="flex-1 space-y-1.5">
               <Skeleton className="h-3.5 w-24 rounded bg-sidebar-accent" />
@@ -48,8 +48,8 @@ function EmptyState() {
     <div className="flex flex-col items-center justify-center gap-2 px-4 py-12 text-center">
       <Layers className="h-8 w-8 text-sidebar-foreground/20" />
       <div>
-        <p className="text-sm text-sidebar-foreground/70">No positions found</p>
-        <p className="mt-0.5 text-xs text-sidebar-foreground/40">
+        <p className="text-sidebar-foreground/70 text-sm">No positions found</p>
+        <p className="mt-0.5 text-sidebar-foreground/40 text-xs">
           Start a conversation with the AI to manage your DeFi positions.
         </p>
       </div>
@@ -64,8 +64,8 @@ function DisconnectedState() {
     <div className="flex flex-col items-center justify-center gap-2 px-4 py-12 text-center">
       <Wallet className="h-8 w-8 text-sidebar-foreground/20" />
       <div>
-        <p className="text-sm text-sidebar-foreground/70">Connect wallet to view positions</p>
-        <p className="mt-0.5 text-xs text-sidebar-foreground/40">
+        <p className="text-sidebar-foreground/70 text-sm">Connect wallet to view positions</p>
+        <p className="mt-0.5 text-sidebar-foreground/40 text-xs">
           Your DeFi positions will appear here once your wallet is connected.
         </p>
       </div>
@@ -107,8 +107,8 @@ export function PositionsSidebarPanel() {
       {/* Summary */}
       <div className="px-4 pt-4 pb-2">
         <div className="flex items-baseline justify-between">
-          <span className="text-base font-semibold text-sidebar-foreground">Total Value</span>
-          <span className="text-base font-semibold text-sidebar-foreground tabular-nums">
+          <span className="font-semibold text-base text-sidebar-foreground">Total Value</span>
+          <span className="font-semibold text-base text-sidebar-foreground tabular-nums">
             {formatUsd(totalValueUsd)}
           </span>
         </div>
@@ -160,14 +160,14 @@ export function PositionsSidebarPanel() {
         {loadingProtocols.map((name) => {
           const key = name.toLowerCase().replace(/\s+/g, "-");
           return (
-            <div key={`loading-${key}`} className="border-b border-sidebar-border px-4 py-2.5">
+            <div key={`loading-${key}`} className="border-sidebar-border border-b px-4 py-2.5">
               <div className="flex items-center gap-3">
                 <Skeleton className="h-5 w-5 shrink-0 rounded-full bg-sidebar-accent" />
                 <div className="flex-1 space-y-1.5">
                   <Skeleton className="h-3.5 w-24 rounded bg-sidebar-accent" />
                   <Skeleton className="h-3 w-16 rounded bg-sidebar-accent" />
                 </div>
-                <span className="flex items-center gap-1.5 text-xs text-sidebar-foreground/50">
+                <span className="flex items-center gap-1.5 text-sidebar-foreground/50 text-xs">
                   <Loader2 className="h-3 w-3 animate-spin" />
                   Loading...
                 </span>

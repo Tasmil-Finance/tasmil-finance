@@ -76,10 +76,10 @@ export function DeployStepper({
             <div key={step.key} className="flex flex-1 items-center gap-2">
               <span
                 className={cn(
-                  "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] font-medium",
+                  "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border font-medium text-[10px]",
                   state === "done" && "border-emerald-500/50 bg-emerald-500/15 text-emerald-400",
                   state === "active" && "border-primary/50 bg-primary/15 text-primary",
-                  state === "pending" && "border-white/10 bg-white/3 text-muted-foreground/60",
+                  state === "pending" && "border-white/10 bg-white/3 text-muted-foreground/60"
                 )}
               >
                 {state === "done" ? (
@@ -95,7 +95,7 @@ export function DeployStepper({
                   "truncate text-xs",
                   state === "done" && "text-emerald-300",
                   state === "active" && "text-foreground",
-                  state === "pending" && "text-muted-foreground/70",
+                  state === "pending" && "text-muted-foreground/70"
                 )}
               >
                 {step.label}
@@ -104,7 +104,7 @@ export function DeployStepper({
                 <span
                   className={cn(
                     "h-px flex-1",
-                    state === "done" ? "bg-emerald-500/40" : "bg-white/8",
+                    state === "done" ? "bg-emerald-500/40" : "bg-white/8"
                   )}
                 />
               )}

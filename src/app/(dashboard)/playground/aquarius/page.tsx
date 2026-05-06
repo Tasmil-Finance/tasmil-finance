@@ -11,8 +11,8 @@
  */
 
 import { ChevronDown, Loader2, RefreshCw, Zap } from "lucide-react";
-import { useMultiTrustlineCheck } from "@/features/protocols/hooks/use-multi-trustline-check";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { SwapExecuteCard } from "@/features/chat/actions/components/stellar/swap-execute-card";
 import { StreamContext, type StreamContextType } from "@/features/chat/providers/stream-provider";
 import {
   normalizeAquaPoolFromSdk,
@@ -30,7 +30,7 @@ import {
   AquaRewardsCard,
   AquaTxCard,
 } from "@/features/protocols/cards/aquarius";
-import { SwapExecuteCard } from "@/features/chat/actions/components/stellar/swap-execute-card";
+import { useMultiTrustlineCheck } from "@/features/protocols/hooks/use-multi-trustline-check";
 import { TokenImage } from "@/shared/components/token-image";
 import { useWallet } from "@/shared/context/wallet-context";
 import { Button } from "@/shared/ui/button";
@@ -323,18 +323,21 @@ function OpPanel({ title, endpoint, operation, fields, defaults = {} }: OpPanelP
               <p className="text-[10px] font-semibold text-blue-400 uppercase tracking-wider mb-3">
                 NEW — Unified Swap/Bridge Execute Card (Aquarius)
               </p>
-              <SwapExecuteCard tx={{
-                operation: "swap",
-                protocol: "aquarius",
-                tokenIn: form.tokenIn ?? "XLM",
-                tokenOut: form.tokenOut ?? "USDC",
-                amountIn: form.amount ?? "0",
-                xdr: String(result.xdr ?? ""),
-                estimatedFee: result.estimatedFee ? String(result.estimatedFee) : undefined,
-                routeTokens: result.route?.tokens ?? undefined,
-                routePools: result.route?.pools ?? undefined,
-                context: result.context,
-              }} mode="playground" />
+              <SwapExecuteCard
+                tx={{
+                  operation: "swap",
+                  protocol: "aquarius",
+                  tokenIn: form.tokenIn ?? "XLM",
+                  tokenOut: form.tokenOut ?? "USDC",
+                  amountIn: form.amount ?? "0",
+                  xdr: String(result.xdr ?? ""),
+                  estimatedFee: result.estimatedFee ? String(result.estimatedFee) : undefined,
+                  routeTokens: result.route?.tokens ?? undefined,
+                  routePools: result.route?.pools ?? undefined,
+                  context: result.context,
+                }}
+                mode="playground"
+              />
             </div>
           ) : null}
         </div>

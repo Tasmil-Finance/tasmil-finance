@@ -75,7 +75,8 @@ export async function loginAsWallet(page: Page, walletAddress: string): Promise<
       // Test-only flag honored by WalletProvider's auto-restore: trust the
       // persisted wallet-storage state without calling StellarWalletsKit.
       // Production code never sets this; safe to bake in for headless e2e.
-      (window as unknown as { __TASMIL_E2E_BYPASS_KIT__?: boolean }).__TASMIL_E2E_BYPASS_KIT__ = true;
+      (window as unknown as { __TASMIL_E2E_BYPASS_KIT__?: boolean }).__TASMIL_E2E_BYPASS_KIT__ =
+        true;
 
       // Pre-mark onboarding as completed so the welcome modal doesn't open
       // in front of every test. Tests that DO want to exercise the modal

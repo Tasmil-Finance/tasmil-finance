@@ -153,12 +153,12 @@ export async function POST(req: NextRequest) {
         xdrs.push(xdr);
       }
       if (result.status === "fail" && result.error) {
-        warnings.push(`Step ${i} (${steps[i]!.typed_intent}): ${result.error}`);
+        warnings.push(`Step ${i} (${steps[i]?.typed_intent}): ${result.error}`);
       }
     } catch (e) {
       const errorMsg = e instanceof Error ? e.message : "Network error calling MCP";
       stepResults.push({ step_index: i, status: "fail", gas_consumed: 0, error: errorMsg });
-      warnings.push(`Step ${i} (${steps[i]!.typed_intent}): ${errorMsg}`);
+      warnings.push(`Step ${i} (${steps[i]?.typed_intent}): ${errorMsg}`);
     }
   }
 

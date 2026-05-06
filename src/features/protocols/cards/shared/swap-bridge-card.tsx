@@ -83,13 +83,13 @@ export function SwapBridgeCard({
         <div className="space-y-3">
           {/* You pay */}
           <div>
-            <p className="text-xs text-muted-foreground mb-1">You pay</p>
+            <p className="mb-1 text-muted-foreground text-xs">You pay</p>
             <div className="flex items-center gap-2 rounded-lg bg-secondary/60 px-3 py-2">
               <TokenImage src={null} alt={data.tokenIn} className="h-6 w-6 rounded-full" />
-              <span className="text-lg font-semibold text-foreground tabular-nums">
+              <span className="font-semibold text-foreground text-lg tabular-nums">
                 {data.amountIn}
               </span>
-              <span className="text-sm text-muted-foreground">{data.tokenIn}</span>
+              <span className="text-muted-foreground text-sm">{data.tokenIn}</span>
               {isBridge && data.sourceChain && (
                 <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
                   {data.sourceChain}
@@ -107,13 +107,13 @@ export function SwapBridgeCard({
 
           {/* You receive */}
           <div>
-            <p className="text-xs text-muted-foreground mb-1">You receive</p>
+            <p className="mb-1 text-muted-foreground text-xs">You receive</p>
             <div className="flex items-center gap-2 rounded-lg bg-secondary/60 px-3 py-2">
               <TokenImage src={null} alt={data.tokenOut} className="h-6 w-6 rounded-full" />
-              <span className="text-lg font-semibold text-foreground tabular-nums">
+              <span className="font-semibold text-foreground text-lg tabular-nums">
                 {data.amountOut}
               </span>
-              <span className="text-sm text-muted-foreground">{data.tokenOut}</span>
+              <span className="text-muted-foreground text-sm">{data.tokenOut}</span>
               {isBridge && data.destChain && (
                 <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
                   {data.destChain}
@@ -125,7 +125,7 @@ export function SwapBridgeCard({
           {/* Fee / Gas / Time */}
           <div className="space-y-1 pt-1">
             {(data.fee || data.feeAmount) && (
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
                 <Info className="h-3 w-3 shrink-0" />
                 <span>
                   Fee {data.fee ?? ""}
@@ -139,13 +139,13 @@ export function SwapBridgeCard({
               </div>
             )}
             {data.estimatedTime && (
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
                 <Clock className="h-3 w-3 shrink-0" />
                 <span>Est. time ~{data.estimatedTime}</span>
               </div>
             )}
             {data.route && data.route.length > 1 && (
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
                 <ArrowLeftRight className="h-3 w-3 shrink-0" />
                 <span>Route: {data.route.join(" \u2192 ")}</span>
               </div>
@@ -158,23 +158,23 @@ export function SwapBridgeCard({
               href={getExplorerUrl("tx", txResult.hash ?? "")}
               target="_blank"
               rel="noopener noreferrer"
-              className="block w-full rounded-lg py-2 text-xs font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-center hover:bg-emerald-500/15 transition-colors"
+              className="block w-full rounded-lg border border-emerald-500/20 bg-emerald-500/10 py-2 text-center font-semibold text-emerald-400 text-xs transition-colors hover:bg-emerald-500/15"
             >
               Transaction confirmed {"\u00B7"} {trunc(txResult.hash ?? "")}
             </a>
           ) : txError ? (
-            <div className="rounded-lg py-2 px-3 text-xs bg-destructive/10 border border-destructive/20 text-destructive text-center">
-              Failed {"\u00B7"} {txError.length > 80 ? txError.slice(0, 80) + "\u2026" : txError}
+            <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-center text-destructive text-xs">
+              Failed {"\u00B7"} {txError.length > 80 ? `${txError.slice(0, 80)}\u2026` : txError}
             </div>
           ) : cancelled ? (
-            <div className="rounded-lg py-2 px-3 text-xs bg-muted border border-border text-muted-foreground text-center">
+            <div className="rounded-lg border border-border bg-muted px-3 py-2 text-center text-muted-foreground text-xs">
               Transaction cancelled
             </div>
           ) : (
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                className="flex-1 rounded-lg py-2 text-xs font-semibold border border-border text-muted-foreground hover:bg-secondary hover:text-foreground transition-all active:scale-[0.98]"
+                className="flex-1 rounded-lg border border-border py-2 font-semibold text-muted-foreground text-xs transition-all hover:bg-secondary hover:text-foreground active:scale-[0.98]"
                 onClick={handleCancel}
                 disabled={signing}
               >
@@ -182,7 +182,7 @@ export function SwapBridgeCard({
               </button>
               <button
                 type="button"
-                className="flex-1 rounded-lg py-2 text-xs font-semibold bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] text-black hover:from-[#C5F0FF] hover:to-[#1CCFFF] transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] py-2 font-semibold text-black text-xs transition-all hover:from-[#C5F0FF] hover:to-[#1CCFFF] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
                 onClick={handleSign}
                 disabled={signing || !data.xdr}
               >
@@ -204,28 +204,28 @@ export function SwapBridgeCard({
   // ─── Playground mode ───────────────────────────────────────────
 
   return (
-    <div className="relative rounded-xl border border-border bg-card overflow-hidden">
+    <div className="relative overflow-hidden rounded-xl border border-border bg-card">
       {/* Header */}
-      <div className="px-5 pt-5 pb-2 flex items-center gap-2">
+      <div className="flex items-center gap-2 px-5 pt-5 pb-2">
         <opCfg.icon className="h-5 w-5 text-blue-500" />
         <div>
-          <p className="text-lg font-semibold text-foreground">
+          <p className="font-semibold text-foreground text-lg">
             {opCfg.label} via {protocolLabel}
           </p>
-          <p className="text-xs text-muted-foreground">Review details before signing</p>
+          <p className="text-muted-foreground text-xs">Review details before signing</p>
         </div>
       </div>
 
       {/* You pay */}
       <div className="px-5 pb-1">
-        <p className="text-sm text-muted-foreground mb-1.5">You pay</p>
+        <p className="mb-1.5 text-muted-foreground text-sm">You pay</p>
         <div className="flex items-center gap-2.5 rounded-2xl bg-secondary/60 px-4 py-3">
           <TokenImage src={null} alt={data.tokenIn} className="h-8 w-8 rounded-full" />
-          <div className="flex-1 min-w-0">
-            <span className="text-lg font-semibold text-foreground tabular-nums">
+          <div className="min-w-0 flex-1">
+            <span className="font-semibold text-foreground text-lg tabular-nums">
               {data.amountIn}
             </span>
-            <span className="ml-1.5 text-sm text-muted-foreground">{data.tokenIn}</span>
+            <span className="ml-1.5 text-muted-foreground text-sm">{data.tokenIn}</span>
           </div>
           {isBridge && data.sourceChain && (
             <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
@@ -237,21 +237,21 @@ export function SwapBridgeCard({
 
       {/* Arrow */}
       <div className="flex justify-center py-1">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card z-10">
+        <div className="z-10 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card">
           <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
         </div>
       </div>
 
       {/* You receive */}
       <div className="px-5 pb-3">
-        <p className="text-sm text-muted-foreground mb-1.5">You receive</p>
+        <p className="mb-1.5 text-muted-foreground text-sm">You receive</p>
         <div className="flex items-center gap-2.5 rounded-2xl bg-secondary/60 px-4 py-3">
           <TokenImage src={null} alt={data.tokenOut} className="h-8 w-8 rounded-full" />
-          <div className="flex-1 min-w-0">
-            <span className="text-lg font-semibold text-foreground tabular-nums">
+          <div className="min-w-0 flex-1">
+            <span className="font-semibold text-foreground text-lg tabular-nums">
               {data.amountOut}
             </span>
-            <span className="ml-1.5 text-sm text-muted-foreground">{data.tokenOut}</span>
+            <span className="ml-1.5 text-muted-foreground text-sm">{data.tokenOut}</span>
           </div>
           {isBridge && data.destChain && (
             <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
@@ -262,11 +262,11 @@ export function SwapBridgeCard({
       </div>
 
       {/* Fee / Gas / Time / Route */}
-      <div className="px-5 pb-3 space-y-0">
+      <div className="space-y-0 px-5 pb-3">
         {(data.fee || data.feeAmount || data.gasEstimate) && (
-          <div className="flex justify-between py-2.5 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">Fee</span>
-            <span className="text-sm text-foreground tabular-nums">
+          <div className="flex justify-between border-border/30 border-b py-2.5">
+            <span className="text-muted-foreground text-sm">Fee</span>
+            <span className="text-foreground text-sm tabular-nums">
               {data.fee ?? ""}
               {data.feeAmount ? ` (${data.feeAmount})` : ""}
               {data.gasEstimate ? ` \u00B7 Gas ~${data.gasEstimate}` : ""}
@@ -274,15 +274,15 @@ export function SwapBridgeCard({
           </div>
         )}
         {data.estimatedTime && (
-          <div className="flex justify-between py-2.5 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">Est. time</span>
-            <span className="text-sm text-foreground tabular-nums">~{data.estimatedTime}</span>
+          <div className="flex justify-between border-border/30 border-b py-2.5">
+            <span className="text-muted-foreground text-sm">Est. time</span>
+            <span className="text-foreground text-sm tabular-nums">~{data.estimatedTime}</span>
           </div>
         )}
         {data.route && data.route.length > 1 && (
-          <div className="flex justify-between py-2.5 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">Route</span>
-            <span className="text-sm text-foreground tabular-nums">
+          <div className="flex justify-between border-border/30 border-b py-2.5">
+            <span className="text-muted-foreground text-sm">Route</span>
+            <span className="text-foreground text-sm tabular-nums">
               {data.route.join(" \u2192 ")}
             </span>
           </div>
@@ -294,12 +294,12 @@ export function SwapBridgeCard({
         <button
           type="button"
           onClick={() => setShowXdr(!showXdr)}
-          className="text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+          className="text-[10px] text-muted-foreground/50 transition-colors hover:text-muted-foreground"
         >
           {showXdr ? "Hide XDR" : "Show XDR"}
         </button>
         {showXdr && (
-          <pre className="mt-1 max-h-[100px] overflow-auto rounded-lg bg-secondary p-2 text-[10px] text-muted-foreground font-mono break-all">
+          <pre className="mt-1 max-h-[100px] overflow-auto break-all rounded-lg bg-secondary p-2 font-mono text-[10px] text-muted-foreground">
             {data.xdr}
           </pre>
         )}
@@ -314,23 +314,23 @@ export function SwapBridgeCard({
             href={getExplorerUrl("tx", txResult.hash ?? "")}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full rounded-lg py-2 text-xs font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-center hover:bg-emerald-500/15 transition-colors"
+            className="block w-full rounded-lg border border-emerald-500/20 bg-emerald-500/10 py-2 text-center font-semibold text-emerald-400 text-xs transition-colors hover:bg-emerald-500/15"
           >
             Transaction confirmed {"\u00B7"} {trunc(txResult.hash ?? "")}
           </a>
         ) : txError ? (
-          <div className="rounded-lg py-2 px-3 text-xs bg-destructive/10 border border-destructive/20 text-destructive text-center">
-            Failed {"\u00B7"} {txError.length > 80 ? txError.slice(0, 80) + "\u2026" : txError}
+          <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-center text-destructive text-xs">
+            Failed {"\u00B7"} {txError.length > 80 ? `${txError.slice(0, 80)}\u2026` : txError}
           </div>
         ) : cancelled ? (
-          <div className="rounded-lg py-2 px-3 text-xs bg-muted border border-border text-muted-foreground text-center">
+          <div className="rounded-lg border border-border bg-muted px-3 py-2 text-center text-muted-foreground text-xs">
             Transaction cancelled
           </div>
         ) : (
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="flex-1 rounded-lg py-2 text-xs font-semibold border border-border text-muted-foreground hover:bg-secondary hover:text-foreground transition-all active:scale-[0.98]"
+              className="flex-1 rounded-lg border border-border py-2 font-semibold text-muted-foreground text-xs transition-all hover:bg-secondary hover:text-foreground active:scale-[0.98]"
               onClick={handleCancel}
               disabled={signing}
             >
@@ -338,7 +338,7 @@ export function SwapBridgeCard({
             </button>
             <button
               type="button"
-              className="flex-1 rounded-lg py-2 text-xs font-semibold bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] text-black hover:from-[#C5F0FF] hover:to-[#1CCFFF] transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] py-2 font-semibold text-black text-xs transition-all hover:from-[#C5F0FF] hover:to-[#1CCFFF] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
               onClick={handleSign}
               disabled={signing || !data.xdr}
             >

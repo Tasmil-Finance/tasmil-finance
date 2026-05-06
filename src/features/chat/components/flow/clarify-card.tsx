@@ -48,7 +48,7 @@ function OptionRow({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "flex w-full items-center gap-3 border-t border-border px-4 py-2.5 text-left transition-colors",
+        "flex w-full items-center gap-3 border-border border-t px-4 py-2.5 text-left transition-colors",
         isSelected ? "bg-primary/5" : "hover:bg-muted/30",
         disabled && "pointer-events-none opacity-50",
         !disabled && "cursor-pointer"
@@ -56,7 +56,7 @@ function OptionRow({
     >
       <span
         className={cn(
-          "flex h-6 w-6 shrink-0 items-center justify-center rounded-md font-mono text-[11px] font-medium",
+          "flex h-6 w-6 shrink-0 items-center justify-center rounded-md font-medium font-mono text-[11px]",
           isSelected ? "bg-primary/20 text-primary" : "bg-muted/40 text-muted-foreground"
         )}
       >
@@ -71,7 +71,7 @@ function OptionRow({
             return (
               <span
                 key={tag}
-                className={cn("rounded-md px-1.5 py-px text-[10px] font-medium", cls)}
+                className={cn("rounded-md px-1.5 py-px font-medium text-[10px]", cls)}
               >
                 {label}
               </span>
@@ -124,7 +124,7 @@ function MultiClarifyCardStepper({
     if (contentRef.current) {
       setContentHeight(contentRef.current.scrollHeight);
     }
-  }, [step]);
+  }, []);
 
   const setAnswer = useCallback((fieldName: string, value: unknown) => {
     setAnswers((prev) => ({ ...prev, [fieldName]: value }));
@@ -154,10 +154,13 @@ function MultiClarifyCardStepper({
   if (!current) return null;
 
   return (
-    <div data-testid="card-clarify" className="w-full max-w-[460px] overflow-hidden rounded-xl border border-border bg-card">
+    <div
+      data-testid="card-clarify"
+      className="w-full max-w-[460px] overflow-hidden rounded-xl border border-border bg-card"
+    >
       {/* Question */}
       <div className="px-4 pt-3.5 pb-2.5">
-        <p className="text-[14px] font-semibold text-foreground leading-snug">{current.question}</p>
+        <p className="font-semibold text-[14px] text-foreground leading-snug">{current.question}</p>
       </div>
 
       {/* Animated content area */}
@@ -187,7 +190,7 @@ function MultiClarifyCardStepper({
               ))}
             </div>
           ) : current.input_type === "text" ? (
-            <div className="border-t border-border px-4 py-3">
+            <div className="border-border border-t px-4 py-3">
               <div className="flex items-center rounded-lg border border-border bg-background px-3 py-2">
                 <input
                   type="text"
@@ -213,7 +216,7 @@ function MultiClarifyCardStepper({
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between border-t border-border px-4 py-2.5">
+      <div className="flex items-center justify-between border-border border-t px-4 py-2.5">
         {isSingle ? (
           <div />
         ) : (
@@ -225,8 +228,8 @@ function MultiClarifyCardStepper({
               className={cn(
                 "flex h-7 w-7 items-center justify-center rounded-md transition-colors",
                 step === 0 || disabled
-                  ? "cursor-default opacity-30 text-muted-foreground"
-                  : "hover:bg-muted/40 text-muted-foreground hover:text-foreground cursor-pointer"
+                  ? "cursor-default text-muted-foreground opacity-30"
+                  : "cursor-pointer text-muted-foreground hover:bg-muted/40 hover:text-foreground"
               )}
               aria-label="Previous question"
             >
@@ -242,8 +245,8 @@ function MultiClarifyCardStepper({
               className={cn(
                 "flex h-7 w-7 items-center justify-center rounded-md transition-colors",
                 !currentAnswered || isLast || disabled
-                  ? "cursor-default opacity-30 text-muted-foreground"
-                  : "hover:bg-muted/40 text-muted-foreground hover:text-foreground cursor-pointer"
+                  ? "cursor-default text-muted-foreground opacity-30"
+                  : "cursor-pointer text-muted-foreground hover:bg-muted/40 hover:text-foreground"
               )}
               aria-label="Next question"
             >
@@ -258,10 +261,10 @@ function MultiClarifyCardStepper({
             disabled={disabled}
             onClick={() => onSubmit(answers)}
             className={cn(
-              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors",
+              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-medium text-[12px] transition-colors",
               disabled
-                ? "bg-muted/30 text-muted-foreground cursor-not-allowed"
-                : "bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer"
+                ? "cursor-not-allowed bg-muted/30 text-muted-foreground"
+                : "cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
             )}
           >
             Continue

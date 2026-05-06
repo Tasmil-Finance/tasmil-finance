@@ -62,7 +62,7 @@ export function ProtocolCollapsibleSection({
   const iconSrc = getProtocolIcon(protocol);
 
   return (
-    <div className="border-b border-sidebar-border last:border-b-0">
+    <div className="border-sidebar-border border-b last:border-b-0">
       {/* Protocol header */}
       <button
         type="button"
@@ -76,8 +76,8 @@ export function ProtocolCollapsibleSection({
           <TokenImage alt={displayName} className="h-5 w-5 shrink-0 rounded-full text-[8px]" />
         )}
         <div className="flex min-w-0 flex-1 flex-col items-start">
-          <span className="text-sm font-medium text-sidebar-foreground">{displayName}</span>
-          <div className="flex items-center gap-1.5 text-xs text-sidebar-foreground/50">
+          <span className="font-medium text-sidebar-foreground text-sm">{displayName}</span>
+          <div className="flex items-center gap-1.5 text-sidebar-foreground/50 text-xs">
             <span>
               {positions.length} position{positions.length !== 1 ? "s" : ""}
             </span>
@@ -94,7 +94,7 @@ export function ProtocolCollapsibleSection({
             )}
           </div>
         </div>
-        <span className="shrink-0 text-xs font-medium text-sidebar-foreground/70 tabular-nums">
+        <span className="shrink-0 font-medium text-sidebar-foreground/70 text-xs tabular-nums">
           {formatUsd(totalValueUsd)}
         </span>
         <ChevronDown
@@ -115,8 +115,8 @@ export function ProtocolCollapsibleSection({
             transition={{ duration: 0.2, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <div className="border-t border-sidebar-border">
-              <div className="flex flex-col gap-2 px-4 pb-3 pt-2">
+            <div className="border-sidebar-border border-t">
+              <div className="flex flex-col gap-2 px-4 pt-2 pb-3">
                 {positions.map((pos, i) => (
                   <CompactPositionRow key={`${pos.name}-${pos.type}-${i}`} position={pos} />
                 ))}

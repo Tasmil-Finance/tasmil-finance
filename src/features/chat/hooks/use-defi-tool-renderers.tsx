@@ -2,16 +2,16 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { AccountInfoCard } from "@/features/chat/actions/components/stellar/account-info-card";
+import { AccountSetupCard } from "@/features/chat/actions/components/stellar/account-setup-card";
+import { AccountStrategyCard } from "@/features/chat/actions/components/stellar/account-strategy-card";
 import { ActionSearchCard } from "@/features/chat/actions/components/stellar/action-search-card";
 import { BridgeDiscoveryCard } from "@/features/chat/actions/components/stellar/bridge-discovery-card";
 import type { BridgeExecuteCardProps } from "@/features/chat/actions/components/stellar/bridge-execute-card";
 import { BridgeExecuteCard } from "@/features/chat/actions/components/stellar/bridge-execute-card";
-import { AccountSetupCard } from "@/features/chat/actions/components/stellar/account-setup-card";
-import { AccountStrategyCard } from "@/features/chat/actions/components/stellar/account-strategy-card";
 import { EarnDiscoveryCard } from "@/features/chat/actions/components/stellar/earn-discovery-card";
 import { StellarExecuteCard } from "@/features/chat/actions/components/stellar/execute-card";
-import { StrategyPresetCard } from "@/features/chat/actions/components/stellar/strategy-preset-card";
 import { PoolInfoCard } from "@/features/chat/actions/components/stellar/pool-info-card";
+import { StrategyPresetCard } from "@/features/chat/actions/components/stellar/strategy-preset-card";
 import type { SwapExecuteCardProps } from "@/features/chat/actions/components/stellar/swap-execute-card";
 import { SwapExecuteCard } from "@/features/chat/actions/components/stellar/swap-execute-card";
 import { SwapQuoteCard } from "@/features/chat/actions/components/stellar/swap-quote-card";
@@ -78,7 +78,9 @@ function simplifyErrorMessage(raw: string): string {
   const stepsMatch = raw.match(/All \d+ steps? failed/);
   if (stepsMatch) {
     // Try to extract user-friendly part from nested JSON
-    const simMatch = raw.match(/Contract simulation failed:\s*HostError:\s*Error\(Contract,\s*#(\d+)\)/);
+    const simMatch = raw.match(
+      /Contract simulation failed:\s*HostError:\s*Error\(Contract,\s*#(\d+)\)/
+    );
     if (simMatch) {
       return `Transaction simulation failed (contract error #${simMatch[1]}). The AI will suggest an alternative.`;
     }
@@ -955,7 +957,7 @@ function parseFlowResult(result: unknown): Record<string, unknown> | null {
     // Try unwrapping MCP content-block wrapper: {content: [{type:"text", text:"..."}]}
     if ("content" in obj && Array.isArray(obj.content)) {
       const textBlock = (obj.content as { type?: string; text?: string }[]).find(
-        (b) => b?.type === "text" && typeof b?.text === "string",
+        (b) => b?.type === "text" && typeof b?.text === "string"
       );
       if (textBlock?.text) {
         try {
@@ -1009,7 +1011,12 @@ function parseFlowResult(result: unknown): Record<string, unknown> | null {
     }
   }
 
-  console.warn("[parseFlowResult] unhandled type:", typeof result, "value:", String(result).slice(0, 200));
+  console.warn(
+    "[parseFlowResult] unhandled type:",
+    typeof result,
+    "value:",
+    String(result).slice(0, 200)
+  );
   return null;
 }
 
@@ -1087,14 +1094,14 @@ export const FLOW_TOOL_RENDERERS: Array<{
         console.warn(
           "[flow_clarify] parseFlowResult returned null. props.result:",
           typeof props.result,
-          props.result,
+          props.result
         );
       }
 
       // Error response from backend (tool threw an exception)
       if (data?.kind === "error") {
         return (
-          <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-destructive text-sm">
             {(data.message as string) || "Failed to load options"}
           </div>
         );
@@ -1111,7 +1118,7 @@ export const FLOW_TOOL_RENDERERS: Array<{
               : null;
         if (errorText && errorText.length > 0 && errorText.length < 500) {
           return (
-            <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-destructive text-sm">
               {errorText}
             </div>
           );
@@ -1172,7 +1179,7 @@ export const FLOW_TOOL_RENDERERS: Array<{
       const data = parseFlowResult(props.result);
       if (!data) {
         return (
-          <div className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 px-3 py-2 text-muted-foreground text-sm">
             <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
             Composing plan...
           </div>
@@ -1183,7 +1190,7 @@ export const FLOW_TOOL_RENDERERS: Array<{
         const rawMessage = (data.message as string) || "Transaction failed";
         const friendlyMessage = simplifyErrorMessage(rawMessage);
         return (
-          <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-destructive text-sm">
             {friendlyMessage}
           </div>
         );
@@ -1216,7 +1223,12 @@ export const FLOW_TOOL_RENDERERS: Array<{
         );
         const stopText2 = data._stop_text as string | undefined;
         if (stopText2) {
-          return <div>{multiCard}<div className="mt-2 text-xs text-muted-foreground text-center">{stopText2}</div></div>;
+          return (
+            <div>
+              {multiCard}
+              <div className="mt-2 text-center text-muted-foreground text-xs">{stopText2}</div>
+            </div>
+          );
         }
         return multiCard;
       }
@@ -1231,7 +1243,12 @@ export const FLOW_TOOL_RENDERERS: Array<{
       });
       const stopText = data._stop_text as string | undefined;
       if (stopText) {
-        return <div>{card}<div className="mt-2 text-xs text-muted-foreground text-center">{stopText}</div></div>;
+        return (
+          <div>
+            {card}
+            <div className="mt-2 text-center text-muted-foreground text-xs">{stopText}</div>
+          </div>
+        );
       }
       return card;
     },
@@ -1248,7 +1265,7 @@ export const FLOW_TOOL_RENDERERS: Array<{
         const rawMessage = (data.message as string) || "Transaction failed";
         const friendlyMessage = simplifyErrorMessage(rawMessage);
         return (
-          <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-destructive text-sm">
             {friendlyMessage}
           </div>
         );
@@ -1297,7 +1314,12 @@ export const FLOW_TOOL_RENDERERS: Array<{
       });
       const stop2 = data._stop_text as string | undefined;
       if (stop2) {
-        return <div>{card2}<div className="mt-2 text-xs text-muted-foreground text-center">{stop2}</div></div>;
+        return (
+          <div>
+            {card2}
+            <div className="mt-2 text-center text-muted-foreground text-xs">{stop2}</div>
+          </div>
+        );
       }
       return card2;
     },

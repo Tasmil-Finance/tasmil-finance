@@ -84,9 +84,9 @@ export function BlendBackstopInfoCard({
       <CardHeader
         icon={<Shield className="h-3.5 w-3.5" />}
         title="Backstop Info"
-        right={<span className="text-[10px] text-muted-foreground font-medium">blend</span>}
+        right={<span className="font-medium text-[10px] text-muted-foreground">blend</span>}
       />
-      <div className="p-4 space-y-3">
+      <div className="space-y-3 p-4">
         {/* Pool */}
         {backstop.poolAddress && (
           <div className="flex justify-between py-0.5 text-xs">
@@ -109,8 +109,8 @@ export function BlendBackstopInfoCard({
         {/* APR metrics */}
         <div className="grid grid-cols-3 gap-2">
           <div className="rounded-lg bg-secondary px-2.5 py-2">
-            <p className="text-[10px] text-muted-foreground mb-0.5">Total APR</p>
-            <p className={`text-sm font-semibold tabular-nums ${aprColor}`}>
+            <p className="mb-0.5 text-[10px] text-muted-foreground">Total APR</p>
+            <p className={`font-semibold text-sm tabular-nums ${aprColor}`}>
               {Number.isFinite(totalApr) ? `${totalApr.toFixed(2)}%` : "\u2014"}
             </p>
           </div>
@@ -135,7 +135,7 @@ export function BlendBackstopInfoCard({
         {/* Q4W bar */}
         {backstop.q4wPct != null && (
           <div>
-            <div className="flex justify-between text-[10px] mb-1">
+            <div className="mb-1 flex justify-between text-[10px]">
               <span className="text-muted-foreground">Q4W %</span>
             </div>
             <Bar value={backstop.q4wPct} />

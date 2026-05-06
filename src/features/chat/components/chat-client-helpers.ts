@@ -92,11 +92,9 @@ export const shouldFilterMessage = (
     const toolCallKey = (tc: any) => `${tc.name}:${JSON.stringify(tc.args)}`;
     const myKeys = new Set(aiMsg.tool_calls.map(toolCallKey));
     const searchIn = fullMessages ?? allMessages;
-    const myToolCallIds = new Set(
-      aiMsg.tool_calls.map((tc: any) => tc.id).filter(Boolean)
-    );
+    const myToolCallIds = new Set(aiMsg.tool_calls.map((tc: any) => tc.id).filter(Boolean));
     const iHaveResults = searchIn.some(
-      (m: any) => m.type === 'tool' && myToolCallIds.has(m.tool_call_id)
+      (m: any) => m.type === "tool" && myToolCallIds.has(m.tool_call_id)
     );
 
     for (let i = index + 1; i < allMessages.length; i++) {
@@ -108,11 +106,9 @@ export const shouldFilterMessage = (
         // But if I have tool results and the later message doesn't, keep me.
         // This can happen when middleware strips execution of the duplicate call
         // but the original AI message remains in thread state.
-        const laterToolCallIds = new Set(
-          later.tool_calls.map((tc: any) => tc.id).filter(Boolean)
-        );
+        const laterToolCallIds = new Set(later.tool_calls.map((tc: any) => tc.id).filter(Boolean));
         const laterHasResults = searchIn.some(
-          (m: any) => m.type === 'tool' && laterToolCallIds.has(m.tool_call_id)
+          (m: any) => m.type === "tool" && laterToolCallIds.has(m.tool_call_id)
         );
         if (iHaveResults && !laterHasResults) return false;
         return true;
@@ -171,10 +167,7 @@ export const mergeMessagesWithCache = (cached: Message[], incoming: Message[]): 
           // the cached content (prefix match = streaming append).  If the
           // content was completely replaced, the backend middleware
           // intentionally stripped the tool_calls.
-          if (
-            cachedContentStr &&
-            newContentStr.startsWith(cachedContentStr)
-          ) {
+          if (cachedContentStr && newContentStr.startsWith(cachedContentStr)) {
             (newMsg as any).tool_calls = cachedToolCalls;
           }
         }

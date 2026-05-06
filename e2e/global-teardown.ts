@@ -17,7 +17,9 @@ export default function globalTeardown() {
     console.log("\n" + "=".repeat(60));
     console.log("  EVALUATION SUMMARY");
     console.log("=".repeat(60));
-    console.log(`  ✅ Pass: ${pass}  ❌ Fail: ${fail}  ⚠️  Warning: ${warn}  📊 Total: ${records.length}`);
+    console.log(
+      `  ✅ Pass: ${pass}  ❌ Fail: ${fail}  ⚠️  Warning: ${warn}  📊 Total: ${records.length}`
+    );
     console.log(`  Report: test-results/evaluation/evaluation-report.html`);
     console.log("=".repeat(60) + "\n");
   }

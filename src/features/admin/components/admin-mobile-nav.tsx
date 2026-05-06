@@ -63,7 +63,7 @@ export function AdminMobileNav() {
   return (
     <>
       {/* Mobile Header */}
-      <header className="flex h-14 items-center justify-between border-b border-border bg-background px-4 lg:hidden">
+      <header className="flex h-14 items-center justify-between border-border border-b bg-background px-4 lg:hidden">
         <div className="flex items-center gap-2">
           <button
             aria-label="Open admin navigation"
@@ -88,16 +88,16 @@ export function AdminMobileNav() {
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="left" className="w-[280px] border-r-0 p-0" hideCloseButton>
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-sidebar-border p-4">
+          <div className="flex items-center justify-between border-sidebar-border border-b p-4">
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent">
                 <Bot className="h-4 w-4 text-white" />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-semibold text-sidebar-foreground">
+                <span className="font-semibold text-sidebar-foreground text-sm">
                   {adminSidebarData.header.brand_name}
                 </span>
-                <span className="text-xs text-sidebar-foreground/60">Admin Panel</span>
+                <span className="text-sidebar-foreground/60 text-xs">Admin Panel</span>
               </div>
             </div>
             <button
@@ -123,15 +123,15 @@ export function AdminMobileNav() {
           </nav>
 
           {/* Footer */}
-          <div className="flex items-center gap-2 border-t border-sidebar-border p-4">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-sm font-semibold">
+          <div className="flex items-center gap-2 border-sidebar-border border-t p-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary font-semibold text-sm text-white">
               A
             </div>
-            <div className="flex flex-col min-w-0">
-              <span className="truncate text-sm font-medium text-sidebar-foreground">
+            <div className="flex min-w-0 flex-col">
+              <span className="truncate font-medium text-sidebar-foreground text-sm">
                 {adminSidebarData.user.name}
               </span>
-              <span className="truncate text-xs text-sidebar-foreground/60">
+              <span className="truncate text-sidebar-foreground/60 text-xs">
                 {adminSidebarData.user.email}
               </span>
             </div>

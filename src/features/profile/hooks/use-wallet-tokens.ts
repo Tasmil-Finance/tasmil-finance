@@ -85,7 +85,7 @@ async function fetchPrices(
 
   // 2. For tokens without CoinGecko price, try Stellar SDEX orderbook
   //    Get price in XLM, then convert to USD using XLM price
-  const xlmPrice = result["XLM"] ?? 0;
+  const xlmPrice = result.XLM ?? 0;
   if (xlmPrice > 0) {
     const missing = tokens.filter(
       (t) => t.balance > 0 && result[t.assetCode.toUpperCase()] == null && t.assetIssuer

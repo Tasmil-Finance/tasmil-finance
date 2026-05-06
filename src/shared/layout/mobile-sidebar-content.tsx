@@ -71,14 +71,14 @@ export function MobileSidebarContent({ onClose }: { onClose?: () => void }) {
           />
           <div className="ml-1 grid flex-1 gap-1 text-left leading-tight">
             <div className="flex items-center gap-2">
-              <span className="animate-shimmer-text bg-gradient-to-r from-[#b5eaff] via-white to-[#00bfff] bg-clip-text text-transparent bg-[length:200%_100%] font-semibold text-xl">
+              <span className="animate-shimmer-text bg-[length:200%_100%] bg-gradient-to-r from-[#b5eaff] via-white to-[#00bfff] bg-clip-text font-semibold text-transparent text-xl">
                 {sidebarData.header.brand_name}
               </span>
               <Badge
                 className="h-4 rounded-full border-0 bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] px-1.5 py-0 font-bold text-[8px] text-black"
                 variant="outline"
               >
-                {process.env["NEXT_PUBLIC_STELLAR_NETWORK"] === "mainnet" ? "MAINNET" : "TESTNET"}
+                {process.env.NEXT_PUBLIC_STELLAR_NETWORK === "mainnet" ? "MAINNET" : "TESTNET"}
               </Badge>
             </div>
             <Typography className="text-sm">{sidebarData.header.tagline}</Typography>

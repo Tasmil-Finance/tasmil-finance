@@ -69,7 +69,7 @@ export function TokenList({ tokens, totalUsd, isLoading }: TokenListProps) {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
       >
-        <h2 className="text-xl font-semibold text-foreground">Assets</h2>
+        <h2 className="font-semibold text-foreground text-xl">Assets</h2>
         <div className="overflow-hidden rounded-xl border border-border bg-card">
           <div className="flex items-center gap-3 px-6 py-4">
             <Skeleton className="h-8 w-8 rounded-lg" />
@@ -87,7 +87,7 @@ export function TokenList({ tokens, totalUsd, isLoading }: TokenListProps) {
           {Array.from({ length: 5 }).map((_, i) => (
             <motion.div
               key={i}
-              className={`${ROW_GRID} border-t border-border px-6 py-3.5`}
+              className={`${ROW_GRID} border-border border-t px-6 py-3.5`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3, delay: i * 0.06 }}
@@ -118,7 +118,7 @@ export function TokenList({ tokens, totalUsd, isLoading }: TokenListProps) {
       transition={{ duration: 0.4 }}
     >
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-foreground">Assets</h2>
+        <h2 className="font-semibold text-foreground text-xl">Assets</h2>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -154,7 +154,7 @@ export function TokenList({ tokens, totalUsd, isLoading }: TokenListProps) {
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
               <Wallet className="h-4.5 w-4.5 text-primary" />
             </div>
-            <span className="text-lg font-medium text-foreground">
+            <span className="font-medium text-foreground text-lg">
               Wallet · {formatUsd(totalUsd)}
             </span>
             <span className="text-base text-muted-foreground">{tokens.length} assets</span>
@@ -164,16 +164,16 @@ export function TokenList({ tokens, totalUsd, isLoading }: TokenListProps) {
 
           {/* Column headers */}
           <div className={`${ROW_GRID} px-6 py-2.5`}>
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
               Asset
             </span>
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
               Price
             </span>
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
               Balance
             </span>
-            <span className="text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <span className="text-right font-semibold text-muted-foreground text-xs uppercase tracking-wider">
               Value
             </span>
             {/* spacer for link icon column */}
@@ -191,7 +191,7 @@ export function TokenList({ tokens, totalUsd, isLoading }: TokenListProps) {
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`${ROW_GRID} group border-t border-border px-6 py-3.5 transition-colors hover:bg-muted/20`}
+                className={`${ROW_GRID} group border-border border-t px-6 py-3.5 transition-colors hover:bg-muted/20`}
                 initial={{ opacity: 0, x: -6 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: idx * 0.04 }}
@@ -203,11 +203,9 @@ export function TokenList({ tokens, totalUsd, isLoading }: TokenListProps) {
                     className="h-8 w-8 shrink-0 rounded-full text-[11px]"
                   />
                   <div className="flex flex-col">
-                    <span className="text-base font-medium text-foreground">
-                      {token.assetCode}
-                    </span>
+                    <span className="font-medium text-base text-foreground">{token.assetCode}</span>
                     {token.assetIssuer && (
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-muted-foreground text-sm">
                         {shortenIssuer(token.assetIssuer)}
                       </span>
                     )}
@@ -223,7 +221,7 @@ export function TokenList({ tokens, totalUsd, isLoading }: TokenListProps) {
                 </span>
 
                 {/* Value */}
-                <span className="text-right text-base font-medium text-foreground">
+                <span className="text-right font-medium text-base text-foreground">
                   {token.valueUsd > 0 ? formatUsd(token.valueUsd) : "—"}
                 </span>
 

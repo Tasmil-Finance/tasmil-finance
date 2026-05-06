@@ -1,11 +1,6 @@
 export type RiskPreset = "Safe" | "Balanced" | "Aggressive";
 
-export type AccountStatus =
-  | "DEPLOYING"
-  | "AWAITING_FUND"
-  | "ACTIVE"
-  | "HALTED"
-  | "REVOKED";
+export type AccountStatus = "DEPLOYING" | "AWAITING_FUND" | "ACTIVE" | "HALTED" | "REVOKED";
 
 export interface PresetCardData {
   name: RiskPreset;

@@ -120,7 +120,7 @@ function AguiStreamSession({
       queryClient.invalidateQueries({ queryKey: creditQueryKey(null) });
       const t = setTimeout(
         () => queryClient.invalidateQueries({ queryKey: creditQueryKey(null) }),
-        800,
+        800
       );
       return () => clearTimeout(t);
     }

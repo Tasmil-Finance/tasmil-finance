@@ -34,14 +34,14 @@ export function DefindexBalanceCard({ balance, mode = "playground" }: Props) {
         <CardHeader icon={<Wallet className="h-3.5 w-3.5" />} title="Your Vault Position" />
       )}
 
-      <div className="px-4 py-3 space-y-3">
+      <div className="space-y-3 px-4 py-3">
         {/* Shares */}
         <MetricBox label="Your Shares (dfTokens)" value={fmt(shares, 4)} />
 
         {/* Underlying balances */}
         {balance.underlyingBalance.length > 0 && (
           <div className="space-y-1.5">
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+            <p className="font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
               Underlying Assets
             </p>
             <div className="grid grid-cols-2 gap-2">
@@ -49,8 +49,8 @@ export function DefindexBalanceCard({ balance, mode = "playground" }: Props) {
                 const human = amount / 1e7;
                 return (
                   <div key={i} className="rounded-lg bg-secondary px-2.5 py-2">
-                    <p className="text-[10px] text-muted-foreground mb-0.5">Asset {i + 1}</p>
-                    <p className="text-sm font-semibold text-foreground tabular-nums">
+                    <p className="mb-0.5 text-[10px] text-muted-foreground">Asset {i + 1}</p>
+                    <p className="font-semibold text-foreground text-sm tabular-nums">
                       {fmt(human, 4)}
                     </p>
                   </div>

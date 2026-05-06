@@ -93,7 +93,7 @@ test.describe("Welcome onboarding modal", () => {
     // Slide 1 shows "Welcome to Tasmil". Use exact match — the sr-only
     // DialogTitle "Welcome to Tasmil Finance" is also a heading.
     await expect(
-      page.getByRole("heading", { name: "Welcome to Tasmil", exact: true }),
+      page.getByRole("heading", { name: "Welcome to Tasmil", exact: true })
     ).toBeVisible();
 
     await page.keyboard.press("ArrowRight");
@@ -101,7 +101,7 @@ test.describe("Welcome onboarding modal", () => {
 
     await page.keyboard.press("ArrowLeft");
     await expect(
-      page.getByRole("heading", { name: "Welcome to Tasmil", exact: true }),
+      page.getByRole("heading", { name: "Welcome to Tasmil", exact: true })
     ).toBeVisible();
   });
 
@@ -122,7 +122,7 @@ test.describe("Welcome onboarding modal", () => {
     const modal = page.getByRole("dialog");
     await expect(modal).toBeVisible({ timeout: 5000 });
     await expect(
-      page.getByRole("heading", { name: "Welcome to Tasmil", exact: true }),
+      page.getByRole("heading", { name: "Welcome to Tasmil", exact: true })
     ).toBeVisible();
   });
 });

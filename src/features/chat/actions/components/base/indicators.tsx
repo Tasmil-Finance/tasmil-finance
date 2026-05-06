@@ -52,7 +52,7 @@ export function RiskBadge({ risk }: { risk: string | undefined | null }) {
     medium: { color: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400", icon: AlertTriangle },
     high: { color: "bg-red-500/10 text-red-600 dark:text-red-400", icon: Zap },
   };
-  const c = config[risk ?? ""] ?? config["medium"]!;
+  const c = config[risk ?? ""] ?? config.medium!;
   const Icon = c?.icon;
 
   return (

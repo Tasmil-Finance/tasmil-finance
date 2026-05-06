@@ -37,7 +37,7 @@ export function PerformanceChart({
       transition={{ duration: 0.35 }}
     >
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-foreground">Portfolio Value</h2>
+        <h2 className="font-semibold text-foreground text-xl">Portfolio Value</h2>
         <div className="inline-flex items-center gap-1 rounded-lg border border-border/40 bg-muted/10 p-1">
           {RANGES.map((r) => (
             <button
@@ -46,10 +46,10 @@ export function PerformanceChart({
               aria-pressed={r === range}
               onClick={() => onRangeChange(r)}
               className={cn(
-                "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+                "rounded-md px-2.5 py-1 font-medium text-xs transition-colors",
                 r === range
                   ? "bg-primary/15 text-primary"
-                  : "text-muted-foreground hover:text-foreground",
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
               {RANGE_LABEL[r]}
@@ -61,9 +61,9 @@ export function PerformanceChart({
       {isLoading ? (
         <Skeleton data-testid="chart-skeleton" className="h-48 w-full rounded-lg" />
       ) : isPlaceholder ? (
-        <div className="flex h-48 flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border/40 bg-muted/5 text-center">
-          <p className="text-sm font-medium text-muted-foreground">No history yet</p>
-          <p className="max-w-sm text-xs text-muted-foreground/70">
+        <div className="flex h-48 flex-col items-center justify-center gap-2 rounded-lg border border-border/40 border-dashed bg-muted/5 text-center">
+          <p className="font-medium text-muted-foreground text-sm">No history yet</p>
+          <p className="max-w-sm text-muted-foreground/70 text-xs">
             Daily portfolio history rolls up overnight. Your first data point lands tomorrow.
           </p>
         </div>

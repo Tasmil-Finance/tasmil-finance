@@ -85,7 +85,7 @@ export function QueryPanel({ protocol, panel, walletAddress, defaultPool }: Quer
         title={panel.title}
         subtitle={panel.description}
         badge={
-          <span className="text-[10px] font-mono text-muted-foreground/60 bg-muted/30 px-1.5 py-0.5 rounded">
+          <span className="rounded bg-muted/30 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground/60">
             SDK /{panel.endpoint}
           </span>
         }
@@ -93,10 +93,10 @@ export function QueryPanel({ protocol, panel, walletAddress, defaultPool }: Quer
 
       {/* Input fields */}
       {panel.fields.length > 0 && (
-        <div className="border-t border-border px-5 py-3 space-y-2">
+        <div className="space-y-2 border-border border-t px-5 py-3">
           {panel.fields.map((f) => (
             <div key={f.key}>
-              <label className="block text-[11px] font-medium text-muted-foreground mb-0.5">
+              <label className="mb-0.5 block font-medium text-[11px] text-muted-foreground">
                 {f.label}
               </label>
               <input
@@ -111,7 +111,7 @@ export function QueryPanel({ protocol, panel, walletAddress, defaultPool }: Quer
       )}
 
       {/* Fetch button */}
-      <div className="border-t border-border px-5 py-3 flex items-center gap-2">
+      <div className="flex items-center gap-2 border-border border-t px-5 py-3">
         <Button
           variant="outline"
           size="sm"
@@ -132,7 +132,7 @@ export function QueryPanel({ protocol, panel, walletAddress, defaultPool }: Quer
             <Button
               variant="ghost"
               size="sm"
-              className="gap-1 text-xs text-muted-foreground"
+              className="gap-1 text-muted-foreground text-xs"
               onClick={() => setShowJson(!showJson)}
             >
               {showJson ? (
@@ -145,7 +145,7 @@ export function QueryPanel({ protocol, panel, walletAddress, defaultPool }: Quer
             <Button
               variant="ghost"
               size="sm"
-              className="gap-1 text-xs text-muted-foreground"
+              className="gap-1 text-muted-foreground text-xs"
               onClick={copyJson}
             >
               {copied ? (
@@ -171,7 +171,7 @@ export function QueryPanel({ protocol, panel, walletAddress, defaultPool }: Quer
 
       {/* Result — rendered as data cards */}
       {result && !showJson && (
-        <div className="border-t border-border">
+        <div className="border-border border-t">
           <ResultRenderer protocol={protocol} panelId={panel.id} data={result} />
         </div>
       )}
@@ -184,7 +184,7 @@ export function QueryPanel({ protocol, panel, walletAddress, defaultPool }: Quer
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="overflow-hidden border-t border-border"
+            className="overflow-hidden border-border border-t"
           >
             <div className="p-4">
               <JsonViewer data={result} />
@@ -236,16 +236,16 @@ function PoolsResult({ data }: { data: Record<string, unknown> }) {
   return (
     <div className="divide-y divide-border">
       <div className={cn(POS_GRID, "px-5 py-2")}>
-        <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        <span className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
           Pool
         </span>
-        <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        <span className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
           Status
         </span>
-        <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        <span className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
           Assets
         </span>
-        <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground text-right">
+        <span className="text-right font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
           TVL
         </span>
       </div>
@@ -262,17 +262,17 @@ function PoolsResult({ data }: { data: Record<string, unknown> }) {
         return (
           <div
             key={addr || i}
-            className={cn(POS_GRID, "px-5 py-3 hover:bg-muted/20 transition-colors")}
+            className={cn(POS_GRID, "px-5 py-3 transition-colors hover:bg-muted/20")}
           >
             <div className="min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">{name}</p>
-              <p className="text-[11px] text-muted-foreground/60 font-mono truncate">
+              <p className="truncate font-medium text-foreground text-sm">{name}</p>
+              <p className="truncate font-mono text-[11px] text-muted-foreground/60">
                 {addr.slice(0, 12)}…
               </p>
             </div>
             <StatusBadge status={status} />
-            <span className="text-xs text-muted-foreground truncate">{tokenStr || "—"}</span>
-            <span className="text-sm font-medium text-foreground text-right">
+            <span className="truncate text-muted-foreground text-xs">{tokenStr || "—"}</span>
+            <span className="text-right font-medium text-foreground text-sm">
               {tvl != null
                 ? Number(tvl).toLocaleString(undefined, { maximumFractionDigits: 2 })
                 : "—"}
@@ -291,28 +291,28 @@ function PoolDetailResult({ data }: { data: Record<string, unknown> }) {
   const reserves = (pool.reserves ?? []) as Record<string, unknown>[];
 
   return (
-    <div className="p-5 space-y-4">
+    <div className="space-y-4 p-5">
       <div className="flex items-center gap-3">
-        <span className="text-sm font-medium text-foreground">
+        <span className="font-medium text-foreground text-sm">
           {String(pool.name ?? pool.address ?? "Pool")}
         </span>
         {pool.status != null && <StatusBadge status={String(pool.status)} />}
       </div>
 
       {reserves.length > 0 && (
-        <div className="rounded-lg border border-border overflow-hidden">
-          <div className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr] gap-2 px-4 py-2 border-b border-border">
-            <span className="text-[11px] font-medium uppercase text-muted-foreground">Asset</span>
-            <span className="text-[11px] font-medium uppercase text-muted-foreground">
+        <div className="overflow-hidden rounded-lg border border-border">
+          <div className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr] gap-2 border-border border-b px-4 py-2">
+            <span className="font-medium text-[11px] text-muted-foreground uppercase">Asset</span>
+            <span className="font-medium text-[11px] text-muted-foreground uppercase">
               Supply APY
             </span>
-            <span className="text-[11px] font-medium uppercase text-muted-foreground">
+            <span className="font-medium text-[11px] text-muted-foreground uppercase">
               Borrow APY
             </span>
-            <span className="text-[11px] font-medium uppercase text-muted-foreground">
+            <span className="font-medium text-[11px] text-muted-foreground uppercase">
               Utilization
             </span>
-            <span className="text-[11px] font-medium uppercase text-muted-foreground">
+            <span className="font-medium text-[11px] text-muted-foreground uppercase">
               C-Factor
             </span>
           </div>
@@ -321,15 +321,15 @@ function PoolDetailResult({ data }: { data: Record<string, unknown> }) {
               key={i}
               className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr] gap-2 px-4 py-2.5 hover:bg-muted/20"
             >
-              <span className="text-sm font-medium text-foreground">
+              <span className="font-medium text-foreground text-sm">
                 {String(r.symbol ?? r.asset ?? "?")}
               </span>
               <ApyDisplay value={r.supplyApy as number} />
               <ApyDisplay value={r.borrowApy as number} />
-              <span className="text-sm text-muted-foreground">
+              <span className="text-muted-foreground text-sm">
                 {r.utilization != null ? `${(Number(r.utilization) * 100).toFixed(1)}%` : "—"}
               </span>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-muted-foreground text-sm">
                 {r.collateralFactor != null
                   ? `${(Number(r.collateralFactor) * 100).toFixed(0)}%`
                   : "—"}
@@ -351,11 +351,11 @@ function YieldResult({ data }: { data: Record<string, unknown> }) {
   return (
     <div className="divide-y divide-border">
       <div className="grid grid-cols-[2fr_80px_1fr_1fr_80px] gap-2 px-5 py-2">
-        <span className="text-[11px] font-medium uppercase text-muted-foreground">Name</span>
-        <span className="text-[11px] font-medium uppercase text-muted-foreground">Type</span>
-        <span className="text-[11px] font-medium uppercase text-muted-foreground">APY</span>
-        <span className="text-[11px] font-medium uppercase text-muted-foreground">TVL</span>
-        <span className="text-[11px] font-medium uppercase text-muted-foreground">Risk</span>
+        <span className="font-medium text-[11px] text-muted-foreground uppercase">Name</span>
+        <span className="font-medium text-[11px] text-muted-foreground uppercase">Type</span>
+        <span className="font-medium text-[11px] text-muted-foreground uppercase">APY</span>
+        <span className="font-medium text-[11px] text-muted-foreground uppercase">TVL</span>
+        <span className="font-medium text-[11px] text-muted-foreground uppercase">Risk</span>
       </div>
       {opps.map((o, i) => {
         const apy = o.apy as Record<string, unknown> | undefined;
@@ -366,16 +366,16 @@ function YieldResult({ data }: { data: Record<string, unknown> }) {
             className="grid grid-cols-[2fr_80px_1fr_1fr_80px] gap-2 px-5 py-2.5 hover:bg-muted/20"
           >
             <div className="min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">
+              <p className="truncate font-medium text-foreground text-sm">
                 {String(o.name ?? "—")}
               </p>
-              <p className="text-[11px] text-muted-foreground/60 truncate">
+              <p className="truncate text-[11px] text-muted-foreground/60">
                 {(o.assets as string[] | undefined)?.join(", ") ?? ""}
               </p>
             </div>
             <TypeBadge type={String(o.type ?? "vault")} />
             <ApyDisplay value={totalApy} />
-            <span className="text-sm text-muted-foreground">
+            <span className="text-muted-foreground text-sm">
               {o.tvl ? `$${Number(o.tvl).toLocaleString()}` : "—"}
             </span>
             <StatusBadge status={String(o.risk ?? o.status ?? "ok")} />
@@ -400,7 +400,7 @@ function PositionsResult({ data, protocol }: { data: Record<string, unknown>; pr
     const summary = data.summary as Record<string, unknown> | undefined;
 
     return (
-      <div className="p-5 space-y-4">
+      <div className="space-y-4 p-5">
         {/* Summary */}
         {summary && (
           <div className="grid grid-cols-2 gap-3">
@@ -456,7 +456,7 @@ function SummaryItem({
   return (
     <div className="rounded-lg bg-muted/20 p-3">
       <p className="text-[11px] text-muted-foreground">{label}</p>
-      <p className={cn("text-lg font-semibold", color)}>
+      <p className={cn("font-semibold text-lg", color)}>
         {value != null
           ? `${prefix}${Number(value).toLocaleString(undefined, { maximumFractionDigits: 2 })}${suffix}`
           : "—"}
@@ -474,18 +474,18 @@ function PositionGroup({
 }) {
   return (
     <div className="space-y-1">
-      <div className="flex items-center gap-2 mb-2">
+      <div className="mb-2 flex items-center gap-2">
         <TypeBadge type={type} />
-        <span className="text-xs text-muted-foreground">
+        <span className="text-muted-foreground text-xs">
           {positions.length} position{positions.length !== 1 ? "s" : ""}
         </span>
       </div>
-      <div className="rounded-lg border border-border overflow-hidden divide-y divide-border">
+      <div className="divide-y divide-border overflow-hidden rounded-lg border border-border">
         {positions.map((p, i) => (
           <div key={i} className={cn(POS_GRID, "px-4 py-2.5")}>
-            <span className="text-sm font-medium text-foreground">{String(p.symbol ?? "?")}</span>
+            <span className="font-medium text-foreground text-sm">{String(p.symbol ?? "?")}</span>
             <TypeBadge type={type} />
-            <span className="text-sm text-foreground">{Number(p.amount ?? 0).toFixed(4)}</span>
+            <span className="text-foreground text-sm">{Number(p.amount ?? 0).toFixed(4)}</span>
             <ApyDisplay value={p.apy as number} />
           </div>
         ))}
@@ -503,16 +503,16 @@ function QuoteResult({ data }: { data: Record<string, unknown> }) {
   if (paths) {
     // SDEX paths
     return (
-      <div className="p-5 space-y-2">
-        <p className="text-sm font-medium text-foreground">{paths.length} path(s) found</p>
+      <div className="space-y-2 p-5">
+        <p className="font-medium text-foreground text-sm">{paths.length} path(s) found</p>
         {paths.map((p, i) => {
           const path = p as Record<string, unknown>;
           return (
             <div key={i} className="rounded-lg bg-muted/20 p-3">
-              <p className="text-sm font-medium text-foreground">
+              <p className="font-medium text-foreground text-sm">
                 Destination: {String(path.destination_amount ?? "?")}
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 Via:{" "}
                 {((path.path ?? []) as Record<string, string>[])
                   .map((a) => a.asset_code ?? "XLM")
@@ -527,18 +527,18 @@ function QuoteResult({ data }: { data: Record<string, unknown> }) {
 
   // Single quote
   return (
-    <div className="p-5 space-y-3">
+    <div className="space-y-3 p-5">
       <div className="grid grid-cols-2 gap-3">
         <SummaryItem label="Amount In" value={quote.amountIn} color="text-foreground" />
         <SummaryItem label="Amount Out" value={quote.amountOut} color="text-emerald-400" />
       </div>
-      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+      <div className="flex items-center gap-3 text-muted-foreground text-xs">
         <span>Fee: {String(quote.feePercent ?? quote.fee ?? "—")}</span>
         <span>Time: {String(quote.estimatedTime ?? "—")}</span>
         <span>Status: {String(quote.status ?? "—")}</span>
       </div>
       {Array.isArray(quote.route) && (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           Route: {(quote.route as string[]).join(" → ")}
         </p>
       )}
@@ -555,11 +555,11 @@ function MarketsResult({ data }: { data: Record<string, unknown> }) {
   return (
     <div className="divide-y divide-border">
       <div className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr] gap-2 px-5 py-2">
-        <span className="text-[11px] font-medium uppercase text-muted-foreground">Market</span>
-        <span className="text-[11px] font-medium uppercase text-muted-foreground">Supply APY</span>
-        <span className="text-[11px] font-medium uppercase text-muted-foreground">Borrow APY</span>
-        <span className="text-[11px] font-medium uppercase text-muted-foreground">Utilization</span>
-        <span className="text-[11px] font-medium uppercase text-muted-foreground">TVL</span>
+        <span className="font-medium text-[11px] text-muted-foreground uppercase">Market</span>
+        <span className="font-medium text-[11px] text-muted-foreground uppercase">Supply APY</span>
+        <span className="font-medium text-[11px] text-muted-foreground uppercase">Borrow APY</span>
+        <span className="font-medium text-[11px] text-muted-foreground uppercase">Utilization</span>
+        <span className="font-medium text-[11px] text-muted-foreground uppercase">TVL</span>
       </div>
       {markets.map((m, i) => (
         <div
@@ -567,16 +567,16 @@ function MarketsResult({ data }: { data: Record<string, unknown> }) {
           className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr] gap-2 px-5 py-2.5 hover:bg-muted/20"
         >
           <div className="min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">
+            <p className="truncate font-medium text-foreground text-sm">
               {String(m.name ?? m.poolName ?? m.asset ?? `Market #${i}`)}
             </p>
           </div>
           <ApyDisplay value={m.supplyApy as number} />
           <ApyDisplay value={m.borrowApy as number} />
-          <span className="text-sm text-muted-foreground">
+          <span className="text-muted-foreground text-sm">
             {m.utilization != null ? `${(Number(m.utilization) * 100).toFixed(1)}%` : "—"}
           </span>
-          <span className="text-sm text-muted-foreground">
+          <span className="text-muted-foreground text-sm">
             {m.tvl ? `$${Number(m.tvl).toLocaleString()}` : "—"}
           </span>
         </div>
@@ -597,7 +597,7 @@ function OrderbookResult({ data }: { data: Record<string, unknown> }) {
       <div className="grid grid-cols-2 gap-4">
         {/* Bids */}
         <div>
-          <p className="text-xs font-medium text-emerald-400 uppercase mb-2">
+          <p className="mb-2 font-medium text-emerald-400 text-xs uppercase">
             Bids ({bids.length})
           </p>
           <div className="space-y-0.5">
@@ -611,7 +611,7 @@ function OrderbookResult({ data }: { data: Record<string, unknown> }) {
         </div>
         {/* Asks */}
         <div>
-          <p className="text-xs font-medium text-destructive uppercase mb-2">
+          <p className="mb-2 font-medium text-destructive text-xs uppercase">
             Asks ({asks.length})
           </p>
           <div className="space-y-0.5">

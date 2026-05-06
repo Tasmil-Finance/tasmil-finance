@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-const isTestnet = process.env["NEXT_PUBLIC_STELLAR_NETWORK"] !== "mainnet";
+const isTestnet = process.env.NEXT_PUBLIC_STELLAR_NETWORK !== "mainnet";
 const AQUA_BASE = `https://amm-api${isTestnet ? "-testnet" : ""}.aqua.network/api/external/v1`;
 
 /**

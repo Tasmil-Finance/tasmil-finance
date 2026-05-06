@@ -11,7 +11,7 @@ describe("PerformanceChart", () => {
         isPlaceholder={true}
         isLoading={false}
         onRangeChange={() => {}}
-      />,
+      />
     );
     expect(screen.getByText(/daily portfolio history rolls up overnight/i)).toBeInTheDocument();
   });
@@ -24,7 +24,7 @@ describe("PerformanceChart", () => {
         isPlaceholder={false}
         isLoading={true}
         onRangeChange={() => {}}
-      />,
+      />
     );
     expect(container.querySelector('[data-testid="chart-skeleton"]')).not.toBeNull();
   });
@@ -38,7 +38,7 @@ describe("PerformanceChart", () => {
         isPlaceholder={true}
         isLoading={false}
         onRangeChange={onRangeChange}
-      />,
+      />
     );
     fireEvent.click(screen.getByRole("button", { name: "30d" }));
     expect(onRangeChange).toHaveBeenCalledWith<[HistoryRange]>("30d");
@@ -52,7 +52,7 @@ describe("PerformanceChart", () => {
         isPlaceholder={true}
         isLoading={false}
         onRangeChange={() => {}}
-      />,
+      />
     );
     const active = screen.getByRole("button", { name: "30d" });
     expect(active).toHaveAttribute("aria-pressed", "true");

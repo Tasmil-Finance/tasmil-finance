@@ -34,7 +34,7 @@ export function AllbridgeUserBalanceCard({ data, mode = "playground" }: Props) {
             )}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">No LP position found.</p>
+          <p className="text-muted-foreground text-sm">No LP position found.</p>
         )}
       </ProtocolCard>
     );
@@ -42,22 +42,22 @@ export function AllbridgeUserBalanceCard({ data, mode = "playground" }: Props) {
 
   return (
     <ProtocolCard mode="playground">
-      <div className="px-4 py-3 border-b border-border">
-        <p className="text-sm font-medium text-foreground">
+      <div className="border-border border-b px-4 py-3">
+        <p className="font-medium text-foreground text-sm">
           {data.symbol} LP Position — <span className="capitalize">{data.chain}</span>
         </p>
-        <p className="text-[10px] text-muted-foreground/60 font-mono mt-0.5">
+        <p className="mt-0.5 font-mono text-[10px] text-muted-foreground/60">
           {trunc(data.accountAddress, 10, 6)}
         </p>
       </div>
-      <div className="p-4 space-y-3">
+      <div className="space-y-3 p-4">
         {hasPosition ? (
           <>
             <div className="grid grid-cols-2 gap-2">
               <MetricBox label="LP Tokens" value={data.lpAmount ?? "0"} />
               <MetricBox label="Liquidity" value={data.userLiquidity ?? "0"} />
             </div>
-            <div className="rounded-lg bg-secondary/40 p-3 space-y-1 text-xs">
+            <div className="space-y-1 rounded-lg bg-secondary/40 p-3 text-xs">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Earned Rewards</span>
                 <span

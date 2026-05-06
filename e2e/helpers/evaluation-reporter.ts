@@ -1,4 +1,4 @@
-import { writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Page } from "@playwright/test";
 import type { CardType } from "../page-objects/chat.page";
@@ -211,7 +211,9 @@ export class EvaluationReporter {
 
     console.log(`\n📊 Evaluation Report: ${htmlPath}`);
     console.log(`   JSON: ${jsonPath}`);
-    console.log(`   Tests: ${this.records.length} | Pass: ${this.records.filter((r) => r.verdict === "pass").length} | Fail: ${this.records.filter((r) => r.verdict === "fail").length} | Warning: ${this.records.filter((r) => r.verdict === "warning").length}\n`);
+    console.log(
+      `   Tests: ${this.records.length} | Pass: ${this.records.filter((r) => r.verdict === "pass").length} | Fail: ${this.records.filter((r) => r.verdict === "fail").length} | Warning: ${this.records.filter((r) => r.verdict === "warning").length}\n`
+    );
   }
 
   private async fetchTrace(threadId: string) {

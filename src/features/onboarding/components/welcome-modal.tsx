@@ -62,7 +62,7 @@ export function WelcomeModal() {
     (open: boolean) => {
       if (!open) closeWelcomeModal();
     },
-    [closeWelcomeModal],
+    [closeWelcomeModal]
   );
 
   // Keyboard navigation while the modal is open.
@@ -123,7 +123,7 @@ export function WelcomeModal() {
             onClick={() => api?.scrollTo(index)}
             className={cn(
               "h-2 rounded-full transition-all duration-300",
-              index === current ? "w-6 bg-primary" : "w-2 bg-muted-foreground/30",
+              index === current ? "w-6 bg-primary" : "w-2 bg-muted-foreground/30"
             )}
           />
         ))}

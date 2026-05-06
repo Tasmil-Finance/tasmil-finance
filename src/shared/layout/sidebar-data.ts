@@ -42,8 +42,8 @@ export interface SidebarData {
   navGroups: NavGroup[];
 }
 
-const isTestnet = process.env["NEXT_PUBLIC_STELLAR_NETWORK"] !== "mainnet";
-const isDev = process.env["NEXT_PUBLIC_APP_ENV"] === "development";
+const isTestnet = process.env.NEXT_PUBLIC_STELLAR_NETWORK !== "mainnet";
+const isDev = process.env.NEXT_PUBLIC_APP_ENV === "development";
 
 function filterNavGroups(groups: NavGroup[]): NavGroup[] {
   return groups

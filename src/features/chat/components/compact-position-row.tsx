@@ -36,11 +36,11 @@ function TokenPairIconSmall({ token0, token1 }: { token0: string; token1: string
     <div className="relative flex shrink-0" style={{ width: 44, height: 28 }}>
       <TokenImage
         alt={token0}
-        className="absolute left-0 bottom-0 h-7 w-7 rounded-full ring-2 ring-sidebar text-[10px]"
+        className="absolute bottom-0 left-0 h-7 w-7 rounded-full text-[10px] ring-2 ring-sidebar"
       />
       <TokenImage
         alt={token1}
-        className="absolute left-[18px] top-0 z-[1] h-7 w-7 rounded-full ring-2 ring-sidebar text-[10px]"
+        className="absolute top-0 left-[18px] z-[1] h-7 w-7 rounded-full text-[10px] ring-2 ring-sidebar"
       />
     </div>
   );
@@ -72,11 +72,11 @@ export function CompactPositionRow({ position: pos }: CompactPositionRowProps) {
             <TokenImage alt={pos.asset} className="h-7 w-7 shrink-0 rounded-full text-[10px]" />
           )}
           <div className="min-w-0">
-            <span className="text-sm font-medium text-sidebar-foreground">
+            <span className="font-medium text-sidebar-foreground text-sm">
               {pair ? `${pair.token0}/${pair.token1}` : pos.name}
             </span>
             {(pair?.poolType || pair?.fee) && (
-              <span className="ml-1.5 text-xs text-sidebar-foreground/40">
+              <span className="ml-1.5 text-sidebar-foreground/40 text-xs">
                 {pair.poolType}
                 {pair.poolType && pair.fee && " · "}
                 {pair.fee}
@@ -84,7 +84,7 @@ export function CompactPositionRow({ position: pos }: CompactPositionRowProps) {
             )}
           </div>
         </div>
-        <span className="shrink-0 text-sm font-semibold text-sidebar-foreground tabular-nums">
+        <span className="shrink-0 font-semibold text-sidebar-foreground text-sm tabular-nums">
           {formatUsd(pos.valueUsd)}
         </span>
       </div>
@@ -93,7 +93,7 @@ export function CompactPositionRow({ position: pos }: CompactPositionRowProps) {
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         <span
           className={cn(
-            "inline-block rounded-md px-2 py-0.5 text-[11px] font-medium",
+            "inline-block rounded-md px-2 py-0.5 font-medium text-[11px]",
             typeConfig.color,
             typeConfig.bg
           )}
@@ -101,7 +101,7 @@ export function CompactPositionRow({ position: pos }: CompactPositionRowProps) {
           {typeConfig.label}
         </span>
         {pos.apy !== undefined && pos.apy > 0 && (
-          <span className="text-[11px] font-medium text-emerald-400 tabular-nums">
+          <span className="font-medium text-[11px] text-emerald-400 tabular-nums">
             {pos.apy.toFixed(2)}% APY
           </span>
         )}

@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   }
 
   const network = getNetwork();
-  const MCP_URL = process.env["NEXT_PUBLIC_MCP_STELLAR_URL"] ?? "http://localhost:3009";
+  const MCP_URL = process.env.NEXT_PUBLIC_MCP_STELLAR_URL ?? "http://localhost:3009";
 
   try {
     const sdk = getBlendClient();

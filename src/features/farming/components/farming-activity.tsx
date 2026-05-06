@@ -181,8 +181,8 @@ export function FarmingActivitySidebar({
 
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card">
-      <div className="px-6 pb-4 pt-6">
-        <h3 className="text-xl font-semibold text-foreground">Activity</h3>
+      <div className="px-6 pt-6 pb-4">
+        <h3 className="font-semibold text-foreground text-xl">Activity</h3>
       </div>
 
       {isLoading ? (
@@ -201,8 +201,8 @@ export function FarmingActivitySidebar({
       ) : items.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center px-6 pb-8">
           <Clock className="mb-3 h-8 w-8 text-muted-foreground/40" />
-          <p className="mb-1 text-sm font-medium text-muted-foreground">No activity yet</p>
-          <p className="text-center text-xs text-muted-foreground/60">
+          <p className="mb-1 font-medium text-muted-foreground text-sm">No activity yet</p>
+          <p className="text-center text-muted-foreground/60 text-xs">
             Events will appear here as the agent operates.
           </p>
         </div>
@@ -227,13 +227,13 @@ export function FarmingActivitySidebar({
                   <Icon className={cn("h-3.5 w-3.5", iconConfig.fg)} />
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate text-sm font-medium text-foreground">{label}</span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="truncate font-medium text-foreground text-sm">{label}</span>
+                  <span className="text-muted-foreground text-xs">
                     {formatRelativeTime(activity.createdAt)}
                   </span>
                 </div>
                 {activity.amount != null && activity.token && (
-                  <span className="shrink-0 text-sm font-semibold text-foreground">
+                  <span className="shrink-0 font-semibold text-foreground text-sm">
                     {activity.amount} {activity.token}
                   </span>
                 )}
@@ -244,10 +244,10 @@ export function FarmingActivitySidebar({
       )}
 
       {onSeeAll && (
-        <div className="mt-auto border-t border-border px-4 py-3">
+        <div className="mt-auto border-border border-t px-4 py-3">
           <Button
             variant="ghost"
-            className="w-full text-sm font-medium text-muted-foreground hover:text-foreground"
+            className="w-full font-medium text-muted-foreground text-sm hover:text-foreground"
             onClick={onSeeAll}
           >
             See all
@@ -277,7 +277,7 @@ export function FarmingActivity({ activities, isLoading }: FarmingActivityProps)
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
       >
-        <h2 className="text-xl font-semibold text-foreground">Activity Timeline</h2>
+        <h2 className="font-semibold text-foreground text-xl">Activity Timeline</h2>
         <div className="overflow-hidden rounded-xl border border-border bg-card">
           <div className="flex flex-col divide-y divide-border">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -308,8 +308,8 @@ export function FarmingActivity({ activities, isLoading }: FarmingActivityProps)
     >
       <div className="flex items-end justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-foreground">Activity Timeline</h2>
-          <p className="text-sm text-muted-foreground">
+          <h2 className="font-semibold text-foreground text-xl">Activity Timeline</h2>
+          <p className="text-muted-foreground text-sm">
             Full history of account actions and automation events.
           </p>
         </div>
@@ -337,7 +337,7 @@ export function FarmingActivity({ activities, isLoading }: FarmingActivityProps)
         <div className="flex flex-col gap-4">
           {groups.map((group) => (
             <section key={group.key} className="flex flex-col gap-2">
-              <h3 className="px-1 pt-2 text-sm font-semibold text-muted-foreground">
+              <h3 className="px-1 pt-2 font-semibold text-muted-foreground text-sm">
                 {group.label}
               </h3>
               <div className="overflow-hidden rounded-xl border border-border bg-card">
@@ -365,9 +365,9 @@ export function FarmingActivity({ activities, isLoading }: FarmingActivityProps)
                           <Icon className={cn("h-[15px] w-[15px]", iconConfig.fg)} />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-foreground">{label}</p>
+                          <p className="truncate font-medium text-foreground text-sm">{label}</p>
                           {activity.detail && (
-                            <p className="truncate text-sm text-muted-foreground">
+                            <p className="truncate text-muted-foreground text-sm">
                               {activity.detail}
                             </p>
                           )}
@@ -375,7 +375,7 @@ export function FarmingActivity({ activities, isLoading }: FarmingActivityProps)
                         {activity.amount != null && activity.token && (
                           <span
                             className={cn(
-                              "shrink-0 text-sm font-semibold",
+                              "shrink-0 font-semibold text-sm",
                               reward ? "text-emerald-400" : "text-foreground"
                             )}
                           >
@@ -388,12 +388,12 @@ export function FarmingActivity({ activities, isLoading }: FarmingActivityProps)
                             href={getExplorerUrl("tx", activity.txHash)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="shrink-0 text-sm text-primary hover:underline"
+                            className="shrink-0 text-primary text-sm hover:underline"
                           >
                             TX
                           </a>
                         )}
-                        <span className="shrink-0 text-sm text-muted-foreground">
+                        <span className="shrink-0 text-muted-foreground text-sm">
                           {formatRelativeTime(activity.createdAt)}
                         </span>
                       </motion.div>

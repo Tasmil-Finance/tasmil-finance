@@ -46,17 +46,17 @@ export function BlendPoolsCard({ pools, mode = "playground" }: BlendPoolsCardPro
         <CardHeader
           icon={<Database className="h-3.5 w-3.5" />}
           title="Blend Pools"
-          right={<span className="text-xs text-muted-foreground">{pools.length}</span>}
+          right={<span className="text-muted-foreground text-xs">{pools.length}</span>}
         />
       )}
       {pools.map((pool, i) => {
         const isOpen = open.has(i);
         return (
-          <div key={pool.address || i} className={cn(i > 0 && "border-t border-border")}>
+          <div key={pool.address || i} className={cn(i > 0 && "border-border border-t")}>
             <button
               type="button"
               onClick={() => flip(i)}
-              className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-muted/30 transition-colors"
+              className="flex w-full items-center gap-2 px-4 py-2.5 transition-colors hover:bg-muted/30"
             >
               <ChevronDown
                 className={cn(
@@ -64,7 +64,7 @@ export function BlendPoolsCard({ pools, mode = "playground" }: BlendPoolsCardPro
                   isOpen && "rotate-180"
                 )}
               />
-              <span className="text-[13px] font-medium text-foreground flex-1 text-left truncate">
+              <span className="flex-1 truncate text-left font-medium text-[13px] text-foreground">
                 {pool.name}
               </span>
               <Tag type={pool.status} />
@@ -94,7 +94,7 @@ export function BlendPoolsCard({ pools, mode = "playground" }: BlendPoolsCardPro
 
 function ReserveList({ reserves }: { reserves: PoolCardProps["reserves"] }) {
   return (
-    <div className="pb-2 px-4 space-y-1">
+    <div className="space-y-1 px-4 pb-2">
       <div className="grid grid-cols-[120px_1fr_1fr] items-center gap-2 py-1 pl-5 text-[10px] text-muted-foreground/50">
         <span>Asset</span>
         <span>Supply APY</span>
@@ -106,8 +106,8 @@ function ReserveList({ reserves }: { reserves: PoolCardProps["reserves"] }) {
           className="grid grid-cols-[120px_1fr_1fr] items-center gap-2 py-1.5 pl-5"
         >
           <div className="flex items-center gap-1.5">
-            <TokenImage src={null} alt={r.symbol} className="h-5 w-5 rounded-full shrink-0" />
-            <span className="text-xs font-medium text-foreground">{r.symbol}</span>
+            <TokenImage src={null} alt={r.symbol} className="h-5 w-5 shrink-0 rounded-full" />
+            <span className="font-medium text-foreground text-xs">{r.symbol}</span>
           </div>
           <span className="text-[11px] text-muted-foreground">
             <Apy value={r.supplyApy} />

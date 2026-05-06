@@ -5,6 +5,7 @@ import { ProtocolHistoryView } from "./protocol-history";
 jest.mock("../hooks/use-account-activity-infinite", () => ({
   useAccountActivityInfinite: jest.fn(),
 }));
+
 import { useAccountActivityInfinite } from "../hooks/use-account-activity-infinite";
 
 const blendDeposit: ActivityItem = {

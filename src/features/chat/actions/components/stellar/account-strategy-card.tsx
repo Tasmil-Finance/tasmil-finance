@@ -2,10 +2,10 @@
 
 import { BarChart3 } from "lucide-react";
 import { memo } from "react";
+import { Bar, MetricBox } from "@/features/protocols/cards/base/indicators";
+import { EmptyState, ProtocolCard } from "@/features/protocols/cards/base/protocol-card";
 import { useResultData } from "../../hooks/use-result-data";
-import { ProtocolCard, EmptyState } from "@/features/protocols/cards/base/protocol-card";
-import { MetricBox, Bar } from "@/features/protocols/cards/base/indicators";
-import { APYDisplay, RiskBadge, ProtocolBadge } from "../base/indicators";
+import { APYDisplay, ProtocolBadge, RiskBadge } from "../base/indicators";
 
 interface AccountPosition {
   poolName?: string;
@@ -61,12 +61,11 @@ const PRESET_RISK: Record<string, "low" | "medium" | "high"> = {
   AGGRESSIVE: "high",
 };
 
-function AccountStrategyCardComponent({
-  result,
-  status,
-}: AccountStrategyCardProps) {
-  const { data, isLoading, hasError, errorMessage } =
-    useResultData<AccountStrategyData>(result, status);
+function AccountStrategyCardComponent({ result, status }: AccountStrategyCardProps) {
+  const { data, isLoading, hasError, errorMessage } = useResultData<AccountStrategyData>(
+    result,
+    status
+  );
 
   const hasAccount = data?.has_account ?? data?.hasAccount ?? false;
   const preset = (data?.preset ?? "BALANCED").toUpperCase();
@@ -89,7 +88,10 @@ function AccountStrategyCardComponent({
         isLoading={isLoading}
         error={hasError ? errorMessage : undefined}
       >
-        <EmptyState icon={BarChart3} text="Deploy a smart account to access auto-rebalancing strategies" />
+        <EmptyState
+          icon={BarChart3}
+          text="Deploy a smart account to access auto-rebalancing strategies"
+        />
       </ProtocolCard>
     );
   }
@@ -113,25 +115,27 @@ function AccountStrategyCardComponent({
         )}
         {currentApy != null && (
           <div className="rounded-lg bg-secondary px-2.5 py-2">
-            <p className="text-[10px] text-muted-foreground mb-0.5">Current APY</p>
-            <p className="text-sm font-semibold">
+            <p className="mb-0.5 text-[10px] text-muted-foreground">Current APY</p>
+            <p className="font-semibold text-sm">
               <APYDisplay value={currentApy} />
             </p>
           </div>
         )}
         {profitUsd != null && (
           <div className="rounded-lg bg-secondary px-2.5 py-2">
-            <p className="text-[10px] text-muted-foreground mb-0.5">P&L</p>
-            <p className={`text-sm font-semibold ${profitUsd >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+            <p className="mb-0.5 text-[10px] text-muted-foreground">P&L</p>
+            <p
+              className={`font-semibold text-sm ${profitUsd >= 0 ? "text-emerald-400" : "text-red-400"}`}
+            >
               {profitUsd >= 0 ? "+" : ""}${profitUsd.toLocaleString()}
               {profitPercent != null && ` (${profitPercent.toFixed(1)}%)`}
             </p>
           </div>
         )}
         <div className="rounded-lg bg-secondary px-2.5 py-2">
-          <p className="text-[10px] text-muted-foreground mb-0.5">Preset</p>
+          <p className="mb-0.5 text-[10px] text-muted-foreground">Preset</p>
           <div className="flex items-center gap-1.5">
-            <span className="text-sm font-semibold">{preset}</span>
+            <span className="font-semibold text-sm">{preset}</span>
             <RiskBadge risk={PRESET_RISK[preset] ?? "medium"} />
           </div>
         </div>
@@ -139,8 +143,8 @@ function AccountStrategyCardComponent({
 
       {/* Positions */}
       {positions.length > 0 && (
-        <div className="border-t border-border pt-2">
-          <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5 px-0.5">
+        <div className="border-border border-t pt-2">
+          <p className="mb-1.5 px-0.5 font-medium text-[9px] text-muted-foreground uppercase tracking-wider">
             Positions ({positions.length})
           </p>
           <div className="space-y-1">
@@ -152,15 +156,17 @@ function AccountStrategyCardComponent({
               return (
                 <div
                   key={idx}
-                  className="rounded-lg border border-border p-2.5 hover:bg-muted/20 transition-colors"
+                  className="rounded-lg border border-border p-2.5 transition-colors hover:bg-muted/20"
                 >
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-1.5 min-w-0">
+                  <div className="mb-1 flex items-center justify-between">
+                    <div className="flex min-w-0 items-center gap-1.5">
                       <ProtocolBadge name={pos.protocol} />
-                      <span className="text-xs font-medium truncate">{poolName}</span>
+                      <span className="truncate font-medium text-xs">{poolName}</span>
                     </div>
-                    <div className="text-right ml-2">
-                      <div className="text-xs font-semibold tabular-nums">${valueUsd.toLocaleString()}</div>
+                    <div className="ml-2 text-right">
+                      <div className="font-semibold text-xs tabular-nums">
+                        ${valueUsd.toLocaleString()}
+                      </div>
                       <div className="text-[10px]">
                         <APYDisplay value={pos.apy} />
                       </div>
@@ -183,7 +189,7 @@ function AccountStrategyCardComponent({
       )}
 
       {data?.message && (
-        <div className="rounded-lg bg-secondary p-2.5 text-muted-foreground text-[10px] mt-2">
+        <div className="mt-2 rounded-lg bg-secondary p-2.5 text-[10px] text-muted-foreground">
           {data.message}
         </div>
       )}

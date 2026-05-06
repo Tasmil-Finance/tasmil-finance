@@ -256,50 +256,54 @@ export function BlendTxCard({
   const handleCancel = () => cancel();
 
   return (
-    <div data-testid="card-blend-tx" ref={cardRef} className="relative rounded-xl border border-border bg-card overflow-hidden">
+    <div
+      data-testid="card-blend-tx"
+      ref={cardRef}
+      className="relative overflow-hidden rounded-xl border border-border bg-card"
+    >
       {/* Header */}
       <div className="px-5 pt-5 pb-2">
-        <p className="text-lg font-semibold text-foreground">Confirm {cfg.label}</p>
-        <p className="text-xs text-muted-foreground">Review details before signing</p>
+        <p className="font-semibold text-foreground text-lg">Confirm {cfg.label}</p>
+        <p className="text-muted-foreground text-xs">Review details before signing</p>
       </div>
 
       {/* Detail rows */}
-      <div className="px-5 pb-3 space-y-0">
-        <div className="flex justify-between py-2.5 border-b border-border/30">
-          <span className="text-sm text-muted-foreground">Amount {cfg.verb}</span>
-          <span className="text-sm text-foreground font-medium tabular-nums flex items-center gap-1.5">
+      <div className="space-y-0 px-5 pb-3">
+        <div className="flex justify-between border-border/30 border-b py-2.5">
+          <span className="text-muted-foreground text-sm">Amount {cfg.verb}</span>
+          <span className="flex items-center gap-1.5 font-medium text-foreground text-sm tabular-nums">
             <TokenImage src={null} alt={symbol} className="h-5 w-5 rounded-full" />
             {fmtAmount(amount)} {symbol}
           </span>
         </div>
-        <div className="flex justify-between py-2.5 border-b border-border/30">
-          <span className="text-sm text-muted-foreground">Maximum transaction fee</span>
-          <span className="text-sm text-foreground tabular-nums">{fmtGas(fee)}</span>
+        <div className="flex justify-between border-border/30 border-b py-2.5">
+          <span className="text-muted-foreground text-sm">Maximum transaction fee</span>
+          <span className="text-foreground text-sm tabular-nums">{fmtGas(fee)}</span>
         </div>
         {apy != null && apy > 0 && (
-          <div className="flex justify-between py-2.5 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">APY</span>
-            <span className="text-sm font-medium text-emerald-400 tabular-nums">
+          <div className="flex justify-between border-border/30 border-b py-2.5">
+            <span className="text-muted-foreground text-sm">APY</span>
+            <span className="font-medium text-emerald-400 text-sm tabular-nums">
               {apy.toFixed(2)}%
             </span>
           </div>
         )}
         {estimatedYearlyEarnings != null && isAdd && (
-          <div className="flex justify-between py-2.5 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">Est. yearly earnings</span>
-            <span className="text-sm text-emerald-400/80 tabular-nums">
+          <div className="flex justify-between border-border/30 border-b py-2.5">
+            <span className="text-muted-foreground text-sm">Est. yearly earnings</span>
+            <span className="text-emerald-400/80 text-sm tabular-nums">
               +{estimatedYearlyEarnings.toFixed(4)} {symbol}
             </span>
           </div>
         )}
         {current != null && newAmount != null && (
-          <div className="flex justify-between py-2.5 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">
+          <div className="flex justify-between border-border/30 border-b py-2.5">
+            <span className="text-muted-foreground text-sm">
               {isBorrowOp ? "Your total borrowed" : "Your total supplied"}
             </span>
-            <span className="text-sm text-foreground tabular-nums flex items-center gap-1.5">
+            <span className="flex items-center gap-1.5 text-foreground text-sm tabular-nums">
               {current.toFixed(4)} {symbol}
-              <ArrowRight className="h-3 w-3 text-muted-foreground/40 shrink-0" />
+              <ArrowRight className="h-3 w-3 shrink-0 text-muted-foreground/40" />
               {newAmount.toFixed(4)} {symbol}
             </span>
           </div>
@@ -311,12 +315,12 @@ export function BlendTxCard({
         <button
           type="button"
           onClick={() => setShowXdr(!showXdr)}
-          className="text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+          className="text-[10px] text-muted-foreground/50 transition-colors hover:text-muted-foreground"
         >
           {showXdr ? "Hide XDR" : "Show XDR"}
         </button>
         {showXdr && (
-          <pre className="mt-1 max-h-[100px] overflow-auto rounded-lg bg-secondary p-2 text-[10px] text-muted-foreground font-mono break-all">
+          <pre className="mt-1 max-h-[100px] overflow-auto break-all rounded-lg bg-secondary p-2 font-mono text-[10px] text-muted-foreground">
             {xdr}
           </pre>
         )}
@@ -331,23 +335,23 @@ export function BlendTxCard({
             href={getExplorerUrl("tx", txResult.hash ?? "")}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full rounded-lg py-2 text-xs font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-center hover:bg-emerald-500/15 transition-colors"
+            className="block w-full rounded-lg border border-emerald-500/20 bg-emerald-500/10 py-2 text-center font-semibold text-emerald-400 text-xs transition-colors hover:bg-emerald-500/15"
           >
             Transaction confirmed · {trunc(txResult.hash ?? "")}
           </a>
         ) : txError ? (
-          <div className="rounded-lg py-2 px-3 text-xs bg-destructive/10 border border-destructive/20 text-destructive text-center">
-            Failed · {txError.length > 80 ? txError.slice(0, 80) + "…" : txError}
+          <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-center text-destructive text-xs">
+            Failed · {txError.length > 80 ? `${txError.slice(0, 80)}…` : txError}
           </div>
         ) : cancelled ? (
-          <div className="rounded-lg py-2 px-3 text-xs bg-muted border border-border text-muted-foreground text-center">
+          <div className="rounded-lg border border-border bg-muted px-3 py-2 text-center text-muted-foreground text-xs">
             Transaction cancelled
           </div>
         ) : (
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="flex-1 rounded-lg py-2 text-xs font-semibold border border-border text-muted-foreground hover:bg-secondary hover:text-foreground transition-all active:scale-[0.98]"
+              className="flex-1 rounded-lg border border-border py-2 font-semibold text-muted-foreground text-xs transition-all hover:bg-secondary hover:text-foreground active:scale-[0.98]"
               onClick={() => {
                 if (cfg.cancel) {
                   handleCancel();
@@ -359,7 +363,7 @@ export function BlendTxCard({
             </button>
             <button
               type="button"
-              className="flex-1 rounded-lg py-2 text-xs font-semibold bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] text-black hover:from-[#C5F0FF] hover:to-[#1CCFFF] transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] py-2 font-semibold text-black text-xs transition-all hover:from-[#C5F0FF] hover:to-[#1CCFFF] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
               onClick={() => {
                 if (cfg.sign) handleSign();
                 else setShowCancelWarning(true);
@@ -429,51 +433,51 @@ function CancelWarningPopup({
   return (
     <>
       <div
-        className={`absolute inset-0 z-10 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        className={`absolute inset-0 z-10 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${visible ? "opacity-100" : "pointer-events-none opacity-0"}`}
         onClick={onKeepEarning}
       />
       <div
-        className={`absolute bottom-0 left-0 right-0 z-20 h-[80%] rounded-t-2xl border-t border-border bg-card transition-transform duration-300 ease-out ${visible ? "translate-y-0" : "translate-y-full"}`}
+        className={`absolute right-0 bottom-0 left-0 z-20 h-[80%] rounded-t-2xl border-border border-t bg-card transition-transform duration-300 ease-out ${visible ? "translate-y-0" : "translate-y-full"}`}
       >
         <div className="flex justify-center pt-3 pb-1">
           <div className="h-1 w-10 rounded-full bg-muted-foreground/30" />
         </div>
-        <div className="flex flex-col h-[calc(100%-2rem)] px-4">
+        <div className="flex h-[calc(100%-2rem)] flex-col px-4">
           <div className="flex items-start gap-3 pt-2 pb-3">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500/15">
               <AlertTriangle className="h-4 w-4 text-amber-500" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-foreground">{title}</p>
-              <p className="text-xs text-muted-foreground">Please read carefully</p>
+              <p className="font-semibold text-foreground text-sm">{title}</p>
+              <p className="text-muted-foreground text-xs">Please read carefully</p>
             </div>
           </div>
-          <div className="flex-1 overflow-auto space-y-3 pb-3">
+          <div className="flex-1 space-y-3 overflow-auto pb-3">
             {!signSafe ? (
               <>
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-muted-foreground text-xs leading-relaxed">
                   This action means you will{" "}
-                  <span className="text-red-400 font-medium">lose unclaimed rewards</span> and any{" "}
+                  <span className="font-medium text-red-400">lose unclaimed rewards</span> and any{" "}
                   <span className="font-medium text-foreground">
                     unvested portion of your welcome reward
                   </span>
                   .
                 </p>
-                <div className="rounded-lg bg-secondary/50 border border-border p-3 space-y-1.5">
-                  <p className="text-xs text-muted-foreground">
+                <div className="space-y-1.5 rounded-lg border border-border bg-secondary/50 p-3">
+                  <p className="text-muted-foreground text-xs">
                     Amount:{" "}
-                    <span className="text-foreground font-medium">
+                    <span className="font-medium text-foreground">
                       {amount} {symbol}
                     </span>
                   </p>
                   {apy != null && apy > 0 && (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground text-xs">
                       Current APY:{" "}
-                      <span className="text-emerald-400 font-medium">{apy.toFixed(2)}%</span>
+                      <span className="font-medium text-emerald-400">{apy.toFixed(2)}%</span>
                     </p>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-muted-foreground text-xs leading-relaxed">
                   You will also forfeit{" "}
                   <span className="font-medium text-foreground">accumulated referral points</span>{" "}
                   tied to this pool position. This action cannot be undone.
@@ -481,9 +485,9 @@ function CancelWarningPopup({
               </>
             ) : apy != null && apy > 0 ? (
               <>
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-muted-foreground text-xs leading-relaxed">
                   By cancelling, you're giving up earning{" "}
-                  <span className="text-emerald-400 font-medium">{apy.toFixed(2)}% APY</span> on
+                  <span className="font-medium text-emerald-400">{apy.toFixed(2)}% APY</span> on
                   your{" "}
                   <span className="font-medium text-foreground">
                     {amount} {symbol}
@@ -491,30 +495,30 @@ function CancelWarningPopup({
                   .
                 </p>
                 {estimatedYearlyEarnings != null && (
-                  <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/15 p-3 space-y-2">
-                    <p className="text-[10px] uppercase tracking-wider text-emerald-400/70 font-medium">
+                  <div className="space-y-2 rounded-lg border border-emerald-500/15 bg-emerald-500/5 p-3">
+                    <p className="font-medium text-[10px] text-emerald-400/70 uppercase tracking-wider">
                       Estimated earnings you'll miss
                     </p>
                     <div className="flex items-baseline justify-between">
-                      <span className="text-xs text-muted-foreground">After 1 year</span>
-                      <span className="text-sm font-semibold text-emerald-400 tabular-nums">
+                      <span className="text-muted-foreground text-xs">After 1 year</span>
+                      <span className="font-semibold text-emerald-400 text-sm tabular-nums">
                         +{estimatedYearlyEarnings.toFixed(4)} {symbol}
                       </span>
                     </div>
                     <div className="flex items-baseline justify-between">
-                      <span className="text-xs text-muted-foreground">After 30 days</span>
-                      <span className="text-xs text-emerald-400/80 tabular-nums">
+                      <span className="text-muted-foreground text-xs">After 30 days</span>
+                      <span className="text-emerald-400/80 text-xs tabular-nums">
                         +{(estimatedYearlyEarnings / 12).toFixed(4)} {symbol}
                       </span>
                     </div>
                   </div>
                 )}
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-muted-foreground text-xs leading-relaxed">
                   Your {symbol} will remain idle and earn nothing. Are you sure?
                 </p>
               </>
             ) : (
-              <p className="text-xs text-muted-foreground leading-relaxed">
+              <p className="text-muted-foreground text-xs leading-relaxed">
                 Are you sure you want to cancel this{" "}
                 <span className="font-medium text-foreground">
                   {amount} {symbol}
@@ -523,17 +527,17 @@ function CancelWarningPopup({
               </p>
             )}
           </div>
-          <div className="flex items-center gap-3 pb-4 pt-2">
+          <div className="flex items-center gap-3 pt-2 pb-4">
             <button
               type="button"
-              className="flex-1 rounded-lg py-2.5 text-xs font-semibold border border-border text-foreground hover:bg-secondary transition-all active:scale-[0.98]"
+              className="flex-1 rounded-lg border border-border py-2.5 font-semibold text-foreground text-xs transition-all hover:bg-secondary active:scale-[0.98]"
               onClick={onKeepEarning}
             >
               Keep earning
             </button>
             <button
               type="button"
-              className="flex-1 rounded-lg py-2.5 text-xs font-semibold border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-all active:scale-[0.98]"
+              className="flex-1 rounded-lg border border-red-500/30 py-2.5 font-semibold text-red-400 text-xs transition-all hover:bg-red-500/10 active:scale-[0.98]"
               onClick={onConfirm}
             >
               {signSafe ? "Cancel anyway" : `${opLabel} anyway`}

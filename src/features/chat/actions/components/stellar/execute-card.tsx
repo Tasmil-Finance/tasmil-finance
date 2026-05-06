@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowRightLeft,
@@ -8,14 +7,15 @@ import {
   Droplets,
   FileCode,
   Globe,
+  Loader2,
   Lock,
   TrendingUp,
-  Loader2,
 } from "lucide-react";
-import { TokenImage } from "@/shared/components/token-image";
+import { useState } from "react";
 import { useTxSigning } from "@/features/protocols/hooks/use-tx-signing";
-import { getExplorerUrl } from "@/shared/config/stellar";
 import { fmtAmount, fmtGas, trunc } from "@/features/protocols/lib/formatting";
+import { TokenImage } from "@/shared/components/token-image";
+import { getExplorerUrl } from "@/shared/config/stellar";
 
 // ─── Props ──────────────────────────────────────────────────────
 
@@ -240,9 +240,7 @@ function normalizeResult(result: unknown): Record<string, unknown> | null {
   if (!result) return null;
   // MCP content-block array
   if (Array.isArray(result)) {
-    const block = (result as any[]).find(
-      (b) => b?.type === "text" && typeof b?.text === "string"
-    );
+    const block = (result as any[]).find((b) => b?.type === "text" && typeof b?.text === "string");
     if (!block) return null;
     try {
       return JSON.parse(block.text);
@@ -268,16 +266,14 @@ function extractTx(result: unknown, args?: Record<string, any>): GenericExecuteC
   const merged = { ...data, ...(args ?? {}) };
 
   // Detect operation: try operation → action → protocol inference
-  const operation = String(
-    merged.operation ?? merged.action ?? merged.op ?? "execute"
-  );
+  const operation = String(merged.operation ?? merged.action ?? merged.op ?? "execute");
 
   const symbol =
-    (merged.context as Record<string, unknown>)?.tokenIn as string
-    ?? (merged.context as Record<string, unknown>)?.symbol as string
-    ?? merged.symbol as string
-    ?? merged.asset as string
-    ?? null;
+    ((merged.context as Record<string, unknown>)?.tokenIn as string) ??
+    ((merged.context as Record<string, unknown>)?.symbol as string) ??
+    (merged.symbol as string) ??
+    (merged.asset as string) ??
+    null;
 
   return {
     operation,
@@ -333,46 +329,44 @@ export function StellarExecuteCard({
 
   const [showXdr, setShowXdr] = useState(false);
   // Derive cancelled from persisted txResult so it survives page reloads
-  const cancelled = txResult !== null && !txResult.success && txResult.message === "Transaction cancelled";
+  const cancelled =
+    txResult !== null && !txResult.success && txResult.message === "Transaction cancelled";
 
   const handleSign = () => sign(xdr);
 
   return (
-    <div data-testid="card-stellar-execute" className="relative rounded-xl border border-border bg-card overflow-hidden">
+    <div
+      data-testid="card-stellar-execute"
+      className="relative overflow-hidden rounded-xl border border-border bg-card"
+    >
       {/* Header */}
       <div className="px-5 pt-5 pb-2">
-        <p className="text-lg font-semibold text-foreground">
+        <p className="font-semibold text-foreground text-lg">
           Confirm {cfg.label}
           {protocol ? (
-            <span className="ml-1.5 text-xs font-normal text-muted-foreground capitalize">
+            <span className="ml-1.5 font-normal text-muted-foreground text-xs capitalize">
               via {protocol}
             </span>
           ) : null}
         </p>
-        <p className="text-xs text-muted-foreground">
-          Review details before signing
-        </p>
+        <p className="text-muted-foreground text-xs">Review details before signing</p>
       </div>
 
       {/* Detail rows */}
-      <div className="px-5 pb-3 space-y-0">
+      <div className="space-y-0 px-5 pb-3">
         {/* Amount with token icon */}
         {amount && symbol ? (
-          <div className="flex justify-between py-2.5 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">Amount</span>
-            <span className="text-sm text-foreground font-medium tabular-nums flex items-center gap-1.5">
-              <TokenImage
-                src={null}
-                alt={symbol}
-                className="h-5 w-5 rounded-full"
-              />
+          <div className="flex justify-between border-border/30 border-b py-2.5">
+            <span className="text-muted-foreground text-sm">Amount</span>
+            <span className="flex items-center gap-1.5 font-medium text-foreground text-sm tabular-nums">
+              <TokenImage src={null} alt={symbol} className="h-5 w-5 rounded-full" />
               {fmtAmount(amount)} {symbol}
             </span>
           </div>
         ) : amount ? (
-          <div className="flex justify-between py-2.5 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">Amount</span>
-            <span className="text-sm text-foreground font-medium tabular-nums">
+          <div className="flex justify-between border-border/30 border-b py-2.5">
+            <span className="text-muted-foreground text-sm">Amount</span>
+            <span className="font-medium text-foreground text-sm tabular-nums">
               {fmtAmount(amount)}
             </span>
           </div>
@@ -380,42 +374,42 @@ export function StellarExecuteCard({
 
         {/* Fee */}
         {fee !== "0" ? (
-          <div className="flex justify-between py-2.5 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">Maximum transaction fee</span>
-            <span className="text-sm text-foreground tabular-nums">{fmtGas(fee)}</span>
+          <div className="flex justify-between border-border/30 border-b py-2.5">
+            <span className="text-muted-foreground text-sm">Maximum transaction fee</span>
+            <span className="text-foreground text-sm tabular-nums">{fmtGas(fee)}</span>
           </div>
         ) : null}
 
         {/* Protocol */}
         {protocol ? (
-          <div className="flex justify-between py-2.5 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">Protocol</span>
-            <span className="text-sm text-foreground capitalize">{protocol}</span>
+          <div className="flex justify-between border-border/30 border-b py-2.5">
+            <span className="text-muted-foreground text-sm">Protocol</span>
+            <span className="text-foreground text-sm capitalize">{protocol}</span>
           </div>
         ) : null}
 
         {/* Pool */}
         {pool ? (
-          <div className="flex justify-between py-2.5 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">Pool</span>
-            <span className="text-xs text-muted-foreground font-mono">{trunc(pool)}</span>
+          <div className="flex justify-between border-border/30 border-b py-2.5">
+            <span className="text-muted-foreground text-sm">Pool</span>
+            <span className="font-mono text-muted-foreground text-xs">{trunc(pool)}</span>
           </div>
         ) : null}
 
         {/* From address */}
         {from ? (
-          <div className="flex justify-between py-2.5 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">From</span>
-            <span className="text-xs text-muted-foreground font-mono">{trunc(from)}</span>
+          <div className="flex justify-between border-border/30 border-b py-2.5">
+            <span className="text-muted-foreground text-sm">From</span>
+            <span className="font-mono text-muted-foreground text-xs">{trunc(from)}</span>
           </div>
         ) : null}
 
         {/* Extra context rows */}
         {resolved.extraRows?.map((row) => (
-          <div key={row.label} className="flex justify-between py-2.5 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">{row.label}</span>
+          <div key={row.label} className="flex justify-between border-border/30 border-b py-2.5">
+            <span className="text-muted-foreground text-sm">{row.label}</span>
             <span
-              className={`text-sm text-foreground tabular-nums ${
+              className={`text-foreground text-sm tabular-nums ${
                 row.mono ? "font-mono text-xs" : ""
               }`}
             >
@@ -431,12 +425,12 @@ export function StellarExecuteCard({
           <button
             type="button"
             onClick={() => setShowXdr(!showXdr)}
-            className="text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+            className="text-[10px] text-muted-foreground/50 transition-colors hover:text-muted-foreground"
           >
             {showXdr ? "Hide XDR" : "Show XDR"}
           </button>
           {showXdr && (
-            <pre className="mt-1 max-h-[100px] overflow-auto rounded-lg bg-secondary p-2 text-[10px] text-muted-foreground font-mono break-all">
+            <pre className="mt-1 max-h-[100px] overflow-auto break-all rounded-lg bg-secondary p-2 font-mono text-[10px] text-muted-foreground">
               {xdr}
             </pre>
           )}
@@ -453,24 +447,23 @@ export function StellarExecuteCard({
             href={getExplorerUrl("tx", txResult.hash ?? "")}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full rounded-lg py-2 text-xs font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-center hover:bg-emerald-500/15 transition-colors"
+            className="block w-full rounded-lg border border-emerald-500/20 bg-emerald-500/10 py-2 text-center font-semibold text-emerald-400 text-xs transition-colors hover:bg-emerald-500/15"
           >
             Transaction confirmed {"\u00B7"} {trunc(txResult.hash ?? "")}
           </a>
         ) : txError ? (
-          <div className="rounded-lg py-2 px-3 text-xs bg-destructive/10 border border-destructive/20 text-destructive text-center">
-            Failed {"\u00B7"}{" "}
-            {txError.length > 80 ? txError.slice(0, 80) + "\u2026" : txError}
+          <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-center text-destructive text-xs">
+            Failed {"\u00B7"} {txError.length > 80 ? `${txError.slice(0, 80)}\u2026` : txError}
           </div>
         ) : cancelled ? (
-          <div className="rounded-lg py-2 px-3 text-xs bg-muted border border-border text-muted-foreground text-center">
+          <div className="rounded-lg border border-border bg-muted px-3 py-2 text-center text-muted-foreground text-xs">
             Transaction cancelled
           </div>
         ) : (
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="flex-1 rounded-lg py-2 text-xs font-semibold border border-border text-muted-foreground hover:bg-secondary hover:text-foreground transition-all active:scale-[0.98]"
+              className="flex-1 rounded-lg border border-border py-2 font-semibold text-muted-foreground text-xs transition-all hover:bg-secondary hover:text-foreground active:scale-[0.98]"
               disabled={signing}
               onClick={() => {
                 cancel();
@@ -480,7 +473,7 @@ export function StellarExecuteCard({
             </button>
             <button
               type="button"
-              className="flex-1 rounded-lg py-2 text-xs font-semibold bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] text-black hover:from-[#C5F0FF] hover:to-[#1CCFFF] transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] py-2 font-semibold text-black text-xs transition-all hover:from-[#C5F0FF] hover:to-[#1CCFFF] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
               onClick={handleSign}
               disabled={signing || !xdr}
             >

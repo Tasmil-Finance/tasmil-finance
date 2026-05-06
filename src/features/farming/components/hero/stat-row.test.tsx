@@ -9,7 +9,7 @@ describe("StatRow", () => {
         allTimePnlUsd={234}
         allTimePnlPercent={2.3}
         currentApy={0.0741}
-      />,
+      />
     );
     expect(screen.getByText("Total Value")).toBeInTheDocument();
     expect(screen.getByText("$12,345.67")).toBeInTheDocument();
@@ -20,24 +20,14 @@ describe("StatRow", () => {
 
   it("uses negative tone when P&L is negative", () => {
     render(
-      <StatRow
-        totalValueUsd={1000}
-        allTimePnlUsd={-50}
-        allTimePnlPercent={-5}
-        currentApy={0.05}
-      />,
+      <StatRow totalValueUsd={1000} allTimePnlUsd={-50} allTimePnlPercent={-5} currentApy={0.05} />
     );
     expect(screen.getByText("-5.00%")).toHaveClass("text-red-400");
   });
 
   it("hides delta on APY card", () => {
     render(
-      <StatRow
-        totalValueUsd={1000}
-        allTimePnlUsd={0}
-        allTimePnlPercent={0}
-        currentApy={0.05}
-      />,
+      <StatRow totalValueUsd={1000} allTimePnlUsd={0} allTimePnlPercent={0} currentApy={0.05} />
     );
     const apyLabel = screen.getByText("Current APY");
     const apyCard = apyLabel.closest("article");

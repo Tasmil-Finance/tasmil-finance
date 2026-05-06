@@ -25,12 +25,7 @@ export async function applyCreditDelta(args: {
   }
 }
 
-export type SeededAccountStatus =
-  | "DEPLOYING"
-  | "AWAITING_FUND"
-  | "ACTIVE"
-  | "HALTED"
-  | "REVOKED";
+export type SeededAccountStatus = "DEPLOYING" | "AWAITING_FUND" | "ACTIVE" | "HALTED" | "REVOKED";
 
 export interface SeedAccountResult {
   accountId: string;
@@ -47,7 +42,7 @@ export interface SeedAccountResult {
  */
 export async function seedManagedAccount(
   walletAddress: string,
-  status: SeededAccountStatus = "ACTIVE",
+  status: SeededAccountStatus = "ACTIVE"
 ): Promise<SeedAccountResult> {
   const res = await fetch(`${BACKEND}/api/internal/e2e/seed/account`, {
     method: "POST",
@@ -58,9 +53,7 @@ export async function seedManagedAccount(
     body: JSON.stringify({ walletAddress, status }),
   });
   if (!res.ok) {
-    throw new Error(
-      `seed/account failed ${res.status}: ${await res.text()}`,
-    );
+    throw new Error(`seed/account failed ${res.status}: ${await res.text()}`);
   }
   const body = await res.json();
   const data = body?.data ?? body;
@@ -93,7 +86,7 @@ export interface SeedActivityEvent {
  */
 export async function seedActivity(
   walletAddress: string,
-  events: SeedActivityEvent[],
+  events: SeedActivityEvent[]
 ): Promise<{ count: number }> {
   const res = await fetch(`${BACKEND}/api/internal/e2e/seed/activity`, {
     method: "POST",
@@ -104,9 +97,7 @@ export async function seedActivity(
     body: JSON.stringify({ walletAddress, events }),
   });
   if (!res.ok) {
-    throw new Error(
-      `seed/activity failed ${res.status}: ${await res.text()}`,
-    );
+    throw new Error(`seed/activity failed ${res.status}: ${await res.text()}`);
   }
   const body = await res.json();
   const data = body?.data ?? body;

@@ -34,7 +34,7 @@ export function WaitlistScreen1({ referredByCode, onJoined }: WaitlistScreen1Pro
   // Reset mutation state when address changes
   useEffect(() => {
     registerWallet.reset();
-  }, [address, registerWallet]);
+  }, [registerWallet]);
 
   const handleRegister = useCallback(async () => {
     if (!address) return;
@@ -68,7 +68,15 @@ export function WaitlistScreen1({ referredByCode, onJoined }: WaitlistScreen1Pro
     onJoined?.();
     // Background refetch to get real queue rank — fire-and-forget, no await.
     queryClient.invalidateQueries({ queryKey: ["waitlist", "status", address] });
-  }, [address, requestChallenge, registerWallet, referredByCode, queryClient]);
+  }, [
+    address,
+    requestChallenge,
+    registerWallet,
+    referredByCode,
+    queryClient, // Notify parent so it marks this session as joined (prevents loop-back
+    // to Screen 1 if the background status refetch later fails).
+    onJoined,
+  ]);
 
   const isPending = requestChallenge.isPending || registerWallet.isPending;
 
@@ -78,22 +86,22 @@ export function WaitlistScreen1({ referredByCode, onJoined }: WaitlistScreen1Pro
         <ProgressStepper steps={STEPS} />
 
         <div className="text-center">
-          <Typography variant="h4" className="text-center font-bold tracking-wide uppercase">
+          <Typography variant="h4" className="text-center font-bold uppercase tracking-wide">
             Join the Waitlist
           </Typography>
-          <Typography variant="small" className="text-center mt-1 text-muted-foreground">
+          <Typography variant="small" className="mt-1 text-center text-muted-foreground">
             Connect your Stellar wallet to secure your spot.
           </Typography>
         </div>
 
         <div className="rounded-xl border border-border bg-card/80 p-5 text-center">
-          <div className="mb-3 mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
+          <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
             <Wallet className="h-5 w-5 text-primary" />
           </div>
-          <Typography variant="p" className="text-center text-sm font-medium text-foreground">
+          <Typography variant="p" className="text-center font-medium text-foreground text-sm">
             Connect your Stellar wallet
           </Typography>
-          <Typography variant="small" className="text-center mt-1 text-muted-foreground">
+          <Typography variant="small" className="mt-1 text-center text-muted-foreground">
             Wallet-based verification. We&apos;ll ask for your email after registration.
           </Typography>
         </div>
@@ -128,10 +136,10 @@ export function WaitlistScreen1({ referredByCode, onJoined }: WaitlistScreen1Pro
       <ProgressStepper steps={STEPS} />
 
       <div className="text-center">
-        <Typography variant="h4" className="text-center font-bold tracking-wide uppercase">
+        <Typography variant="h4" className="text-center font-bold uppercase tracking-wide">
           Join the Waitlist
         </Typography>
-        <Typography variant="small" className="text-center mt-1 text-muted-foreground">
+        <Typography variant="small" className="mt-1 text-center text-muted-foreground">
           Your wallet is connected. Confirm to register.
         </Typography>
       </div>
@@ -141,7 +149,7 @@ export function WaitlistScreen1({ referredByCode, onJoined }: WaitlistScreen1Pro
           <Wallet className="h-5 w-5 text-primary" />
         </div>
         <div>
-          <Typography variant="p" className="text-sm font-medium text-foreground">
+          <Typography variant="p" className="font-medium text-foreground text-sm">
             Wallet connected
           </Typography>
           <Typography variant="small" className="text-muted-foreground">
@@ -178,7 +186,7 @@ export function WaitlistScreen1({ referredByCode, onJoined }: WaitlistScreen1Pro
       )}
 
       {registerWallet.isError && (
-        <p className="text-center text-xs text-red-500">
+        <p className="text-center text-red-500 text-xs">
           {registerWallet.error?.message ?? "Registration failed. Please try again."}
         </p>
       )}

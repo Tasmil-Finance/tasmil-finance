@@ -45,7 +45,7 @@ export function PackageCard({ pkg }: PackageCardProps) {
           {pkg.bonusPercent > 0 ? (
             <Badge
               variant="secondary"
-              className="border border-primary/20 bg-primary/10 text-[11px] uppercase tracking-[0.16em] text-primary"
+              className="border border-primary/20 bg-primary/10 text-[11px] text-primary uppercase tracking-[0.16em]"
               data-testid={`package-card-${pkg.id}-bonus`}
             >
               +{pkg.bonusPercent}% bonus

@@ -67,7 +67,7 @@ export function FarmingModals(props: FarmingModalsProps) {
         </DialogHeader>
 
         {actionError && (
-          <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+          <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-destructive text-sm">
             <XCircle className="h-4 w-4 shrink-0" />
             <span>{actionError}</span>
           </div>

@@ -59,8 +59,8 @@ export default function RootLayout({
       <body className={`${outfit.className} antialiased`}>
         <ServiceWorkerRegistrar />
         <AppProvider>{children}</AppProvider>
-        {process.env["NEXT_PUBLIC_GA_MEASUREMENT_ID"] && (
-          <GoogleAnalytics gaId={process.env["NEXT_PUBLIC_GA_MEASUREMENT_ID"]} />
+        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
         )}
       </body>
     </html>

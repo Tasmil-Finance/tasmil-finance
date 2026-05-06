@@ -86,7 +86,7 @@ function ReserveInfoView({ reserve }: { reserve: any }) {
         <DetailRow
           label="Supply APY"
           value={
-            <span className="text-foreground font-semibold">
+            <span className="font-semibold text-foreground">
               {formatPercent(reserve.supplyApy)}
             </span>
           }
@@ -129,7 +129,7 @@ function ReserveInfoView({ reserve }: { reserve: any }) {
         />
       )}
       {(reserve.supplyEmissionApy != null || reserve.borrowEmissionApy != null) && (
-        <div className="border-t pt-1.5 mt-1">
+        <div className="mt-1 border-t pt-1.5">
           {reserve.supplyEmissionApy != null && (
             <DetailRow
               label="Supply Emission"
@@ -248,7 +248,7 @@ function SinglePoolView({ pool }: { pool: any; protocol?: string; compact?: bool
         <DetailRow
           label="Supply APY"
           value={
-            <span className="text-foreground font-semibold">{formatPercent(pool.supplyApy)}</span>
+            <span className="font-semibold text-foreground">{formatPercent(pool.supplyApy)}</span>
           }
         />
       )}

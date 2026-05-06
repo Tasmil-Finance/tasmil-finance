@@ -34,7 +34,7 @@ describe("ManageTab", () => {
         onApply={() => {}}
         pools={[]}
         poolsLoading={false}
-      />,
+      />
     );
     expect(screen.getByText(/choose your strategy/i)).toBeInTheDocument();
     expect(screen.getByText(/available pools/i)).toBeInTheDocument();
@@ -57,7 +57,7 @@ describe("ManageTab", () => {
         onApply={() => {}}
         pools={[usdcPool, xlmPool]}
         poolsLoading={false}
-      />,
+      />
     );
     const dataRows = container.querySelectorAll('[data-pools-row="true"]');
     expect(dataRows.length).toBe(1);
@@ -81,7 +81,7 @@ describe("ManageTab", () => {
         onApply={() => {}}
         pools={[]}
         poolsLoading={false}
-      />,
+      />
     );
     fireEvent.click(screen.getByRole("button", { name: /^XLM \(/ }));
     expect(onChangePreviewAsset).toHaveBeenCalledWith("XLM");
@@ -106,7 +106,7 @@ describe("ManageTab asset toggle pool counts", () => {
         onApply={() => {}}
         pools={[usdcPool, xlmPool, { ...usdcPool, id: "p-usdc-2" }]}
         poolsLoading={false}
-      />,
+      />
     );
     // "(2 pools)" for USDC, "(1 pool)" for XLM
     expect(screen.getByText(/\(2 pools\)/i)).toBeInTheDocument();
@@ -130,7 +130,7 @@ describe("ManageTab asset toggle pool counts", () => {
         onApply={() => {}}
         pools={[]}
         poolsLoading={false}
-      />,
+      />
     );
     expect(screen.queryByText(/^Preview$/i)).toBeNull();
   });
@@ -153,12 +153,7 @@ describe("ManageTab sticky Apply bar", () => {
 
   it("hides Apply bar when no preset selected", () => {
     render(
-      <ManageTab
-        {...baseProps}
-        selectedPreset={null}
-        currentPreset="BALANCED"
-        onApply={() => {}}
-      />,
+      <ManageTab {...baseProps} selectedPreset={null} currentPreset="BALANCED" onApply={() => {}} />
     );
     expect(screen.queryByRole("button", { name: /apply strategy/i })).toBeNull();
   });
@@ -170,7 +165,7 @@ describe("ManageTab sticky Apply bar", () => {
         selectedPreset="Balanced"
         currentPreset="BALANCED"
         onApply={() => {}}
-      />,
+      />
     );
     expect(screen.queryByRole("button", { name: /apply strategy/i })).toBeNull();
   });
@@ -182,7 +177,7 @@ describe("ManageTab sticky Apply bar", () => {
         selectedPreset="Aggressive"
         currentPreset="BALANCED"
         onApply={() => {}}
-      />,
+      />
     );
     expect(screen.getByRole("button", { name: /apply strategy/i })).toBeInTheDocument();
   });
@@ -195,7 +190,7 @@ describe("ManageTab sticky Apply bar", () => {
         selectedPreset="Aggressive"
         currentPreset="BALANCED"
         onApply={onApply}
-      />,
+      />
     );
     fireEvent.click(screen.getByRole("button", { name: /apply strategy/i }));
     expect(onApply).toHaveBeenCalled();
@@ -208,7 +203,7 @@ describe("ManageTab sticky Apply bar", () => {
         selectedPreset="Aggressive"
         currentPreset="BALANCED"
         onApply={() => {}}
-      />,
+      />
     );
     expect(screen.getByText(/aggressive selected/i)).toBeInTheDocument();
     expect(screen.getByText(/current: balanced/i)).toBeInTheDocument();

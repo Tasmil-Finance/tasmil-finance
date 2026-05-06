@@ -26,7 +26,7 @@ describe("StatCard", () => {
 
   it("renders sparkline slot when sparkline prop provided", () => {
     const { container } = render(
-      <StatCard label="APY" value="7.41%" sparkline={<svg data-testid="spark" />} />,
+      <StatCard label="APY" value="7.41%" sparkline={<svg data-testid="spark" />} />
     );
     expect(container.querySelector(".h-10")).not.toBeNull();
     expect(screen.getByTestId("spark")).toBeInTheDocument();

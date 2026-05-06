@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 export function Apy({ value }: { value: unknown }) {
   const n = Number(value);
   if (!Number.isFinite(n)) return <span className="text-muted-foreground">{"\u2014"}</span>;
-  return <span className="text-foreground tabular-nums text-xs">{(n * 100).toFixed(2)}%</span>;
+  return <span className="text-foreground text-xs tabular-nums">{(n * 100).toFixed(2)}%</span>;
 }
 
 /** Badge tag for type (supply, collateral, borrow, active, setup). */
@@ -25,7 +25,7 @@ export function Tag({ type }: { type: string }) {
   };
   const [label, cls] = m[type] ?? [type, "text-muted-foreground bg-muted"];
   return (
-    <span className={cn("rounded-md px-1.5 py-px text-[10px] font-medium", cls)}>{label}</span>
+    <span className={cn("rounded-md px-1.5 py-px font-medium text-[10px]", cls)}>{label}</span>
   );
 }
 
@@ -34,7 +34,7 @@ export function Bar({ value }: { value: unknown }) {
   const n = Number(value);
   const p = Number.isFinite(n) ? n * 100 : 0;
   return (
-    <div className="h-1 w-full rounded-full bg-border overflow-hidden">
+    <div className="h-1 w-full overflow-hidden rounded-full bg-border">
       <div
         className="h-full rounded-full bg-primary/60"
         style={{ width: `${Math.min(p, 100)}%` }}
@@ -47,8 +47,8 @@ export function Bar({ value }: { value: unknown }) {
 export function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[9px] text-muted-foreground/60 uppercase mb-0.5">{label}</p>
-      <p className="text-xs text-foreground tabular-nums">{value}</p>
+      <p className="mb-0.5 text-[9px] text-muted-foreground/60 uppercase">{label}</p>
+      <p className="text-foreground text-xs tabular-nums">{value}</p>
     </div>
   );
 }
@@ -57,8 +57,8 @@ export function Stat({ label, value }: { label: string; value: string }) {
 export function MetricBox({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg bg-secondary px-2.5 py-2">
-      <p className="text-[10px] text-muted-foreground mb-0.5">{label}</p>
-      <p className="text-sm font-semibold text-foreground tabular-nums">{value}</p>
+      <p className="mb-0.5 text-[10px] text-muted-foreground">{label}</p>
+      <p className="font-semibold text-foreground text-sm tabular-nums">{value}</p>
     </div>
   );
 }
@@ -84,9 +84,9 @@ export function CardHeader({
   right?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border">
+    <div className="flex items-center gap-2 border-border border-b px-4 py-2.5">
       <span className="text-muted-foreground">{icon}</span>
-      <span className="text-[13px] font-medium text-foreground flex-1">{title}</span>
+      <span className="flex-1 font-medium text-[13px] text-foreground">{title}</span>
       {right}
     </div>
   );
@@ -144,10 +144,10 @@ export function ChangeRow({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs text-muted-foreground flex-1">{label}</span>
-      <span className="text-xs text-foreground tabular-nums">{before}</span>
+      <span className="flex-1 text-muted-foreground text-xs">{label}</span>
+      <span className="text-foreground text-xs tabular-nums">{before}</span>
       <span className="text-muted-foreground/40 text-xs">{"\u2192"}</span>
-      <span className="text-xs text-foreground tabular-nums">{after}</span>
+      <span className="text-foreground text-xs tabular-nums">{after}</span>
     </div>
   );
 }

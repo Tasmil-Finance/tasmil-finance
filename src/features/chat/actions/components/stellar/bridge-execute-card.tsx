@@ -1,17 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import { ArrowRight, Loader2 } from "lucide-react";
-import { TokenImage } from "@/shared/components/token-image";
-import { useTxSigning } from "@/features/protocols/hooks/use-tx-signing";
-import { getExplorerUrl } from "@/shared/config/stellar";
-import { fmtAmount, fmtGas, trunc } from "@/features/protocols/lib/formatting";
+import { useState } from "react";
 import {
-  isEvmWalletAvailable,
   connectEvmWallet,
-  switchEvmChain,
+  isEvmWalletAvailable,
   sendEvmTransaction,
+  switchEvmChain,
 } from "@/features/aggregator/lib/evm-wallet";
+import { useTxSigning } from "@/features/protocols/hooks/use-tx-signing";
+import { fmtAmount, fmtGas, trunc } from "@/features/protocols/lib/formatting";
+import { TokenImage } from "@/shared/components/token-image";
+import { getExplorerUrl } from "@/shared/config/stellar";
 
 // ─── Chain name → display label ──────────────────────────────────
 
@@ -155,7 +155,8 @@ export function BridgeExecuteCard({
 
   const [showData, setShowData] = useState(false);
   // Derive cancelled from persisted txResult so it survives page reloads
-  const cancelled = txResult !== null && !txResult.success && txResult.message === "Transaction cancelled";
+  const cancelled =
+    txResult !== null && !txResult.success && txResult.message === "Transaction cancelled";
 
   const hasResult = txResult?.success || evmHash;
   const hasError = txError || evmError;
@@ -163,20 +164,21 @@ export function BridgeExecuteCard({
   const errorMsg = txError ?? evmError;
 
   return (
-    <div data-testid="card-bridge-execute" className="relative rounded-xl border border-border bg-card overflow-hidden">
+    <div
+      data-testid="card-bridge-execute"
+      className="relative overflow-hidden rounded-xl border border-border bg-card"
+    >
       {/* Header */}
       <div className="px-5 pt-5 pb-2">
-        <p className="text-lg font-semibold text-foreground">
+        <p className="font-semibold text-foreground text-lg">
           Confirm Bridge Transfer
           {tx.provider ? (
-            <span className="ml-1.5 text-xs font-normal text-muted-foreground capitalize">
+            <span className="ml-1.5 font-normal text-muted-foreground text-xs capitalize">
               via {tx.provider}
             </span>
           ) : null}
         </p>
-        <p className="text-xs text-muted-foreground">
-          Review chain route and fees before signing
-        </p>
+        <p className="text-muted-foreground text-xs">Review chain route and fees before signing</p>
       </div>
 
       {/* Chain direction + token amounts */}
@@ -184,13 +186,13 @@ export function BridgeExecuteCard({
         <div className="flex items-stretch gap-3">
           {/* Source */}
           <div className="flex-1 rounded-2xl bg-secondary/60 px-4 py-3">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+            <p className="mb-1 text-[10px] text-muted-foreground uppercase tracking-wider">
               {sourceLabel}
             </p>
             <div className="flex items-center gap-2">
               <TokenImage src={null} alt={tx.tokenIn} className="h-8 w-8 rounded-full" />
               <div>
-                <p className="text-base font-medium text-foreground tabular-nums">
+                <p className="font-medium text-base text-foreground tabular-nums">
                   {fmtAmount(tx.amountIn)} {tx.tokenIn}
                 </p>
                 <p className="text-[10px] text-muted-foreground">You send</p>
@@ -200,20 +202,20 @@ export function BridgeExecuteCard({
 
           {/* Arrow */}
           <div className="flex items-center">
-            <div className="h-8 w-8 rounded-full bg-card border border-border flex items-center justify-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card">
               <ArrowRight className="h-4 w-4 text-muted-foreground" />
             </div>
           </div>
 
           {/* Destination */}
           <div className="flex-1 rounded-2xl bg-secondary/60 px-4 py-3">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+            <p className="mb-1 text-[10px] text-muted-foreground uppercase tracking-wider">
               {destLabel}
             </p>
             <div className="flex items-center gap-2">
               <TokenImage src={null} alt={tx.tokenOut} className="h-8 w-8 rounded-full" />
               <div>
-                <p className="text-base font-medium text-foreground tabular-nums">
+                <p className="font-medium text-base text-foreground tabular-nums">
                   {tx.amountOut ? fmtAmount(tx.amountOut) : "\u2014"} {tx.tokenOut}
                 </p>
                 <p className="text-[10px] text-muted-foreground">You receive</p>
@@ -224,19 +226,19 @@ export function BridgeExecuteCard({
       </div>
 
       {/* Detail rows */}
-      <div className="px-5 pb-3 space-y-0">
+      <div className="space-y-0 px-5 pb-3">
         {isDepositPattern ? (
           <>
-            <div className="flex justify-between py-2.5 border-b border-border/30">
-              <span className="text-sm text-muted-foreground">Deposit address</span>
-              <span className="text-xs text-foreground font-mono tabular-nums">
+            <div className="flex justify-between border-border/30 border-b py-2.5">
+              <span className="text-muted-foreground text-sm">Deposit address</span>
+              <span className="font-mono text-foreground text-xs tabular-nums">
                 {trunc(tx.depositAddress ?? "")}
               </span>
             </div>
             {tx.depositMemo ? (
-              <div className="flex justify-between py-2.5 border-b border-border/30">
-                <span className="text-sm text-muted-foreground">Memo</span>
-                <span className="text-sm text-foreground font-mono tabular-nums">
+              <div className="flex justify-between border-border/30 border-b py-2.5">
+                <span className="text-muted-foreground text-sm">Memo</span>
+                <span className="font-mono text-foreground text-sm tabular-nums">
                   {tx.depositMemo}
                 </span>
               </div>
@@ -244,43 +246,43 @@ export function BridgeExecuteCard({
           </>
         ) : null}
         {tx.estimatedFee ? (
-          <div className="flex justify-between py-2.5 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">Estimated fee</span>
-            <span className="text-sm text-foreground tabular-nums">{fmtGas(tx.estimatedFee)}</span>
+          <div className="flex justify-between border-border/30 border-b py-2.5">
+            <span className="text-muted-foreground text-sm">Estimated fee</span>
+            <span className="text-foreground text-sm tabular-nums">{fmtGas(tx.estimatedFee)}</span>
           </div>
         ) : null}
         {tx.estimatedTime ? (
-          <div className="flex justify-between py-2.5 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">Estimated time</span>
-            <span className="text-sm text-foreground tabular-nums">{tx.estimatedTime}</span>
+          <div className="flex justify-between border-border/30 border-b py-2.5">
+            <span className="text-muted-foreground text-sm">Estimated time</span>
+            <span className="text-foreground text-sm tabular-nums">{tx.estimatedTime}</span>
           </div>
         ) : null}
         {tx.fromAddress ? (
-          <div className="flex justify-between py-2.5 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">From</span>
-            <span className="text-xs text-muted-foreground font-mono">{trunc(tx.fromAddress)}</span>
+          <div className="flex justify-between border-border/30 border-b py-2.5">
+            <span className="text-muted-foreground text-sm">From</span>
+            <span className="font-mono text-muted-foreground text-xs">{trunc(tx.fromAddress)}</span>
           </div>
         ) : null}
         {tx.toAddress ? (
-          <div className="flex justify-between py-2.5 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">To</span>
-            <span className="text-xs text-muted-foreground font-mono">{trunc(tx.toAddress)}</span>
+          <div className="flex justify-between border-border/30 border-b py-2.5">
+            <span className="text-muted-foreground text-sm">To</span>
+            <span className="font-mono text-muted-foreground text-xs">{trunc(tx.toAddress)}</span>
           </div>
         ) : null}
       </div>
 
       {/* Transaction data toggle */}
-      {(tx.xdr || tx.evmTx) ? (
+      {tx.xdr || tx.evmTx ? (
         <div className="px-5 pb-2">
           <button
             type="button"
             onClick={() => setShowData(!showData)}
-            className="text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+            className="text-[10px] text-muted-foreground/50 transition-colors hover:text-muted-foreground"
           >
             {showData ? "Hide transaction data" : "Show transaction data"}
           </button>
           {showData && (
-            <pre className="mt-1 max-h-[100px] overflow-auto rounded-lg bg-secondary p-2 text-[10px] text-muted-foreground font-mono break-all">
+            <pre className="mt-1 max-h-[100px] overflow-auto break-all rounded-lg bg-secondary p-2 font-mono text-[10px] text-muted-foreground">
               {tx.xdr
                 ? tx.xdr.slice(0, 300) + (tx.xdr.length > 300 ? "..." : "")
                 : JSON.stringify(tx.evmTx, null, 2)}
@@ -299,23 +301,25 @@ export function BridgeExecuteCard({
             href={getExplorerUrl("tx", resultHash ?? "")}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full rounded-lg py-2 text-xs font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-center hover:bg-emerald-500/15 transition-colors"
+            className="block w-full rounded-lg border border-emerald-500/20 bg-emerald-500/10 py-2 text-center font-semibold text-emerald-400 text-xs transition-colors hover:bg-emerald-500/15"
           >
             Transaction confirmed {"\u00B7"} {trunc(resultHash ?? "")}
           </a>
         ) : hasError ? (
-          <div className="rounded-lg py-2 px-3 text-xs bg-destructive/10 border border-destructive/20 text-destructive text-center">
-            Failed {"\u00B7"} {errorMsg && errorMsg.length > 80 ? errorMsg.slice(0, 80) + "\u2026" : errorMsg}
+          <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-center text-destructive text-xs">
+            Failed {"\u00B7"}{" "}
+            {errorMsg && errorMsg.length > 80 ? `${errorMsg.slice(0, 80)}\u2026` : errorMsg}
           </div>
         ) : cancelled ? (
-          <div className="rounded-lg py-2 px-3 text-xs bg-muted border border-border text-muted-foreground text-center">
+          <div className="rounded-lg border border-border bg-muted px-3 py-2 text-center text-muted-foreground text-xs">
             Transaction cancelled
           </div>
         ) : isDepositPattern ? (
           /* NEAR Intents / Templar: show deposit instruction, no signing */
-          <div className="rounded-lg bg-secondary/50 border border-border p-3">
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              {tx.depositInstruction ?? `Send ${fmtAmount(tx.amountIn)} ${tx.tokenIn} to ${trunc(tx.depositAddress ?? "", 10, 10)}`}
+          <div className="rounded-lg border border-border bg-secondary/50 p-3">
+            <p className="text-muted-foreground text-xs leading-relaxed">
+              {tx.depositInstruction ??
+                `Send ${fmtAmount(tx.amountIn)} ${tx.tokenIn} to ${trunc(tx.depositAddress ?? "", 10, 10)}`}
             </p>
           </div>
         ) : isStellarSource && tx.xdr ? (
@@ -323,18 +327,22 @@ export function BridgeExecuteCard({
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="flex-1 rounded-lg py-2 text-xs font-semibold border border-border text-muted-foreground hover:bg-secondary hover:text-foreground transition-all active:scale-[0.98]"
+              className="flex-1 rounded-lg border border-border py-2 font-semibold text-muted-foreground text-xs transition-all hover:bg-secondary hover:text-foreground active:scale-[0.98]"
               disabled={stellarSigning}
               onClick={() => {
                 cancelStellar();
-                respond?.({ success: false, cancelled: true, reason: "User cancelled the operation" });
+                respond?.({
+                  success: false,
+                  cancelled: true,
+                  reason: "User cancelled the operation",
+                });
               }}
             >
               Cancel
             </button>
             <button
               type="button"
-              className="flex-1 rounded-lg py-2 text-xs font-semibold bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] text-black hover:from-[#C5F0FF] hover:to-[#1CCFFF] transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] py-2 font-semibold text-black text-xs transition-all hover:from-[#C5F0FF] hover:to-[#1CCFFF] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
               onClick={() => signStellar(tx.xdr!)}
               disabled={stellarSigning || !tx.xdr}
             >
@@ -351,8 +359,8 @@ export function BridgeExecuteCard({
           /* EVM source: use MetaMask */
           <div>
             {!isEvmWalletAvailable() ? (
-              <div className="rounded-lg bg-secondary/50 border border-border p-3 text-center">
-                <p className="text-xs text-muted-foreground mb-2">
+              <div className="rounded-lg border border-border bg-secondary/50 p-3 text-center">
+                <p className="mb-2 text-muted-foreground text-xs">
                   MetaMask or an EVM wallet is required to sign
                 </p>
                 <p className="text-[10px] text-muted-foreground/70">
@@ -362,7 +370,7 @@ export function BridgeExecuteCard({
             ) : !evmAddress ? (
               <button
                 type="button"
-                className="w-full rounded-lg py-2 text-xs font-semibold bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] text-black hover:from-[#C5F0FF] hover:to-[#1CCFFF] transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] py-2 font-semibold text-black text-xs transition-all hover:from-[#C5F0FF] hover:to-[#1CCFFF] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
                 onClick={handleConnectEVM}
                 disabled={connectingEVM}
               >
@@ -376,25 +384,31 @@ export function BridgeExecuteCard({
               </button>
             ) : (
               <div className="space-y-2">
-                <div className="flex items-center gap-2 rounded-lg bg-secondary/50 border border-border px-3 py-2">
+                <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/50 px-3 py-2">
                   <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                  <span className="text-xs text-muted-foreground">Connected: {trunc(evmAddress, 6, 4)}</span>
+                  <span className="text-muted-foreground text-xs">
+                    Connected: {trunc(evmAddress, 6, 4)}
+                  </span>
                 </div>
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
-                    className="flex-1 rounded-lg py-2 text-xs font-semibold border border-border text-muted-foreground hover:bg-secondary hover:text-foreground transition-all active:scale-[0.98]"
+                    className="flex-1 rounded-lg border border-border py-2 font-semibold text-muted-foreground text-xs transition-all hover:bg-secondary hover:text-foreground active:scale-[0.98]"
                     disabled={evmSigning}
                     onClick={() => {
                       cancelStellar();
-                      respond?.({ success: false, cancelled: true, reason: "User cancelled the operation" });
+                      respond?.({
+                        success: false,
+                        cancelled: true,
+                        reason: "User cancelled the operation",
+                      });
                     }}
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
-                    className="flex-1 rounded-lg py-2 text-xs font-semibold bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] text-black hover:from-[#C5F0FF] hover:to-[#1CCFFF] transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] py-2 font-semibold text-black text-xs transition-all hover:from-[#C5F0FF] hover:to-[#1CCFFF] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
                     onClick={handleSignEVM}
                     disabled={evmSigning}
                   >
@@ -411,7 +425,7 @@ export function BridgeExecuteCard({
             )}
           </div>
         ) : (
-          <div className="rounded-lg py-2 px-3 text-xs bg-muted border border-border text-muted-foreground text-center">
+          <div className="rounded-lg border border-border bg-muted px-3 py-2 text-center text-muted-foreground text-xs">
             No transaction data available
           </div>
         )}

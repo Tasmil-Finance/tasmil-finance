@@ -76,7 +76,7 @@ function renderList() {
   return render(
     <QueryClientProvider client={qc}>
       <TransactionList address="GA" />
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
 }
 

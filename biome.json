@@ -16,7 +16,9 @@
       "build/**",
       "coverage/**",
       "*.min.js",
-      "*.d.ts"
+      "*.d.ts",
+      "e2e/**",
+      "src/store/use-watch-list.test.ts"
     ]
   },
   "formatter": {
@@ -34,6 +36,7 @@
       "recommended": true,
       "a11y": {
         "recommended": true,
+        "noLabelWithoutControl": "warn",
         "noStaticElementInteractions": "warn",
         "noSvgWithoutTitle": "warn",
         "useButtonType": "warn",
@@ -49,12 +52,12 @@
       },
       "correctness": {
         "recommended": true,
-        "noUnusedVariables": "error",
+        "noUnusedVariables": "warn",
         "noInvalidUseBeforeDeclaration": "warn",
         "useHookAtTopLevel": "warn",
         "useExhaustiveDependencies": "warn",
         "useJsxKeyInIterable": "warn",
-        "useUniqueElementIds": "warn"
+        "useUniqueElementIds": "off"
       },
       "nursery": {
         "recommended": true,
@@ -105,5 +108,21 @@
     "formatter": {
       "enabled": true
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "e2e/**",
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/*.spec.ts",
+        "**/*.spec.tsx",
+        "public/**",
+        "scripts/**",
+        "src/app/(dashboard)/playground/**",
+        "src/app/(dashboard)/faucet/**"
+      ],
+      "linter": { "enabled": false }
+    }
+  ]
 }

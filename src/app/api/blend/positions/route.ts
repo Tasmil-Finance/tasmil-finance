@@ -117,7 +117,7 @@ export async function GET(req: NextRequest) {
   }
 
   // Fallback: MCP-stellar
-  const MCP_URL = process.env["NEXT_PUBLIC_MCP_STELLAR_URL"] ?? "http://localhost:3009";
+  const MCP_URL = process.env.NEXT_PUBLIC_MCP_STELLAR_URL ?? "http://localhost:3009";
   try {
     const r = await fetch(`${MCP_URL}/blend-v2/query/positions?pool=${pool}&user=${user}`);
     const d = await r.json();

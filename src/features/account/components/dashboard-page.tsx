@@ -184,7 +184,7 @@ export function DashboardPage() {
       </Card>
 
       {position.balanceStale && (
-        <p className="mb-6 rounded-md border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-yellow-200 text-xs">
+        <p className="mb-6 rounded-md border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-xs text-yellow-200">
           Balance sync is delayed. Displayed total currently uses net cashflow estimate.
         </p>
       )}

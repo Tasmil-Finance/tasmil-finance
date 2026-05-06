@@ -32,7 +32,7 @@ export function WelcomeRewardCard({ status, onOpen }: WelcomeRewardCardProps) {
               </p>
               <Badge
                 variant="secondary"
-                className="border border-primary/20 bg-primary/10 text-[10px] uppercase tracking-[0.16em] text-primary"
+                className="border border-primary/20 bg-primary/10 text-[10px] text-primary uppercase tracking-[0.16em]"
               >
                 Welcome reward
               </Badge>
@@ -47,7 +47,7 @@ export function WelcomeRewardCard({ status, onOpen }: WelcomeRewardCardProps) {
         <div className="space-y-3 px-5 py-4">
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+              <span className="font-medium text-[11px] text-muted-foreground uppercase tracking-[0.16em]">
                 Tracked volume
               </span>
               <span className="font-medium text-foreground text-sm">

@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures/chat.fixture";
+import { expect, test } from "./fixtures/chat.fixture";
 import { SMOKE_TESTS } from "./helpers/test-prompts";
 
 /**
@@ -39,7 +39,7 @@ test.describe("FUNDED Smoke Tests", () => {
       const cards = await chatPage.getAllCards();
       const text = await chatPage.getLastResponseText();
       expect(cards.length > 0 || text.length > 20, `No response for: "${testCase.prompt}"`).toBe(
-        true,
+        true
       );
 
       if (cards.length > 0) {
@@ -48,7 +48,7 @@ test.describe("FUNDED Smoke Tests", () => {
         const hasExpectedCard = allCardTypes.some((t) => acceptableTypes.includes(t));
         expect(
           hasExpectedCard,
-          `Expected [${acceptableTypes.join(", ")}] but got [${allCardTypes.join(", ")}]`,
+          `Expected [${acceptableTypes.join(", ")}] but got [${allCardTypes.join(", ")}]`
         ).toBe(true);
       }
 
@@ -68,7 +68,7 @@ test.describe("FUNDED Smoke Tests", () => {
 
       if (testCase.behavior.shouldShowSigningCard && testCase.signingCard?.hasSignButton) {
         const signButton = chatPage.page.locator(
-          'button:has-text("Sign"), button:has-text("Confirm")',
+          'button:has-text("Sign"), button:has-text("Confirm")'
         );
         if ((await signButton.count()) === 0) {
           console.warn(`[WARN] No Sign button for "${testName}"`);
@@ -108,13 +108,12 @@ test.describe("EMPTY Smoke Tests", () => {
       const text = await chatPageEmpty.getLastResponseText();
       expect(
         cards.length > 0 || text.length > 20,
-        `No response for empty wallet: "${testCase.prompt}"`,
+        `No response for empty wallet: "${testCase.prompt}"`
       ).toBe(true);
 
       // For execute-type prompts, verify AI handles empty wallet gracefully
       const isExecutePrompt =
-        testCase.behavior.shouldShowSigningCard ||
-        testCase.behavior.shouldCheckBalance;
+        testCase.behavior.shouldShowSigningCard || testCase.behavior.shouldCheckBalance;
 
       if (isExecutePrompt) {
         const responseText = await chatPageEmpty.getLastResponseText();
@@ -127,7 +126,7 @@ test.describe("EMPTY Smoke Tests", () => {
         // Any response is acceptable — we just verify it didn't crash
         console.log(
           `[EMPTY] ${testName}: ${cards.length} cards, ` +
-            `mentions balance: ${lowerText.includes("balance") || lowerText.includes("insufficient")}`,
+            `mentions balance: ${lowerText.includes("balance") || lowerText.includes("insufficient")}`
         );
       }
 
@@ -141,9 +140,7 @@ test.describe("EMPTY Smoke Tests", () => {
           for (const fragment of testCase.assertions.textContains) {
             // Soft check — read-only data should still be present
             if (!responseText.toLowerCase().includes(fragment.toLowerCase())) {
-              console.warn(
-                `[WARN] EMPTY:${testName} missing "${fragment}" in response`,
-              );
+              console.warn(`[WARN] EMPTY:${testName} missing "${fragment}" in response`);
             }
           }
         }

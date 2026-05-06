@@ -105,10 +105,10 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
     const merged = mergeMessagesWithCache(messagesCache.current, incoming);
     messagesCache.current = merged;
     return merged;
-  }, [stream.messages, forceUpdate, chatId]);
+  }, [stream.messages, chatId]);
 
   const uiComponents = useMemo(() => {
-    const incoming = (stream.values?.["ui"] as any[] | undefined) || [];
+    const incoming = (stream.values?.ui as any[] | undefined) || [];
 
     // If incoming is empty and we have cache, keep cache
     if (incoming.length === 0 && uiCache.current.length > 0) {
@@ -138,7 +138,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
   // Reset firstTokenReceived when switching chats
   useEffect(() => {
     setFirstTokenReceived(false);
-  }, [chatId]);
+  }, []);
 
   // Clear isSubmitting when stream actually starts loading
   useEffect(() => {
@@ -756,8 +756,8 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
               (() => {
                 // Check if there are any tool-status UI messages
                 // If yes, don't show "Thinking..." - the tool status UI is already showing
-                const hasToolStatusUI = (stream.values?.["ui"] as any[] | undefined)?.some(
-                  (ui: any) => ui.name?.includes("-tool-status")
+                const hasToolStatusUI = (stream.values?.ui as any[] | undefined)?.some((ui: any) =>
+                  ui.name?.includes("-tool-status")
                 );
 
                 if (hasToolStatusUI) {
@@ -876,7 +876,7 @@ export function ChatClient({ agentId, chatId }: ChatClientProps) {
                     className="hidden"
                   />
                   */}
-                  <span className="flex items-center gap-1 px-2 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1 px-2 text-muted-foreground text-xs">
                     <Coins className="h-3.5 w-3.5" />
                     10 credits/chat
                   </span>

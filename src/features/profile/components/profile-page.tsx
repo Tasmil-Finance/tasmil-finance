@@ -14,11 +14,11 @@ import { useDefiPositions } from "../hooks/use-defi-positions";
 import { useSnapshotSubmitter } from "../hooks/use-snapshot-submitter";
 import { useWalletTokens } from "../hooks/use-wallet-tokens";
 import { HistorySidebar } from "./history-sidebar";
-import { ProtocolHistoryView } from "./protocol-history";
-import { RewardHistoryView } from "./reward-history";
 import { NftPlaceholder } from "./nft-placeholder";
 import { PerformanceChart } from "./performance-chart";
+import { ProtocolHistoryView } from "./protocol-history";
 import { ProtocolPositions } from "./protocol-positions";
+import { RewardHistoryView } from "./reward-history";
 import { TokenList } from "./token-list";
 import { TransactionList } from "./transaction-list";
 import { WalletHeader } from "./wallet-header";
@@ -45,7 +45,7 @@ function ConnectPrompt() {
       <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted/20">
         <Wallet className="h-8 w-8 text-muted-foreground" />
       </div>
-      <h2 className="mb-2 text-2xl font-bold text-foreground">Connect Your Wallet</h2>
+      <h2 className="mb-2 font-bold text-2xl text-foreground">Connect Your Wallet</h2>
       <p className="text-muted-foreground">Connect your Stellar wallet to view your profile.</p>
     </motion.div>
   );
@@ -75,7 +75,7 @@ function ProfileContent({ packages }: ProfileContentProps) {
       const qs = params.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname);
     },
-    [router, searchParams]
+    [router, searchParams, pathname]
   );
 
   const { data: walletData, isLoading: tokensLoading } = useWalletTokens(account);
@@ -112,7 +112,7 @@ function ProfileContent({ packages }: ProfileContentProps) {
 
           {/* Tab bar */}
           <motion.div
-            className="flex items-center gap-4 border-b border-border pb-0"
+            className="flex items-center gap-4 border-border border-b pb-0"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
@@ -122,7 +122,7 @@ function ProfileContent({ packages }: ProfileContentProps) {
                 key={tab.value}
                 onClick={() => setActiveTab(tab.value)}
                 className={cn(
-                  "relative pb-3 text-base font-medium transition-colors",
+                  "relative pb-3 font-medium text-base transition-colors",
                   activeTab === tab.value
                     ? "text-primary"
                     : "text-muted-foreground hover:text-foreground"
@@ -239,7 +239,7 @@ function ProfileContent({ packages }: ProfileContentProps) {
               >
                 <ReferralsBody />
                 <section className="flex flex-col gap-4">
-                  <h2 className="font-semibold text-lg text-foreground">Top up credits</h2>
+                  <h2 className="font-semibold text-foreground text-lg">Top up credits</h2>
                   <PackageGrid packages={packages} />
                 </section>
               </motion.div>

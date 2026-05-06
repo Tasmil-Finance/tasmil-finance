@@ -75,10 +75,17 @@ export function cancelPendingTxCards(
     "phoenix_stake_bond",
     "phoenix_stake_unbond",
     "phoenix_stake_claim_rewards",
-    "vault_deposit", "vault_withdraw",
-    "bridge_build_transaction", "allbridge_build_transaction",
-    "allbridge_pool_deposit", "allbridge_pool_withdraw", "allbridge_pool_claim_rewards",
-    "execute_swap", "execute_bridge", "execute_earn", "execute_lending",
+    "vault_deposit",
+    "vault_withdraw",
+    "bridge_build_transaction",
+    "allbridge_build_transaction",
+    "allbridge_pool_deposit",
+    "allbridge_pool_withdraw",
+    "allbridge_pool_claim_rewards",
+    "execute_swap",
+    "execute_bridge",
+    "execute_earn",
+    "execute_lending",
   ]);
 
   for (const msg of messages) {
@@ -176,7 +183,7 @@ export function useTxSigning(options: TxSigningOptions): TxSigningResult {
         if (mode === "playground") {
           // Playground: use wallet context signTransaction + MCP aggregator submit
           const signedXdr = await signTransaction(xdr);
-          const MCP_URL = process.env["NEXT_PUBLIC_MCP_STELLAR_URL"] ?? "http://localhost:3009";
+          const MCP_URL = process.env.NEXT_PUBLIC_MCP_STELLAR_URL ?? "http://localhost:3009";
           const submitRes = await fetch(`${MCP_URL}/api/aggregator/submit`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -235,7 +242,7 @@ export function useTxSigning(options: TxSigningOptions): TxSigningResult {
           reportTransaction(hash, volumeContext);
 
           toast.success("Transaction submitted successfully!", {
-            description: hash.slice(0, 8) + "...",
+            description: `${hash.slice(0, 8)}...`,
             action: {
               label: "View on Explorer",
               onClick: () => window.open(getExplorerUrl("tx", hash), "_blank"),

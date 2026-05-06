@@ -1,4 +1,4 @@
-import { test, expect } from "../fixtures/chat.fixture";
+import { expect, test } from "../fixtures/chat.fixture";
 
 test.describe("Multi-Step Flows", () => {
   test.describe.configure({ mode: "serial" });

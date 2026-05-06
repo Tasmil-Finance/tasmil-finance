@@ -23,14 +23,14 @@ export function proxy(request: NextRequest) {
   }
 
   // Faucet: testnet only
-  const isTestnet = process.env["NEXT_PUBLIC_STELLAR_NETWORK"] === "testnet";
+  const isTestnet = process.env.NEXT_PUBLIC_STELLAR_NETWORK === "testnet";
   if ((pathname === "/faucet" || pathname.startsWith("/faucet/")) && !isTestnet) {
     return NextResponse.redirect(new URL("/chat/new", request.url));
   }
 
   // Playground + dev: development only. Aggregator was previously gated
   // here too; un-gated once Allbridge cross-chain coverage was verified.
-  const isDev = process.env["NEXT_PUBLIC_APP_ENV"] === "development";
+  const isDev = process.env.NEXT_PUBLIC_APP_ENV === "development";
   const isDevOnly =
     pathname === "/playground" ||
     pathname.startsWith("/playground/") ||

@@ -2,9 +2,9 @@
 
 import { Flame, Shield, TrendingUp, Wallet } from "lucide-react";
 import { memo } from "react";
-import { useResultData } from "../../hooks/use-result-data";
-import { ProtocolCard, EmptyState } from "@/features/protocols/cards/base/protocol-card";
 import { Bar } from "@/features/protocols/cards/base/indicators";
+import { EmptyState, ProtocolCard } from "@/features/protocols/cards/base/protocol-card";
+import { useResultData } from "../../hooks/use-result-data";
 
 interface TasmilPreset {
   name: string;
@@ -31,10 +31,7 @@ const PRESET_ICONS: Record<string, typeof Shield> = {
   AGGRESSIVE: Flame,
 };
 
-function StrategyPresetCardComponent({
-  result,
-  status,
-}: StrategyPresetCardProps) {
+function StrategyPresetCardComponent({ result, status }: StrategyPresetCardProps) {
   const { data, isLoading, hasError, errorMessage } = useResultData<{
     presets: TasmilPreset[];
   }>(result, status);
@@ -71,16 +68,16 @@ function StrategyPresetCardComponent({
                     </div>
                     <div>
                       <div className="font-semibold text-sm">{preset.name}</div>
-                      <div className="text-muted-foreground text-[10px]">
+                      <div className="text-[10px] text-muted-foreground">
                         {preset.poolCount} pools {"\u00B7"} {preset.poolTypes.join(", ")}
                       </div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-lg text-foreground tabular-nums">
+                    <div className="font-bold text-foreground text-lg tabular-nums">
                       {preset.estimatedApy.toFixed(2)}%
                     </div>
-                    <span className="rounded-md bg-muted px-1.5 py-px text-[10px] font-medium text-muted-foreground">
+                    <span className="rounded-md bg-muted px-1.5 py-px font-medium text-[10px] text-muted-foreground">
                       {preset.risks?.[0] ?? "moderate"}
                     </span>
                   </div>
@@ -88,23 +85,23 @@ function StrategyPresetCardComponent({
 
                 {/* Description */}
                 {preset.description && (
-                  <p className="mb-2 text-muted-foreground text-[10px]">{preset.description}</p>
+                  <p className="mb-2 text-[10px] text-muted-foreground">{preset.description}</p>
                 )}
 
                 {/* Top pools with bars */}
                 {preset.topPools && preset.topPools.length > 0 && (
-                  <div className="space-y-1.5 border-t border-border pt-2">
-                    <div className="text-muted-foreground text-[9px] uppercase tracking-wider font-medium">
+                  <div className="space-y-1.5 border-border border-t pt-2">
+                    <div className="font-medium text-[9px] text-muted-foreground uppercase tracking-wider">
                       Top Allocations
                     </div>
                     {preset.topPools.map((pool, idx) => (
                       <div key={idx} className="space-y-0.5">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="truncate flex-1 mr-2">{pool.name}</span>
-                          <span className="tabular-nums text-muted-foreground text-[10px] mr-2">
+                          <span className="mr-2 flex-1 truncate">{pool.name}</span>
+                          <span className="mr-2 text-[10px] text-muted-foreground tabular-nums">
                             {pool.weightPercent}%
                           </span>
-                          <span className="tabular-nums text-foreground font-medium text-[10px] w-12 text-right">
+                          <span className="w-12 text-right font-medium text-[10px] text-foreground tabular-nums">
                             ~{pool.apy.toFixed(1)}%
                           </span>
                         </div>
@@ -118,7 +115,10 @@ function StrategyPresetCardComponent({
           })}
         </div>
       ) : (
-        <EmptyState icon={Wallet} text="No strategy presets available \u2014 try specifying an asset" />
+        <EmptyState
+          icon={Wallet}
+          text="No strategy presets available \u2014 try specifying an asset"
+        />
       )}
     </ProtocolCard>
   );

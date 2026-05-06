@@ -103,7 +103,7 @@ const StreamSession = ({
       setThreadId(null);
       window.history.replaceState(null, "", `/chat/new`);
     });
-  }, [accessToken, apiKey, apiUrl, assistantId, effectiveWallet, setThreadId]);
+  }, [accessToken, apiKey, apiUrl, effectiveWallet, setThreadId]);
 
   const streamValue = useTypedStream({
     apiUrl,

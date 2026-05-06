@@ -234,7 +234,7 @@ export function TrustlineExecuteCard({
         return { success: false, error: cardResult.message };
       }
     },
-    [xdr, stream, action, assetCode, isAdd, toolCallId, respond, cacheTxResult]
+    [xdr, stream, action, assetCode, isAdd, toolCallId, respond, cacheTxResult, walletAddress]
   );
 
   const renderDetails = () => (

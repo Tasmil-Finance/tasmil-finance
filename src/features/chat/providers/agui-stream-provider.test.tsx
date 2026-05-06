@@ -54,7 +54,7 @@ jest.mock("./stream-provider", () => {
 
 global.fetch = jest.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({}) }) as never;
 
-import { render, act } from "@testing-library/react";
+import { act, render } from "@testing-library/react";
 import { StreamProvider } from "./agui-stream-provider";
 
 function makeStreamValue(over: { isLoading?: boolean; error?: Error }) {
@@ -87,7 +87,7 @@ describe("StreamProvider credit invalidation", () => {
       <StreamProvider agentId="supervisor">
         <div />
       </StreamProvider>,
-      { wrapper },
+      { wrapper }
     );
   }
 
@@ -102,7 +102,7 @@ describe("StreamProvider credit invalidation", () => {
       rerender(
         <StreamProvider agentId="supervisor">
           <div />
-        </StreamProvider>,
+        </StreamProvider>
       );
     });
 
@@ -125,12 +125,12 @@ describe("StreamProvider credit invalidation", () => {
 
     act(() => {
       useAguiStreamMock.mockReturnValue(
-        makeStreamValue({ isLoading: false, error: new Error("boom") }),
+        makeStreamValue({ isLoading: false, error: new Error("boom") })
       );
       rerender(
         <StreamProvider agentId="supervisor">
           <div />
-        </StreamProvider>,
+        </StreamProvider>
       );
     });
 

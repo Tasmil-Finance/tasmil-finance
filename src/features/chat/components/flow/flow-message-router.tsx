@@ -26,7 +26,7 @@ export function FlowMessageRouter({
 }: FlowMessageRouterProps) {
   switch (message.kind) {
     case "text":
-      return <p className="text-sm text-[#f0f2f1]">{message.text}</p>;
+      return <p className="text-[#f0f2f1] text-sm">{message.text}</p>;
 
     case "clarify":
       return <ClarifyCard questions={message.questions} onSubmit={onSubmit ?? (() => {})} />;
@@ -55,7 +55,7 @@ export function FlowMessageRouter({
     case "position_update":
       return (
         <div className="rounded-xl border border-white/[0.07] bg-[#131715] p-4">
-          <span className="mb-3 block text-sm font-medium text-[#f0f2f1]">Position Update</span>
+          <span className="mb-3 block font-medium text-[#f0f2f1] text-sm">Position Update</span>
           <div className="space-y-2">
             {message.positions.map((pos) => (
               <div
@@ -63,16 +63,16 @@ export function FlowMessageRouter({
                 className="rounded-lg border border-white/[0.07] bg-[#181c1a] px-3 py-2"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-[#f0f2f1]">
+                  <span className="text-[#f0f2f1] text-sm">
                     {pos.deposit} &rarr; {pos.venue}
                   </span>
-                  <span className="font-mono text-xs text-[#00C278]">
+                  <span className="font-mono text-[#00C278] text-xs">
                     {bpsToPercent(pos.apy_bps)}%
                   </span>
                 </div>
                 <div className="mt-1 flex items-center justify-between">
-                  <span className="text-xs text-[#9aada4]">{pos.protocol}</span>
-                  <span className="font-mono text-xs text-[#5e736a]">{pos.tx_hash}</span>
+                  <span className="text-[#9aada4] text-xs">{pos.protocol}</span>
+                  <span className="font-mono text-[#5e736a] text-xs">{pos.tx_hash}</span>
                 </div>
               </div>
             ))}
@@ -83,14 +83,14 @@ export function FlowMessageRouter({
     case "error":
       return (
         <div className="rounded-xl border border-red-500/20 bg-[#131715] p-4">
-          <div className="font-mono text-xs text-[#5e736a]">{message.code}</div>
-          <div className="mt-1 text-sm text-[#f87171]">{message.message}</div>
+          <div className="font-mono text-[#5e736a] text-xs">{message.code}</div>
+          <div className="mt-1 text-[#f87171] text-sm">{message.message}</div>
           {message.retry_possible && onRetry && (
             <button
               type="button"
               aria-label="Retry"
               onClick={onRetry}
-              className="mt-3 rounded-lg border border-red-500/30 px-3 py-1.5 text-xs text-[#f87171]"
+              className="mt-3 rounded-lg border border-red-500/30 px-3 py-1.5 text-[#f87171] text-xs"
             >
               Retry
             </button>

@@ -12,7 +12,7 @@ import { TokenImage } from "@/shared/components/token-image";
 
 function fmt(v: unknown, d = 2): string {
   const n = Number(v);
-  if (!isFinite(n)) return "—";
+  if (!Number.isFinite(n)) return "—";
   if (Math.abs(n) >= 1e6) return `${(n / 1e6).toFixed(2)}M`;
   if (Math.abs(n) >= 1e3) return `${(n / 1e3).toFixed(2)}K`;
   return n.toFixed(d);
@@ -26,9 +26,9 @@ function trunc(s: string): string {
 
 function Apy({ value }: { value: unknown }) {
   const n = Number(value);
-  if (!isFinite(n)) return <span className="text-muted-foreground">—</span>;
+  if (!Number.isFinite(n)) return <span className="text-muted-foreground">—</span>;
   const p = n < 1 ? n * 100 : n;
-  return <span className="text-foreground tabular-nums text-xs">{p.toFixed(2)}%</span>;
+  return <span className="text-foreground text-xs tabular-nums">{p.toFixed(2)}%</span>;
 }
 
 function Tag({ type }: { type: string }) {
@@ -41,15 +41,15 @@ function Tag({ type }: { type: string }) {
   };
   const [label, cls] = m[type] ?? [type, "text-muted-foreground bg-muted"];
   return (
-    <span className={cn("rounded-md px-1.5 py-px text-[10px] font-medium", cls)}>{label}</span>
+    <span className={cn("rounded-md px-1.5 py-px font-medium text-[10px]", cls)}>{label}</span>
   );
 }
 
 function Bar({ value }: { value: unknown }) {
   const n = Number(value);
-  const p = isFinite(n) ? (n < 1 ? n * 100 : n) : 0;
+  const p = Number.isFinite(n) ? (n < 1 ? n * 100 : n) : 0;
   return (
-    <div className="h-1 w-full rounded-full bg-border overflow-hidden">
+    <div className="h-1 w-full overflow-hidden rounded-full bg-border">
       <div
         className="h-full rounded-full bg-primary/60"
         style={{ width: `${Math.min(p, 100)}%` }}
@@ -77,17 +77,17 @@ export function BlendPoolsCard({ data }: { data: Record<string, unknown> }) {
       <Header
         icon={<Database className="h-3.5 w-3.5" />}
         title="Blend Pools"
-        right={<span className="text-xs text-muted-foreground">{pools.length}</span>}
+        right={<span className="text-muted-foreground text-xs">{pools.length}</span>}
       />
       {pools.map((pool, i) => {
         const res = (pool.reserves ?? []) as Record<string, unknown>[];
         const isOpen = open.has(i);
         return (
-          <div key={i} className={cn(i > 0 && "border-t border-border")}>
+          <div key={i} className={cn(i > 0 && "border-border border-t")}>
             <button
               type="button"
               onClick={() => flip(i)}
-              className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-muted/30 transition-colors"
+              className="flex w-full items-center gap-2 px-4 py-2.5 transition-colors hover:bg-muted/30"
             >
               <ChevronDown
                 className={cn(
@@ -95,7 +95,7 @@ export function BlendPoolsCard({ data }: { data: Record<string, unknown> }) {
                   isOpen && "rotate-180"
                 )}
               />
-              <span className="text-[13px] font-medium text-foreground flex-1 text-left truncate">
+              <span className="flex-1 truncate text-left font-medium text-[13px] text-foreground">
                 {String(pool.name ?? "Pool")}
               </span>
               <Tag type={String(pool.status ?? "unknown")} />
@@ -108,7 +108,7 @@ export function BlendPoolsCard({ data }: { data: Record<string, unknown> }) {
                   exit={{ height: 0 }}
                   className="overflow-hidden"
                 >
-                  <div className="pb-2 px-4 space-y-1">
+                  <div className="space-y-1 px-4 pb-2">
                     {res.map((r, j) => (
                       <div key={j} className="flex items-center gap-2.5 py-1.5 pl-5">
                         <TokenImage
@@ -116,10 +116,10 @@ export function BlendPoolsCard({ data }: { data: Record<string, unknown> }) {
                           alt={String(r.symbol ?? "?")}
                           className="h-5 w-5 rounded-full"
                         />
-                        <span className="text-xs font-medium text-foreground w-12">
+                        <span className="w-12 font-medium text-foreground text-xs">
                           {String(r.symbol ?? "?")}
                         </span>
-                        <div className="flex-1 grid grid-cols-3 gap-1 text-[11px]">
+                        <div className="grid flex-1 grid-cols-3 gap-1 text-[11px]">
                           <span className="text-muted-foreground">
                             <span className="text-muted-foreground/50">S </span>
                             <Apy value={r.supplyApy} />
@@ -153,12 +153,12 @@ export function BlendPoolDetailCard({ data }: { data: Record<string, unknown> })
 
   return (
     <Card>
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-border">
+      <div className="flex items-center justify-between border-border border-b px-4 py-2.5">
         <div className="flex items-center gap-2">
           <Database className="h-4 w-4 text-muted-foreground" />
           <div>
-            <p className="text-[13px] font-medium text-foreground">{String(pool.name ?? "Pool")}</p>
-            <p className="text-[10px] text-muted-foreground font-mono">
+            <p className="font-medium text-[13px] text-foreground">{String(pool.name ?? "Pool")}</p>
+            <p className="font-mono text-[10px] text-muted-foreground">
               {trunc(String(pool.address ?? pool.poolAddress ?? ""))}
             </p>
           </div>
@@ -168,14 +168,14 @@ export function BlendPoolDetailCard({ data }: { data: Record<string, unknown> })
       {res.length > 0 ? (
         <div className="divide-y divide-border/50">
           {res.map((r: Record<string, unknown>, i: number) => (
-            <div key={i} className="px-4 py-3 hover:bg-muted/20 transition-colors">
-              <div className="flex items-center gap-2.5 mb-2">
+            <div key={i} className="px-4 py-3 transition-colors hover:bg-muted/20">
+              <div className="mb-2 flex items-center gap-2.5">
                 <TokenImage
                   src={null}
                   alt={String(r.symbol ?? "?")}
                   className="h-6 w-6 rounded-full"
                 />
-                <span className="text-sm font-medium text-foreground flex-1">
+                <span className="flex-1 font-medium text-foreground text-sm">
                   {String(r.symbol ?? "?")}
                 </span>
                 <div className="w-20">
@@ -206,20 +206,20 @@ export function BlendReserveCard({ data }: { data: Record<string, unknown> }) {
 
   return (
     <Card>
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
+      <div className="flex items-center gap-3 border-border border-b px-4 py-3">
         <TokenImage src={null} alt={sym} className="h-7 w-7 rounded-full" />
         <div>
-          <p className="text-sm font-medium text-foreground">{sym}</p>
+          <p className="font-medium text-foreground text-sm">{sym}</p>
           <p className="text-[10px] text-muted-foreground">Reserve Detail</p>
         </div>
       </div>
-      <div className="p-4 space-y-3">
+      <div className="space-y-3 p-4">
         <div className="grid grid-cols-2 gap-2">
           <MetricBox label="Supply APY" value={formatPercent(r.supplyApy as number)} />
           <MetricBox label="Borrow APY" value={formatPercent(r.borrowApy as number)} />
         </div>
         <div>
-          <div className="flex justify-between text-[10px] mb-1">
+          <div className="mb-1 flex justify-between text-[10px]">
             <span className="text-muted-foreground">Utilization</span>
             <span className="text-foreground tabular-nums">
               {formatPercent(r.utilization as number)}
@@ -266,7 +266,7 @@ export function BlendPositionsCard({ data }: { data: Record<string, unknown> }) 
     );
 
   const hf = Number(summary?.healthFactor);
-  const hfColor = !isFinite(hf)
+  const hfColor = !Number.isFinite(hf)
     ? "text-muted-foreground"
     : hf > 1.5
       ? "text-emerald-400"
@@ -278,14 +278,14 @@ export function BlendPositionsCard({ data }: { data: Record<string, unknown> }) 
     <Card>
       <Header icon={<Shield className="h-3.5 w-3.5" />} title="Position" />
       {summary && (
-        <div className="grid grid-cols-4 gap-1.5 px-3 py-3 border-b border-border">
+        <div className="grid grid-cols-4 gap-1.5 border-border border-b px-3 py-3">
           <MetricBox label="Supplied" value={`$${fmt(summary.totalSuppliedUsd)}`} />
           <MetricBox label="Borrowed" value={`$${fmt(summary.totalBorrowedUsd)}`} />
           <MetricBox label="Available" value={`$${fmt(summary.availableBorrowUsd)}`} />
           <div className="rounded-lg bg-secondary px-2.5 py-2">
-            <p className="text-[10px] text-muted-foreground mb-0.5">Health</p>
-            <p className={cn("text-sm font-semibold tabular-nums", hfColor)}>
-              {isFinite(hf) ? hf.toFixed(2) : "—"}
+            <p className="mb-0.5 text-[10px] text-muted-foreground">Health</p>
+            <p className={cn("font-semibold text-sm tabular-nums", hfColor)}>
+              {Number.isFinite(hf) ? hf.toFixed(2) : "—"}
             </p>
           </div>
         </div>
@@ -309,10 +309,10 @@ function PositionSection({
     <div
       className={cn(
         "px-4 py-2.5",
-        type === "supply" && positions.length > 0 && "border-b border-border"
+        type === "supply" && positions.length > 0 && "border-border border-b"
       )}
     >
-      <div className="flex items-center gap-1.5 mb-1.5">
+      <div className="mb-1.5 flex items-center gap-1.5">
         <Tag type={type} />
         <span className="text-[10px] text-muted-foreground">{positions.length}</span>
       </div>
@@ -321,12 +321,12 @@ function PositionSection({
         const amount = type === "borrow" ? (p.borrowedAmount ?? p.amount) : p.suppliedAmount;
         const apy = type === "borrow" ? (p.borrowApy ?? p.apy) : (p.supplyApy ?? p.apy);
         return (
-          <div key={i} className="flex items-center py-1.5 gap-2">
+          <div key={i} className="flex items-center gap-2 py-1.5">
             <TokenImage src={null} alt={sym} className="h-5 w-5 rounded-full" />
-            <span className="text-xs font-medium text-foreground flex-1">{sym}</span>
+            <span className="flex-1 font-medium text-foreground text-xs">{sym}</span>
             {showCollateral && p.isCollateral === true && <Tag type="collateral" />}
-            <span className="text-xs text-foreground tabular-nums">{fmt(amount, 2)}</span>
-            <span className="text-[11px] text-muted-foreground tabular-nums w-14 text-right">
+            <span className="text-foreground text-xs tabular-nums">{fmt(amount, 2)}</span>
+            <span className="w-14 text-right text-[11px] text-muted-foreground tabular-nums">
               <Apy value={apy} />
             </span>
           </div>
@@ -339,7 +339,7 @@ function PositionSection({
 // ─── Shared primitives ──────────────────────────────────────────
 
 function Card({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-xl border border-border bg-card overflow-hidden">{children}</div>;
+  return <div className="overflow-hidden rounded-xl border border-border bg-card">{children}</div>;
 }
 
 function Header({
@@ -352,9 +352,9 @@ function Header({
   right?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border">
+    <div className="flex items-center gap-2 border-border border-b px-4 py-2.5">
       <span className="text-muted-foreground">{icon}</span>
-      <span className="text-[13px] font-medium text-foreground flex-1">{title}</span>
+      <span className="flex-1 font-medium text-[13px] text-foreground">{title}</span>
       {right}
     </div>
   );
@@ -372,8 +372,8 @@ function Empty({ icon: Icon, text }: { icon: typeof Layers; text: string }) {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[9px] text-muted-foreground/60 uppercase mb-0.5">{label}</p>
-      <p className="text-xs text-foreground tabular-nums">{value}</p>
+      <p className="mb-0.5 text-[9px] text-muted-foreground/60 uppercase">{label}</p>
+      <p className="text-foreground text-xs tabular-nums">{value}</p>
     </div>
   );
 }
@@ -381,8 +381,8 @@ function Stat({ label, value }: { label: string; value: string }) {
 function MetricBox({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg bg-secondary px-2.5 py-2">
-      <p className="text-[10px] text-muted-foreground mb-0.5">{label}</p>
-      <p className="text-sm font-semibold text-foreground tabular-nums">{value}</p>
+      <p className="mb-0.5 text-[10px] text-muted-foreground">{label}</p>
+      <p className="font-semibold text-foreground text-sm tabular-nums">{value}</p>
     </div>
   );
 }

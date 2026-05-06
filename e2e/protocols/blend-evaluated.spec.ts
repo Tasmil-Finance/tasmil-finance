@@ -9,9 +9,9 @@
  * Run: PLAYWRIGHT_BASE_URL=https://... pnpm test:e2e:chat -- --grep="Blend Evaluated"
  * Report: test-results/evaluation/evaluation-report.html
  */
-import { test, expect } from "../fixtures/chat.fixture";
+import { expect, test } from "../fixtures/chat.fixture";
+import { type EvaluationRecord, getEvaluationReporter } from "../helpers/evaluation-reporter";
 import { BLEND_TESTS } from "../helpers/test-prompts";
-import { getEvaluationReporter, type EvaluationRecord } from "../helpers/evaluation-reporter";
 
 const reporter = getEvaluationReporter();
 

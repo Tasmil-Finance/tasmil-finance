@@ -1,5 +1,5 @@
-import type { DecodedOp, TxAttrs } from "./types";
 import { groupByTransaction } from "./group-by-transaction";
+import type { DecodedOp, TxAttrs } from "./types";
 
 function op(over: Partial<DecodedOp>): DecodedOp {
   return {
@@ -52,7 +52,7 @@ describe("groupByTransaction", () => {
         op({ id: "b", kind: "swap", deltas: [{ code: "X", amount: "1", isCredit: false }] }),
         op({ id: "c", kind: "lp-deposit" }),
       ],
-      noAttrs,
+      noAttrs
     );
     expect(groups[0]!.primary.id).toBe("b");
   });
@@ -60,7 +60,7 @@ describe("groupByTransaction", () => {
   it("primary picks first lend-deposit when no swap", () => {
     const groups = groupByTransaction(
       [op({ id: "a", kind: "send" }), op({ id: "b", kind: "lend-deposit" })],
-      noAttrs,
+      noAttrs
     );
     expect(groups[0]!.primary.id).toBe("b");
   });
@@ -71,7 +71,7 @@ describe("groupByTransaction", () => {
         op({ id: "a", kind: "send", deltas: [{ code: "X", amount: "1", isCredit: false }] }),
         op({ id: "b", kind: "send", deltas: [{ code: "X", amount: "1000", isCredit: false }] }),
       ],
-      noAttrs,
+      noAttrs
     );
     expect(groups[0]!.primary.id).toBe("b");
   });
@@ -82,7 +82,7 @@ describe("groupByTransaction", () => {
         op({ id: "a", kind: "send", successful: true }),
         op({ id: "b", kind: "send", successful: false }),
       ],
-      noAttrs,
+      noAttrs
     );
     expect(groups[0]!.successful).toBe(false);
   });

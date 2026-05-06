@@ -7,7 +7,7 @@ export function getClient(): TasmilClient {
   if (_cached) return _cached;
   _cached = createTasmilClient({
     network: STELLAR_NETWORK,
-    soroswapApiKeys: process.env["SOROSWAP_API_KEYS"] ?? process.env["SOROSWAP_API_KEY"],
+    soroswapApiKeys: process.env.SOROSWAP_API_KEYS ?? process.env.SOROSWAP_API_KEY,
   });
   return _cached;
 }

@@ -130,7 +130,7 @@ export function AddTrustlineDialog({ open, onOpenChange }: AddTrustlineDialogPro
 
         <div className="flex flex-col gap-4 py-2">
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-foreground">Asset Code</label>
+            <label className="font-medium text-foreground text-sm">Asset Code</label>
             <Input
               placeholder="e.g. USDC, BLND, AQUA"
               value={assetCode}
@@ -141,7 +141,7 @@ export function AddTrustlineDialog({ open, onOpenChange }: AddTrustlineDialogPro
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-foreground">Issuer Address</label>
+            <label className="font-medium text-foreground text-sm">Issuer Address</label>
             <Input
               placeholder="G..."
               value={issuer}

@@ -475,20 +475,20 @@
      Tailwind's data-[active=true]:bg-sidebar-accent (higher specificity
      from attribute selector) */
   .sidebar-item-active {
-    background: linear-gradient(to bottom, #b5eaff, #00bfff) !important;
-    color: #000000 !important;
+    background: linear-gradient(to bottom, #b5eaff, #00bfff);
+    color: #000000;
     transition: all 0.3s ease;
   }
 
   .sidebar-item-active:hover {
-    background: linear-gradient(to bottom, #c5f0ff, #1ccfff) !important;
+    background: linear-gradient(to bottom, #c5f0ff, #1ccfff);
     transform: scale(1.05);
   }
 
   .sidebar-item-active span,
   .sidebar-item-active svg,
   .sidebar-item-active * {
-    color: #000000 !important;
+    color: #000000;
   }
 
   /* Line clamp utilities */

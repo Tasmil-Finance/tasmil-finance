@@ -297,7 +297,7 @@ export function BlendTxCard({ operation, result, form }: BlendTxCardProps) {
     try {
       await checkWalletNetwork();
       const signedXdr = await signTransaction(xdr);
-      const MCP_URL = process.env["NEXT_PUBLIC_MCP_STELLAR_URL"] ?? "http://localhost:3009";
+      const MCP_URL = process.env.NEXT_PUBLIC_MCP_STELLAR_URL ?? "http://localhost:3009";
       const submitRes = await fetch(`${MCP_URL}/api/aggregator/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -327,19 +327,19 @@ export function BlendTxCard({ operation, result, form }: BlendTxCardProps) {
   };
 
   return (
-    <div ref={cardRef} className="relative rounded-xl border border-border bg-card overflow-hidden">
+    <div ref={cardRef} className="relative overflow-hidden rounded-xl border border-border bg-card">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-border">
-        <p className="text-sm font-medium text-foreground">Transaction Overview</p>
+      <div className="border-border border-b px-4 py-3">
+        <p className="font-medium text-foreground text-sm">Transaction Overview</p>
       </div>
 
       {/* Overview rows */}
-      <div className="px-4 py-3 space-y-2.5">
+      <div className="space-y-2.5 px-4 py-3">
         {/* Amount */}
         <div className="flex items-center gap-2">
           <TokenImage src={null} alt={symbol} className="h-5 w-5 rounded-full" />
-          <span className="text-xs text-muted-foreground">Amount {cfg.verb}</span>
-          <span className="ml-auto text-sm font-medium text-foreground tabular-nums">
+          <span className="text-muted-foreground text-xs">Amount {cfg.verb}</span>
+          <span className="ml-auto font-medium text-foreground text-sm tabular-nums">
             {fmtAmount(amount)} {symbol}
           </span>
         </div>
@@ -347,16 +347,16 @@ export function BlendTxCard({ operation, result, form }: BlendTxCardProps) {
         {/* Gas */}
         <div className="flex items-center gap-2">
           <Fuel className="h-4 w-4 text-muted-foreground/50" />
-          <span className="text-xs text-muted-foreground">Gas</span>
-          <span className="ml-auto text-sm text-muted-foreground tabular-nums">{fmtGas(fee)}</span>
+          <span className="text-muted-foreground text-xs">Gas</span>
+          <span className="ml-auto text-muted-foreground text-sm tabular-nums">{fmtGas(fee)}</span>
         </div>
 
         {/* APY */}
         {apy != null && apy > 0 && (
           <div className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-muted-foreground/50" />
-            <span className="text-xs text-muted-foreground">APY</span>
-            <span className="ml-auto text-sm font-medium text-emerald-400 tabular-nums">
+            <span className="text-muted-foreground text-xs">APY</span>
+            <span className="ml-auto font-medium text-emerald-400 text-sm tabular-nums">
               {apy.toFixed(2)}%
             </span>
           </div>
@@ -366,8 +366,8 @@ export function BlendTxCard({ operation, result, form }: BlendTxCardProps) {
         {estimatedYearlyEarnings != null && isAdd && (
           <div className="flex items-center gap-2">
             <Coins className="h-4 w-4 text-muted-foreground/50" />
-            <span className="text-xs text-muted-foreground">Est. yearly earnings</span>
-            <span className="ml-auto text-sm text-emerald-400/80 tabular-nums">
+            <span className="text-muted-foreground text-xs">Est. yearly earnings</span>
+            <span className="ml-auto text-emerald-400/80 text-sm tabular-nums">
               +{estimatedYearlyEarnings.toFixed(4)} {symbol}
             </span>
           </div>
@@ -377,16 +377,16 @@ export function BlendTxCard({ operation, result, form }: BlendTxCardProps) {
         {current != null && newAmount != null && (
           <div className="flex items-center gap-2">
             <Layers className="h-4 w-4 text-muted-foreground/50" />
-            <span className="text-xs text-muted-foreground flex-1">
+            <span className="flex-1 text-muted-foreground text-xs">
               {operation.includes("borrow") || operation === "blend_repay"
                 ? "Your total borrowed"
                 : "Your total supplied"}
             </span>
-            <span className="text-xs text-foreground tabular-nums">
+            <span className="text-foreground text-xs tabular-nums">
               {current.toFixed(4)} {symbol}
             </span>
-            <ArrowRight className="h-3 w-3 text-muted-foreground/40 shrink-0" />
-            <span className="text-xs text-foreground tabular-nums">
+            <ArrowRight className="h-3 w-3 shrink-0 text-muted-foreground/40" />
+            <span className="text-foreground text-xs tabular-nums">
               {newAmount.toFixed(4)} {symbol}
             </span>
           </div>
@@ -417,20 +417,20 @@ export function BlendTxCard({ operation, result, form }: BlendTxCardProps) {
         {/* From address */}
         <div className="flex items-center gap-2">
           <Wallet className="h-4 w-4 text-muted-foreground/50" />
-          <span className="text-xs text-muted-foreground">From</span>
-          <span className="ml-auto text-xs text-muted-foreground font-mono">{trunc(from)}</span>
+          <span className="text-muted-foreground text-xs">From</span>
+          <span className="ml-auto font-mono text-muted-foreground text-xs">{trunc(from)}</span>
         </div>
 
         {/* XDR toggle */}
         <button
           type="button"
           onClick={() => setShowXdr(!showXdr)}
-          className="text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+          className="text-[10px] text-muted-foreground/50 transition-colors hover:text-muted-foreground"
         >
           {showXdr ? "Hide XDR" : "Show XDR"}
         </button>
         {showXdr && (
-          <pre className="mt-1 max-h-[100px] overflow-auto rounded-lg bg-secondary p-2 text-[10px] text-muted-foreground font-mono break-all">
+          <pre className="mt-1 max-h-[100px] overflow-auto break-all rounded-lg bg-secondary p-2 font-mono text-[10px] text-muted-foreground">
             {xdr}
           </pre>
         )}
@@ -447,14 +447,14 @@ export function BlendTxCard({ operation, result, form }: BlendTxCardProps) {
             href={getExplorerUrl("tx", txResult)}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full rounded-lg py-2 text-xs font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-center hover:bg-emerald-500/15 transition-colors"
+            className="block w-full rounded-lg border border-emerald-500/20 bg-emerald-500/10 py-2 text-center font-semibold text-emerald-400 text-xs transition-colors hover:bg-emerald-500/15"
           >
             Transaction confirmed · {trunc(txResult)}
           </a>
         ) : txError ? (
           /* Error state */
-          <div className="rounded-lg py-2 px-3 text-xs bg-destructive/10 border border-destructive/20 text-destructive text-center">
-            Failed · {txError.length > 80 ? txError.slice(0, 80) + "…" : txError}
+          <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-center text-destructive text-xs">
+            Failed · {txError.length > 80 ? `${txError.slice(0, 80)}…` : txError}
           </div>
         ) : (
           /* Default state — two buttons: Cancel + Sign
@@ -463,7 +463,7 @@ export function BlendTxCard({ operation, result, form }: BlendTxCardProps) {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="flex-1 rounded-lg py-2 text-xs font-semibold border border-border text-muted-foreground hover:bg-secondary hover:text-foreground transition-all active:scale-[0.98]"
+              className="flex-1 rounded-lg border border-border py-2 font-semibold text-muted-foreground text-xs transition-all hover:bg-secondary hover:text-foreground active:scale-[0.98]"
               onClick={() => {
                 if (cfg.cancel) {
                   setTxError("Transaction cancelled by user");
@@ -477,7 +477,7 @@ export function BlendTxCard({ operation, result, form }: BlendTxCardProps) {
             </button>
             <button
               type="button"
-              className="flex-1 rounded-lg py-2 text-xs font-semibold bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] text-black hover:from-[#C5F0FF] hover:to-[#1CCFFF] transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] py-2 font-semibold text-black text-xs transition-all hover:from-[#C5F0FF] hover:to-[#1CCFFF] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
               onClick={() => {
                 if (cfg.sign) {
                   handleSign();
@@ -562,59 +562,59 @@ function CancelWarningPopup({
     <>
       {/* Backdrop blur */}
       <div
-        className={`absolute inset-0 z-10 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        className={`absolute inset-0 z-10 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${visible ? "opacity-100" : "pointer-events-none opacity-0"}`}
         onClick={onKeepEarning}
       />
 
       {/* Sliding panel */}
       <div
-        className={`absolute bottom-0 left-0 right-0 z-20 h-[80%] rounded-t-2xl border-t border-border bg-card transition-transform duration-300 ease-out ${visible ? "translate-y-0" : "translate-y-full"}`}
+        className={`absolute right-0 bottom-0 left-0 z-20 h-[80%] rounded-t-2xl border-border border-t bg-card transition-transform duration-300 ease-out ${visible ? "translate-y-0" : "translate-y-full"}`}
       >
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-1">
           <div className="h-1 w-10 rounded-full bg-muted-foreground/30" />
         </div>
 
-        <div className="flex flex-col h-[calc(100%-2rem)] px-4">
+        <div className="flex h-[calc(100%-2rem)] flex-col px-4">
           {/* Header */}
           <div className="flex items-start gap-3 pt-2 pb-3">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500/15">
               <AlertTriangle className="h-4 w-4 text-amber-500" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-foreground">{title}</p>
-              <p className="text-xs text-muted-foreground">Please read carefully</p>
+              <p className="font-semibold text-foreground text-sm">{title}</p>
+              <p className="text-muted-foreground text-xs">Please read carefully</p>
             </div>
           </div>
 
           {/* Body */}
-          <div className="flex-1 overflow-auto space-y-3 pb-3">
+          <div className="flex-1 space-y-3 overflow-auto pb-3">
             {!signSafe ? (
               /* Sign is detrimental (withdraw, queue, exit) — warn about losing position */
               <>
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-muted-foreground text-xs leading-relaxed">
                   This action means you will{" "}
-                  <span className="text-red-400 font-medium">lose unclaimed rewards</span> and any{" "}
+                  <span className="font-medium text-red-400">lose unclaimed rewards</span> and any{" "}
                   <span className="font-medium text-foreground">
                     unvested portion of your welcome reward
                   </span>
                   .
                 </p>
-                <div className="rounded-lg bg-secondary/50 border border-border p-3 space-y-1.5">
-                  <p className="text-xs text-muted-foreground">
+                <div className="space-y-1.5 rounded-lg border border-border bg-secondary/50 p-3">
+                  <p className="text-muted-foreground text-xs">
                     Amount:{" "}
-                    <span className="text-foreground font-medium">
+                    <span className="font-medium text-foreground">
                       {amount} {symbol}
                     </span>
                   </p>
                   {apy != null && apy > 0 && (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground text-xs">
                       Current APY:{" "}
-                      <span className="text-emerald-400 font-medium">{apy.toFixed(2)}%</span>
+                      <span className="font-medium text-emerald-400">{apy.toFixed(2)}%</span>
                     </p>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-muted-foreground text-xs leading-relaxed">
                   You will also forfeit{" "}
                   <span className="font-medium text-foreground">accumulated referral points</span>{" "}
                   tied to this pool position. This action cannot be undone.
@@ -623,9 +623,9 @@ function CancelWarningPopup({
             ) : apy != null && apy > 0 ? (
               /* Cancel is detrimental (supply, deposit, claim, dequeue) — show FOMO on missed earnings */
               <>
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-muted-foreground text-xs leading-relaxed">
                   By cancelling, you're giving up earning{" "}
-                  <span className="text-emerald-400 font-medium">{apy.toFixed(2)}% APY</span> on
+                  <span className="font-medium text-emerald-400">{apy.toFixed(2)}% APY</span> on
                   your{" "}
                   <span className="font-medium text-foreground">
                     {amount} {symbol}
@@ -634,32 +634,32 @@ function CancelWarningPopup({
                 </p>
 
                 {estimatedYearlyEarnings != null && (
-                  <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/15 p-3 space-y-2">
-                    <p className="text-[10px] uppercase tracking-wider text-emerald-400/70 font-medium">
+                  <div className="space-y-2 rounded-lg border border-emerald-500/15 bg-emerald-500/5 p-3">
+                    <p className="font-medium text-[10px] text-emerald-400/70 uppercase tracking-wider">
                       Estimated earnings you'll miss
                     </p>
                     <div className="flex items-baseline justify-between">
-                      <span className="text-xs text-muted-foreground">After 1 year</span>
-                      <span className="text-sm font-semibold text-emerald-400 tabular-nums">
+                      <span className="text-muted-foreground text-xs">After 1 year</span>
+                      <span className="font-semibold text-emerald-400 text-sm tabular-nums">
                         +{estimatedYearlyEarnings.toFixed(4)} {symbol}
                       </span>
                     </div>
                     <div className="flex items-baseline justify-between">
-                      <span className="text-xs text-muted-foreground">After 30 days</span>
-                      <span className="text-xs text-emerald-400/80 tabular-nums">
+                      <span className="text-muted-foreground text-xs">After 30 days</span>
+                      <span className="text-emerald-400/80 text-xs tabular-nums">
                         +{(estimatedYearlyEarnings / 12).toFixed(4)} {symbol}
                       </span>
                     </div>
                   </div>
                 )}
 
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-muted-foreground text-xs leading-relaxed">
                   Your {symbol} will remain idle and earn nothing. Are you sure?
                 </p>
               </>
             ) : (
               /* Cancel is detrimental but no APY data — generic message */
-              <p className="text-xs text-muted-foreground leading-relaxed">
+              <p className="text-muted-foreground text-xs leading-relaxed">
                 Are you sure you want to cancel this{" "}
                 <span className="font-medium text-foreground">
                   {amount} {symbol}
@@ -670,17 +670,17 @@ function CancelWarningPopup({
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center gap-3 pb-4 pt-2">
+          <div className="flex items-center gap-3 pt-2 pb-4">
             <button
               type="button"
-              className="flex-1 rounded-lg py-2.5 text-xs font-semibold border border-border text-foreground hover:bg-secondary transition-all active:scale-[0.98]"
+              className="flex-1 rounded-lg border border-border py-2.5 font-semibold text-foreground text-xs transition-all hover:bg-secondary active:scale-[0.98]"
               onClick={onKeepEarning}
             >
               {dismissLabel}
             </button>
             <button
               type="button"
-              className="flex-1 rounded-lg py-2.5 text-xs font-semibold border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-all active:scale-[0.98]"
+              className="flex-1 rounded-lg border border-red-500/30 py-2.5 font-semibold text-red-400 text-xs transition-all hover:bg-red-500/10 active:scale-[0.98]"
               onClick={onConfirm}
             >
               {confirmLabel}
@@ -695,10 +695,10 @@ function CancelWarningPopup({
 function ChangeRow({ label, before, after }: { label: string; before: string; after: string }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs text-muted-foreground flex-1">{label}</span>
-      <span className="text-xs text-foreground tabular-nums">{before}</span>
-      <ArrowRight className="h-3 w-3 text-muted-foreground/40 shrink-0" />
-      <span className="text-xs text-foreground tabular-nums">{after}</span>
+      <span className="flex-1 text-muted-foreground text-xs">{label}</span>
+      <span className="text-foreground text-xs tabular-nums">{before}</span>
+      <ArrowRight className="h-3 w-3 shrink-0 text-muted-foreground/40" />
+      <span className="text-foreground text-xs tabular-nums">{after}</span>
     </div>
   );
 }

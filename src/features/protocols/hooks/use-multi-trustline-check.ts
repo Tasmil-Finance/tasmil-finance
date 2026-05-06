@@ -76,7 +76,7 @@ export function useMultiTrustlineCheck(
   const [missing, setMissing] = useState<TokenToCheck[]>([]);
   const [checking, setChecking] = useState(false);
   const [adding, setAdding] = useState(false);
-  const [checkId, setCheckId] = useState(0);
+  const [_checkId, setCheckId] = useState(0);
 
   // Filter out native XLM (no trustline needed)
   const nonNative = tokens.filter((t) => !NATIVE_XLM.has(t.contract) && t.symbol !== "XLM");
@@ -108,7 +108,7 @@ export function useMultiTrustlineCheck(
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [walletAddress, JSON.stringify(nonNative.map((t) => t.contract)), checkId]);
+  }, [walletAddress, nonNative]);
 
   const recheck = useCallback(() => setCheckId((id) => id + 1), []);
 

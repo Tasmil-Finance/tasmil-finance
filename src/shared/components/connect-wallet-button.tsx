@@ -3,9 +3,8 @@
 import { Check, ChevronDown, ExternalLink, LogOut, User } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { ReplayMenuItem } from "./replay-menu-item";
-import { cn } from "@/lib/utils";
 import { useCredits } from "@/features/credits/use-credits";
+import { cn } from "@/lib/utils";
 import { getExplorerUrl, isMainnet } from "@/shared/config/stellar";
 import { useWallet } from "@/shared/context/wallet-context";
 import { Button } from "@/shared/ui/button-v2";
@@ -17,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { Typography } from "@/shared/ui/typography";
+import { ReplayMenuItem } from "./replay-menu-item";
 
 const networkLabel = isMainnet ? "Mainnet" : "Testnet";
 
@@ -235,9 +235,7 @@ function TopbarWallet({
             className="flex w-full items-center justify-between"
           >
             <span className="text-sm">Credits</span>
-            <span className="font-mono text-foreground text-sm tabular-nums">
-              {creditsDisplay}
-            </span>
+            <span className="font-mono text-foreground text-sm tabular-nums">{creditsDisplay}</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />

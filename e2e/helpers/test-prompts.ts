@@ -115,7 +115,11 @@ export const BLEND_TESTS: ProtocolSuite = {
     },
     behavior: {
       toolCallChain: [
-        { name: "parse_user_intent", order: 0, expectedArgs: { action: "deposit_for_yield", protocol: "blend", assets: ["XLM"] } },
+        {
+          name: "parse_user_intent",
+          order: 0,
+          expectedArgs: { action: "deposit_for_yield", protocol: "blend", assets: ["XLM"] },
+        },
         { name: "get_account", order: 1 },
         { name: "discover", order: 2, expectedArgs: { category: "earn" } },
         { name: "flow_clarify", order: 3 },
@@ -144,9 +148,17 @@ export const BLEND_TESTS: ProtocolSuite = {
     },
     behavior: {
       toolCallChain: [
-        { name: "parse_user_intent", order: 0, expectedArgs: { action: "withdraw", protocol: "blend" } },
+        {
+          name: "parse_user_intent",
+          order: 0,
+          expectedArgs: { action: "withdraw", protocol: "blend" },
+        },
         { name: "get_account", order: 1 },
-        { name: "flow_compose_plan", order: 2, expectedArgs: { action: "withdraw", protocol: "blend" } },
+        {
+          name: "flow_compose_plan",
+          order: 2,
+          expectedArgs: { action: "withdraw", protocol: "blend" },
+        },
       ],
       shouldClarify: false,
       shouldShowSigningCard: true,
@@ -172,9 +184,17 @@ export const BLEND_TESTS: ProtocolSuite = {
     },
     behavior: {
       toolCallChain: [
-        { name: "parse_user_intent", order: 0, expectedArgs: { action: "borrow", protocol: "blend" } },
+        {
+          name: "parse_user_intent",
+          order: 0,
+          expectedArgs: { action: "borrow", protocol: "blend" },
+        },
         { name: "get_account", order: 1 },
-        { name: "flow_compose_plan", order: 2, expectedArgs: { action: "borrow", protocol: "blend" } },
+        {
+          name: "flow_compose_plan",
+          order: 2,
+          expectedArgs: { action: "borrow", protocol: "blend" },
+        },
       ],
       shouldClarify: false,
       shouldShowSigningCard: true,
@@ -200,9 +220,17 @@ export const BLEND_TESTS: ProtocolSuite = {
     },
     behavior: {
       toolCallChain: [
-        { name: "parse_user_intent", order: 0, expectedArgs: { action: "repay", protocol: "blend" } },
+        {
+          name: "parse_user_intent",
+          order: 0,
+          expectedArgs: { action: "repay", protocol: "blend" },
+        },
         { name: "get_account", order: 1 },
-        { name: "flow_compose_plan", order: 2, expectedArgs: { action: "repay", protocol: "blend" } },
+        {
+          name: "flow_compose_plan",
+          order: 2,
+          expectedArgs: { action: "repay", protocol: "blend" },
+        },
       ],
       shouldClarify: false,
       shouldShowSigningCard: true,
@@ -227,9 +255,17 @@ export const BLEND_TESTS: ProtocolSuite = {
     },
     behavior: {
       toolCallChain: [
-        { name: "parse_user_intent", order: 0, expectedArgs: { action: "claim_emissions", protocol: "blend" } },
+        {
+          name: "parse_user_intent",
+          order: 0,
+          expectedArgs: { action: "claim_emissions", protocol: "blend" },
+        },
         { name: "get_account", order: 1 },
-        { name: "flow_compose_plan", order: 2, expectedArgs: { action: "claim_emissions", protocol: "blend" } },
+        {
+          name: "flow_compose_plan",
+          order: 2,
+          expectedArgs: { action: "claim_emissions", protocol: "blend" },
+        },
       ],
       shouldClarify: false,
       shouldShowSigningCard: true,
@@ -254,9 +290,17 @@ export const BLEND_TESTS: ProtocolSuite = {
     },
     behavior: {
       toolCallChain: [
-        { name: "parse_user_intent", order: 0, expectedArgs: { action: "toggle_collateral", protocol: "blend" } },
+        {
+          name: "parse_user_intent",
+          order: 0,
+          expectedArgs: { action: "toggle_collateral", protocol: "blend" },
+        },
         { name: "get_account", order: 1 },
-        { name: "flow_compose_plan", order: 2, expectedArgs: { action: "toggle_collateral", protocol: "blend" } },
+        {
+          name: "flow_compose_plan",
+          order: 2,
+          expectedArgs: { action: "toggle_collateral", protocol: "blend" },
+        },
       ],
       shouldClarify: false,
       shouldShowSigningCard: true,
@@ -282,7 +326,11 @@ export const BLEND_BACKSTOP_TESTS: ProtocolSuite = {
     acceptableCards: ["card-clarify", "card-blend-tx"],
     behavior: {
       toolCallChain: [
-        { name: "parse_user_intent", order: 0, expectedArgs: { action: "backstop_deposit", protocol: "blend" } },
+        {
+          name: "parse_user_intent",
+          order: 0,
+          expectedArgs: { action: "backstop_deposit", protocol: "blend" },
+        },
         { name: "get_account", order: 1 },
         { name: "flow_clarify", order: 2 },
       ],
@@ -300,9 +348,17 @@ export const BLEND_BACKSTOP_TESTS: ProtocolSuite = {
     acceptableCards: ["card-clarify"],
     behavior: {
       toolCallChain: [
-        { name: "parse_user_intent", order: 0, expectedArgs: { action: "backstop_queue_withdrawal" } },
+        {
+          name: "parse_user_intent",
+          order: 0,
+          expectedArgs: { action: "backstop_queue_withdrawal" },
+        },
         { name: "get_account", order: 1 },
-        { name: "flow_compose_plan", order: 2, expectedArgs: { action: "backstop_queue_withdrawal", protocol: "blend" } },
+        {
+          name: "flow_compose_plan",
+          order: 2,
+          expectedArgs: { action: "backstop_queue_withdrawal", protocol: "blend" },
+        },
       ],
       shouldClarify: false,
       shouldShowSigningCard: true,
@@ -318,9 +374,17 @@ export const BLEND_BACKSTOP_TESTS: ProtocolSuite = {
     acceptableCards: ["card-clarify"],
     behavior: {
       toolCallChain: [
-        { name: "parse_user_intent", order: 0, expectedArgs: { action: "backstop_dequeue_withdrawal" } },
+        {
+          name: "parse_user_intent",
+          order: 0,
+          expectedArgs: { action: "backstop_dequeue_withdrawal" },
+        },
         { name: "get_account", order: 1 },
-        { name: "flow_compose_plan", order: 2, expectedArgs: { action: "backstop_dequeue_withdrawal", protocol: "blend" } },
+        {
+          name: "flow_compose_plan",
+          order: 2,
+          expectedArgs: { action: "backstop_dequeue_withdrawal", protocol: "blend" },
+        },
       ],
       shouldClarify: false,
       shouldShowSigningCard: true,
@@ -338,7 +402,11 @@ export const BLEND_BACKSTOP_TESTS: ProtocolSuite = {
       toolCallChain: [
         { name: "parse_user_intent", order: 0, expectedArgs: { action: "backstop_withdraw" } },
         { name: "get_account", order: 1 },
-        { name: "flow_compose_plan", order: 2, expectedArgs: { action: "backstop_withdraw", protocol: "blend" } },
+        {
+          name: "flow_compose_plan",
+          order: 2,
+          expectedArgs: { action: "backstop_withdraw", protocol: "blend" },
+        },
       ],
       shouldClarify: false,
       shouldShowSigningCard: true,
@@ -356,7 +424,11 @@ export const BLEND_BACKSTOP_TESTS: ProtocolSuite = {
       toolCallChain: [
         { name: "parse_user_intent", order: 0, expectedArgs: { action: "join_comet_pool" } },
         { name: "get_account", order: 1 },
-        { name: "flow_compose_plan", order: 2, expectedArgs: { action: "join_comet_pool", protocol: "blend" } },
+        {
+          name: "flow_compose_plan",
+          order: 2,
+          expectedArgs: { action: "join_comet_pool", protocol: "blend" },
+        },
       ],
       shouldClarify: false,
       shouldShowSigningCard: true,
@@ -374,7 +446,11 @@ export const BLEND_BACKSTOP_TESTS: ProtocolSuite = {
       toolCallChain: [
         { name: "parse_user_intent", order: 0, expectedArgs: { action: "exit_comet_pool" } },
         { name: "get_account", order: 1 },
-        { name: "flow_compose_plan", order: 2, expectedArgs: { action: "exit_comet_pool", protocol: "blend" } },
+        {
+          name: "flow_compose_plan",
+          order: 2,
+          expectedArgs: { action: "exit_comet_pool", protocol: "blend" },
+        },
       ],
       shouldClarify: false,
       shouldShowSigningCard: true,
@@ -415,9 +491,17 @@ export const SOROSWAP_TESTS: ProtocolSuite = {
     },
     behavior: {
       toolCallChain: [
-        { name: "parse_user_intent", order: 0, expectedArgs: { action: "swap", assets: ["XLM", "USDC"] } },
+        {
+          name: "parse_user_intent",
+          order: 0,
+          expectedArgs: { action: "swap", assets: ["XLM", "USDC"] },
+        },
         { name: "get_account", order: 1 },
-        { name: "flow_compose_plan", order: 2, expectedArgs: { action: "swap", protocol: "soroswap" } },
+        {
+          name: "flow_compose_plan",
+          order: 2,
+          expectedArgs: { action: "swap", protocol: "soroswap" },
+        },
       ],
       shouldClarify: false,
       shouldShowSigningCard: true,
@@ -442,9 +526,17 @@ export const SOROSWAP_TESTS: ProtocolSuite = {
     },
     behavior: {
       toolCallChain: [
-        { name: "parse_user_intent", order: 0, expectedArgs: { action: "add_liquidity", protocol: "soroswap" } },
+        {
+          name: "parse_user_intent",
+          order: 0,
+          expectedArgs: { action: "add_liquidity", protocol: "soroswap" },
+        },
         { name: "get_account", order: 1 },
-        { name: "flow_compose_plan", order: 2, expectedArgs: { action: "add_liquidity", protocol: "soroswap" } },
+        {
+          name: "flow_compose_plan",
+          order: 2,
+          expectedArgs: { action: "add_liquidity", protocol: "soroswap" },
+        },
       ],
       shouldClarify: false,
       shouldShowSigningCard: true,
@@ -460,9 +552,17 @@ export const SOROSWAP_TESTS: ProtocolSuite = {
     acceptableCards: ["card-clarify"],
     behavior: {
       toolCallChain: [
-        { name: "parse_user_intent", order: 0, expectedArgs: { action: "remove_liquidity", protocol: "soroswap" } },
+        {
+          name: "parse_user_intent",
+          order: 0,
+          expectedArgs: { action: "remove_liquidity", protocol: "soroswap" },
+        },
         { name: "get_account", order: 1 },
-        { name: "flow_compose_plan", order: 2, expectedArgs: { action: "remove_liquidity", protocol: "soroswap" } },
+        {
+          name: "flow_compose_plan",
+          order: 2,
+          expectedArgs: { action: "remove_liquidity", protocol: "soroswap" },
+        },
       ],
       shouldClarify: false,
       shouldShowSigningCard: true,
@@ -495,7 +595,12 @@ export const SDEX_TESTS: ProtocolSuite = {
     // fails to render (AG-UI streaming issue with nested agent responses).
     // The "1 Issue" badge may appear in the latter case.
     expectedCard: "card-swap-execute",
-    acceptableCards: ["card-stellar-execute", "card-clarify", "card-account-info", "card-earn-discovery"],
+    acceptableCards: [
+      "card-stellar-execute",
+      "card-clarify",
+      "card-account-info",
+      "card-earn-discovery",
+    ],
     signingCard: {
       cardType: "card-swap-execute",
       visibleFields: {
@@ -552,9 +657,17 @@ export const PHOENIX_TESTS: ProtocolSuite = {
     },
     behavior: {
       toolCallChain: [
-        { name: "parse_user_intent", order: 0, expectedArgs: { action: "swap", protocol: "phoenix" } },
+        {
+          name: "parse_user_intent",
+          order: 0,
+          expectedArgs: { action: "swap", protocol: "phoenix" },
+        },
         { name: "get_account", order: 1 },
-        { name: "flow_compose_plan", order: 2, expectedArgs: { action: "swap", protocol: "phoenix" } },
+        {
+          name: "flow_compose_plan",
+          order: 2,
+          expectedArgs: { action: "swap", protocol: "phoenix" },
+        },
       ],
       shouldClarify: false,
       shouldShowSigningCard: true,
@@ -586,7 +699,11 @@ export const AQUARIUS_TESTS: ProtocolSuite = {
     acceptableCards: ["card-stellar-execute", "card-clarify", "card-aqua-tx"],
     behavior: {
       toolCallChain: [
-        { name: "parse_user_intent", order: 0, expectedArgs: { action: "add_liquidity", protocol: "aquarius" } },
+        {
+          name: "parse_user_intent",
+          order: 0,
+          expectedArgs: { action: "add_liquidity", protocol: "aquarius" },
+        },
         { name: "get_account", order: 1 },
         // AI may call resolve_pool, then get_account, then respond with text
         // explaining the user needs USDC too. No signing card expected.
@@ -605,9 +722,17 @@ export const AQUARIUS_TESTS: ProtocolSuite = {
     acceptableCards: ["card-clarify", "card-aqua-tx"],
     behavior: {
       toolCallChain: [
-        { name: "parse_user_intent", order: 0, expectedArgs: { action: "remove_liquidity", protocol: "aquarius" } },
+        {
+          name: "parse_user_intent",
+          order: 0,
+          expectedArgs: { action: "remove_liquidity", protocol: "aquarius" },
+        },
         { name: "get_account", order: 1 },
-        { name: "flow_compose_plan", order: 2, expectedArgs: { action: "remove_liquidity", protocol: "aquarius" } },
+        {
+          name: "flow_compose_plan",
+          order: 2,
+          expectedArgs: { action: "remove_liquidity", protocol: "aquarius" },
+        },
       ],
       shouldClarify: false,
       shouldShowSigningCard: true,
@@ -634,9 +759,17 @@ export const AQUARIUS_TESTS: ProtocolSuite = {
     },
     behavior: {
       toolCallChain: [
-        { name: "parse_user_intent", order: 0, expectedArgs: { action: "swap", protocol: "aquarius" } },
+        {
+          name: "parse_user_intent",
+          order: 0,
+          expectedArgs: { action: "swap", protocol: "aquarius" },
+        },
         { name: "get_account", order: 1 },
-        { name: "flow_compose_plan", order: 2, expectedArgs: { action: "swap", protocol: "aquarius" } },
+        {
+          name: "flow_compose_plan",
+          order: 2,
+          expectedArgs: { action: "swap", protocol: "aquarius" },
+        },
       ],
       shouldClarify: false,
       shouldShowSigningCard: true,
@@ -663,7 +796,11 @@ export const AQUARIUS_TESTS: ProtocolSuite = {
       toolCallChain: [
         { name: "parse_user_intent", order: 0, expectedArgs: { action: "claim_emissions" } },
         { name: "get_account", order: 1 },
-        { name: "flow_compose_plan", order: 2, expectedArgs: { action: "claim_rewards", protocol: "aquarius" } },
+        {
+          name: "flow_compose_plan",
+          order: 2,
+          expectedArgs: { action: "claim_rewards", protocol: "aquarius" },
+        },
       ],
       shouldClarify: false,
       shouldShowSigningCard: true,
@@ -691,7 +828,11 @@ export const AQUARIUS_TESTS: ProtocolSuite = {
       toolCallChain: [
         { name: "parse_user_intent", order: 0, expectedArgs: { action: "lock_aqua" } },
         { name: "get_account", order: 1 },
-        { name: "flow_compose_plan", order: 2, expectedArgs: { action: "lock_aqua", protocol: "aquarius" } },
+        {
+          name: "flow_compose_plan",
+          order: 2,
+          expectedArgs: { action: "lock_aqua", protocol: "aquarius" },
+        },
       ],
       shouldClarify: false,
       shouldShowSigningCard: true,
@@ -719,7 +860,12 @@ export const ALLBRIDGE_TESTS: ProtocolSuite = {
     // AI will check bridge_get_routes for ETH→Stellar USDC, get quotes,
     // and show bridge discovery card with route options.
     expectedCard: "card-bridge-discovery",
-    acceptableCards: ["card-stellar-execute", "card-swap-execute", "card-bridge-execute", "card-clarify"],
+    acceptableCards: [
+      "card-stellar-execute",
+      "card-swap-execute",
+      "card-bridge-execute",
+      "card-clarify",
+    ],
     behavior: {
       toolCallChain: [
         { name: "parse_user_intent", order: 0, expectedArgs: { action: "bridge" } },
@@ -755,7 +901,11 @@ export const DEFINDEX_TESTS: ProtocolSuite = {
     acceptableCards: ["card-stellar-execute", "card-clarify"],
     behavior: {
       toolCallChain: [
-        { name: "parse_user_intent", order: 0, expectedArgs: { action: "deposit_for_yield", protocol: "defindex" } },
+        {
+          name: "parse_user_intent",
+          order: 0,
+          expectedArgs: { action: "deposit_for_yield", protocol: "defindex" },
+        },
         { name: "discover", order: 1 },
         { name: "resolve_pool", order: 2 },
       ],
@@ -773,7 +923,11 @@ export const DEFINDEX_TESTS: ProtocolSuite = {
     acceptableCards: ["card-clarify"],
     behavior: {
       toolCallChain: [
-        { name: "parse_user_intent", order: 0, expectedArgs: { action: "withdraw", protocol: "defindex" } },
+        {
+          name: "parse_user_intent",
+          order: 0,
+          expectedArgs: { action: "withdraw", protocol: "defindex" },
+        },
         { name: "get_account", order: 1 },
         { name: "flow_compose_plan", order: 2, expectedArgs: { protocol: "defindex" } },
       ],
@@ -829,9 +983,7 @@ export const TASMIL_TESTS: ProtocolSuite = {
     expectedCard: "card-account-setup",
     acceptableCards: ["card-account-strategy"],
     behavior: {
-      toolCallChain: [
-        { name: "flow_check_account_status", order: 0 },
-      ],
+      toolCallChain: [{ name: "flow_check_account_status", order: 0 }],
       shouldClarify: false,
       shouldShowSigningCard: false,
       shouldStopAfterCard: false,
@@ -861,9 +1013,7 @@ export const INFO_TESTS: ProtocolSuite = {
     expectedCard: "card-account-info",
     acceptableCards: [],
     behavior: {
-      toolCallChain: [
-        { name: "get_account", order: 0 },
-      ],
+      toolCallChain: [{ name: "get_account", order: 0 }],
       shouldClarify: false,
       shouldShowSigningCard: false,
       shouldStopAfterCard: false,
@@ -878,9 +1028,7 @@ export const INFO_TESTS: ProtocolSuite = {
     expectedCard: "card-strategy-preset",
     acceptableCards: ["card-earn-discovery", "card-clarify", "card-account-strategy"],
     behavior: {
-      toolCallChain: [
-        { name: "discover", order: 0, expectedArgs: { category: "earn" } },
-      ],
+      toolCallChain: [{ name: "discover", order: 0, expectedArgs: { category: "earn" } }],
       shouldClarify: false,
       shouldShowSigningCard: false,
       shouldStopAfterCard: false,
@@ -913,7 +1061,11 @@ export const CLARIFY_FLOW_TESTS: ProtocolSuite = {
     expectedCard: "card-clarify",
     behavior: {
       toolCallChain: [
-        { name: "parse_user_intent", order: 0, expectedArgs: { action: "deposit_for_yield", assets: ["USDC"] } },
+        {
+          name: "parse_user_intent",
+          order: 0,
+          expectedArgs: { action: "deposit_for_yield", assets: ["USDC"] },
+        },
         { name: "get_account", order: 1 },
         { name: "discover", order: 2, expectedArgs: { category: "earn" } },
         { name: "flow_clarify", order: 3 },
@@ -966,7 +1118,12 @@ export const TEMPLAR_TESTS: ProtocolSuite = {
     // The AI correctly identifies this and redirects to Soroswap/SDEX/Phoenix.
     // It shows a comparison table of swap routes from other DEXs.
     expectedCard: "card-account-info",
-    acceptableCards: ["card-swap-execute", "card-stellar-execute", "card-earn-discovery", "card-clarify"],
+    acceptableCards: [
+      "card-swap-execute",
+      "card-stellar-execute",
+      "card-earn-discovery",
+      "card-clarify",
+    ],
     behavior: {
       toolCallChain: [
         { name: "parse_user_intent", order: 0 },
@@ -1011,9 +1168,17 @@ export const ALLBRIDGE_LP_TESTS: ProtocolSuite = {
     },
     behavior: {
       toolCallChain: [
-        { name: "parse_user_intent", order: 0, expectedArgs: { action: "add_liquidity", protocol: "allbridge" } },
+        {
+          name: "parse_user_intent",
+          order: 0,
+          expectedArgs: { action: "add_liquidity", protocol: "allbridge" },
+        },
         { name: "get_account", order: 1 },
-        { name: "flow_compose_plan", order: 2, expectedArgs: { action: "add_liquidity", protocol: "allbridge" } },
+        {
+          name: "flow_compose_plan",
+          order: 2,
+          expectedArgs: { action: "add_liquidity", protocol: "allbridge" },
+        },
       ],
       shouldClarify: false,
       shouldShowSigningCard: true,
@@ -1029,9 +1194,17 @@ export const ALLBRIDGE_LP_TESTS: ProtocolSuite = {
     acceptableCards: ["card-clarify"],
     behavior: {
       toolCallChain: [
-        { name: "parse_user_intent", order: 0, expectedArgs: { action: "remove_liquidity", protocol: "allbridge" } },
+        {
+          name: "parse_user_intent",
+          order: 0,
+          expectedArgs: { action: "remove_liquidity", protocol: "allbridge" },
+        },
         { name: "get_account", order: 1 },
-        { name: "flow_compose_plan", order: 2, expectedArgs: { action: "remove_liquidity", protocol: "allbridge" } },
+        {
+          name: "flow_compose_plan",
+          order: 2,
+          expectedArgs: { action: "remove_liquidity", protocol: "allbridge" },
+        },
       ],
       shouldClarify: false,
       shouldShowSigningCard: true,
@@ -1055,9 +1228,17 @@ export const ALLBRIDGE_LP_TESTS: ProtocolSuite = {
     },
     behavior: {
       toolCallChain: [
-        { name: "parse_user_intent", order: 0, expectedArgs: { action: "claim_rewards", protocol: "allbridge" } },
+        {
+          name: "parse_user_intent",
+          order: 0,
+          expectedArgs: { action: "claim_rewards", protocol: "allbridge" },
+        },
         { name: "get_account", order: 1 },
-        { name: "flow_compose_plan", order: 2, expectedArgs: { action: "claim_rewards", protocol: "allbridge" } },
+        {
+          name: "flow_compose_plan",
+          order: 2,
+          expectedArgs: { action: "claim_rewards", protocol: "allbridge" },
+        },
       ],
       shouldClarify: false,
       shouldShowSigningCard: true,
@@ -1083,9 +1264,7 @@ export const UNIFIED_TOOL_TESTS: ProtocolSuite = {
     expectedCard: "card-earn-discovery",
     acceptableCards: ["card-clarify", "card-swap-execute"],
     behavior: {
-      toolCallChain: [
-        { name: "discover", order: 0, expectedArgs: { category: "swap" } },
-      ],
+      toolCallChain: [{ name: "discover", order: 0, expectedArgs: { category: "swap" } }],
       shouldClarify: false,
       shouldShowSigningCard: false,
       shouldStopAfterCard: false,
@@ -1100,9 +1279,7 @@ export const UNIFIED_TOOL_TESTS: ProtocolSuite = {
     expectedCard: "card-earn-discovery",
     acceptableCards: ["card-clarify"],
     behavior: {
-      toolCallChain: [
-        { name: "discover", order: 0, expectedArgs: { category: "earn" } },
-      ],
+      toolCallChain: [{ name: "discover", order: 0, expectedArgs: { category: "earn" } }],
       shouldClarify: false,
       shouldShowSigningCard: false,
       shouldStopAfterCard: false,
@@ -1117,9 +1294,7 @@ export const UNIFIED_TOOL_TESTS: ProtocolSuite = {
     expectedCard: "card-earn-discovery",
     acceptableCards: ["card-clarify"],
     behavior: {
-      toolCallChain: [
-        { name: "discover", order: 0, expectedArgs: { category: "lending" } },
-      ],
+      toolCallChain: [{ name: "discover", order: 0, expectedArgs: { category: "lending" } }],
       shouldClarify: false,
       shouldShowSigningCard: false,
       shouldStopAfterCard: false,
@@ -1134,9 +1309,7 @@ export const UNIFIED_TOOL_TESTS: ProtocolSuite = {
     expectedCard: "card-bridge-discovery",
     acceptableCards: ["card-clarify"],
     behavior: {
-      toolCallChain: [
-        { name: "discover", order: 0, expectedArgs: { category: "bridge" } },
-      ],
+      toolCallChain: [{ name: "discover", order: 0, expectedArgs: { category: "bridge" } }],
       shouldClarify: false,
       shouldShowSigningCard: false,
       shouldStopAfterCard: false,
@@ -1151,9 +1324,7 @@ export const UNIFIED_TOOL_TESTS: ProtocolSuite = {
     expectedCard: "card-account-info",
     acceptableCards: [],
     behavior: {
-      toolCallChain: [
-        { name: "get_account", order: 0, expectedArgs: { query: "info" } },
-      ],
+      toolCallChain: [{ name: "get_account", order: 0, expectedArgs: { query: "info" } }],
       shouldClarify: false,
       shouldShowSigningCard: false,
       shouldStopAfterCard: false,
@@ -1168,9 +1339,7 @@ export const UNIFIED_TOOL_TESTS: ProtocolSuite = {
     expectedCard: "card-account-info",
     acceptableCards: [],
     behavior: {
-      toolCallChain: [
-        { name: "get_account", order: 0, expectedArgs: { query: "positions" } },
-      ],
+      toolCallChain: [{ name: "get_account", order: 0, expectedArgs: { query: "positions" } }],
       shouldClarify: false,
       shouldShowSigningCard: false,
       shouldStopAfterCard: false,
@@ -1185,9 +1354,7 @@ export const UNIFIED_TOOL_TESTS: ProtocolSuite = {
     expectedCard: "card-account-info",
     acceptableCards: [],
     behavior: {
-      toolCallChain: [
-        { name: "get_account", order: 0, expectedArgs: { query: "history" } },
-      ],
+      toolCallChain: [{ name: "get_account", order: 0, expectedArgs: { query: "history" } }],
       shouldClarify: false,
       shouldShowSigningCard: false,
       shouldStopAfterCard: false,
@@ -1202,9 +1369,7 @@ export const UNIFIED_TOOL_TESTS: ProtocolSuite = {
     expectedCard: "card-account-info",
     acceptableCards: ["card-clarify"],
     behavior: {
-      toolCallChain: [
-        { name: "get_pool_details", order: 0, expectedArgs: { protocol: "blend" } },
-      ],
+      toolCallChain: [{ name: "get_pool_details", order: 0, expectedArgs: { protocol: "blend" } }],
       shouldClarify: false,
       shouldShowSigningCard: false,
       shouldStopAfterCard: false,
@@ -1236,9 +1401,7 @@ export const UNIFIED_TOOL_TESTS: ProtocolSuite = {
     expectedCard: "card-account-info",
     acceptableCards: ["card-clarify", "card-earn-discovery"],
     behavior: {
-      toolCallChain: [
-        { name: "resolve_pool", order: 0, expectedArgs: { protocol: "blend" } },
-      ],
+      toolCallChain: [{ name: "resolve_pool", order: 0, expectedArgs: { protocol: "blend" } }],
       shouldClarify: false,
       shouldShowSigningCard: false,
       shouldStopAfterCard: false,
@@ -1252,9 +1415,7 @@ export const UNIFIED_TOOL_TESTS: ProtocolSuite = {
     expectedCard: "card-account-info",
     acceptableCards: ["card-clarify"],
     behavior: {
-      toolCallChain: [
-        { name: "resolve_pool", order: 0, expectedArgs: { protocol: "phoenix" } },
-      ],
+      toolCallChain: [{ name: "resolve_pool", order: 0, expectedArgs: { protocol: "phoenix" } }],
       shouldClarify: false,
       shouldShowSigningCard: false,
       shouldStopAfterCard: false,
@@ -1268,9 +1429,7 @@ export const UNIFIED_TOOL_TESTS: ProtocolSuite = {
     expectedCard: "card-earn-discovery",
     acceptableCards: ["card-account-info", "card-clarify"],
     behavior: {
-      toolCallChain: [
-        { name: "resolve_pool", order: 0, expectedArgs: { protocol: "defindex" } },
-      ],
+      toolCallChain: [{ name: "resolve_pool", order: 0, expectedArgs: { protocol: "defindex" } }],
       shouldClarify: false,
       shouldShowSigningCard: false,
       shouldStopAfterCard: false,

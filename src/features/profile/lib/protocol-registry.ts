@@ -17,12 +17,12 @@ const TESTNET_PROTOCOLS: ReadonlyArray<readonly [string, Protocol]> = [
 ];
 
 function buildMap(): Map<string, Protocol> {
-  const isMainnet = process.env["NEXT_PUBLIC_STELLAR_NETWORK"] === "mainnet";
+  const isMainnet = process.env.NEXT_PUBLIC_STELLAR_NETWORK === "mainnet";
   const base = isMainnet ? MAINNET_PROTOCOLS : TESTNET_PROTOCOLS;
   const map = new Map<string, Protocol>(base.map(([id, p]) => [id, p]));
 
   // Optional override: `NEXT_PUBLIC_STELLAR_PROTOCOL_OVERRIDES="C123:blend,C456:soroswap"`
-  const raw = process.env["NEXT_PUBLIC_STELLAR_PROTOCOL_OVERRIDES"];
+  const raw = process.env.NEXT_PUBLIC_STELLAR_PROTOCOL_OVERRIDES;
   if (raw) {
     for (const pair of raw.split(",")) {
       const [id, proto] = pair.split(":").map((s) => s.trim());

@@ -31,11 +31,14 @@ export function PlanPreviewCard({
   const asset = plan.steps[0]?.asset ?? "";
 
   return (
-    <div data-testid="card-plan-preview" className="rounded-xl border border-white/[0.07] bg-[#131715] p-4">
+    <div
+      data-testid="card-plan-preview"
+      className="rounded-xl border border-white/[0.07] bg-[#131715] p-4"
+    >
       {/* Header */}
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-sm font-medium text-[#f0f2f1]">Plan Preview</span>
-        <div data-testid="weighted-apy" className="font-mono text-sm font-medium text-[#00C278]">
+        <span className="font-medium text-[#f0f2f1] text-sm">Plan Preview</span>
+        <div data-testid="weighted-apy" className="font-medium font-mono text-[#00C278] text-sm">
           {bpsToPercent(plan.weighted_apy_bps)}%
         </div>
       </div>
@@ -43,7 +46,7 @@ export function PlanPreviewCard({
       {/* Allocations */}
       <div className="mb-3 space-y-1.5">
         {plan.steps.map((step) => (
-          <div key={step.index} className="text-xs text-[#f0f2f1]">
+          <div key={step.index} className="text-[#f0f2f1] text-xs">
             {plan.steps.length === 1 ? (
               <span>
                 {step.amount} {step.asset} &rarr; {step.protocol}{" "}
@@ -63,13 +66,13 @@ export function PlanPreviewCard({
 
       {/* Idle amount */}
       {plan.idle_amount != null && plan.idle_amount > 0 && (
-        <div className="mb-3 text-xs text-[#9aada4]">
+        <div className="mb-3 text-[#9aada4] text-xs">
           {plan.idle_amount} {asset} idle
         </div>
       )}
 
       {/* Gas */}
-      <div className="mb-3 font-mono text-xs text-[#9aada4]">
+      <div className="mb-3 font-mono text-[#9aada4] text-xs">
         ~{plan.total_gas_xlm.toFixed(2)} XLM
       </div>
 
@@ -80,7 +83,7 @@ export function PlanPreviewCard({
             <div
               key={warning}
               data-testid="warning-item"
-              className="rounded-md bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-400"
+              className="rounded-md bg-amber-500/10 px-2.5 py-1.5 text-amber-400 text-xs"
             >
               {warning}
             </div>
@@ -92,7 +95,7 @@ export function PlanPreviewCard({
       {failedErrors.length > 0 && (
         <div className="mb-3 space-y-1">
           {failedErrors.map((error) => (
-            <div key={error} className="text-xs text-[#f87171]">
+            <div key={error} className="text-[#f87171] text-xs">
               {error}
             </div>
           ))}
@@ -106,7 +109,7 @@ export function PlanPreviewCard({
           aria-label="Confirm & Sign"
           disabled={isDisabled}
           onClick={onConfirm}
-          className="rounded-lg bg-[#00C278] px-4 py-2.5 text-sm font-medium text-[#0d0f0e] disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg bg-[#00C278] px-4 py-2.5 font-medium text-[#0d0f0e] text-sm disabled:cursor-not-allowed disabled:opacity-50"
         >
           Confirm &amp; Sign
         </button>
@@ -114,7 +117,7 @@ export function PlanPreviewCard({
           type="button"
           aria-label="Cancel"
           onClick={onCancel}
-          className="rounded-lg border border-white/10 bg-[#181c1a] px-4 py-2.5 text-sm font-medium text-[#9aada4]"
+          className="rounded-lg border border-white/10 bg-[#181c1a] px-4 py-2.5 font-medium text-[#9aada4] text-sm"
         >
           Cancel
         </button>

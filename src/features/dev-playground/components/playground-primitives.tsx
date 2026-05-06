@@ -39,8 +39,8 @@ export function PgCardHeader({
         <span className={cn("h-4.5 w-4.5", iconColor)}>{icon}</span>
       </div>
       <div className="min-w-0 flex-1">
-        <span className="text-sm font-medium text-foreground">{title}</span>
-        {subtitle && <span className="ml-2 text-xs text-muted-foreground">{subtitle}</span>}
+        <span className="font-medium text-foreground text-sm">{title}</span>
+        {subtitle && <span className="ml-2 text-muted-foreground text-xs">{subtitle}</span>}
       </div>
       {badge}
       {actions && <div className="ml-auto flex items-center gap-2">{actions}</div>}
@@ -54,11 +54,11 @@ export const POS_GRID = "grid grid-cols-[2fr_90px_1.2fr_1fr] items-center gap-x-
 
 export function PgGridHeader({ columns }: { columns: string[] }) {
   return (
-    <div className={cn(POS_GRID, "border-b border-border px-5 py-2")}>
+    <div className={cn(POS_GRID, "border-border border-b px-5 py-2")}>
       {columns.map((col) => (
         <span
           key={col}
-          className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground"
+          className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider"
         >
           {col}
         </span>
@@ -89,7 +89,7 @@ export function TypeBadge({ type }: { type: string }) {
   return (
     <span
       className={cn(
-        "inline-block rounded-md px-2 py-0.5 text-xs font-medium",
+        "inline-block rounded-md px-2 py-0.5 font-medium text-xs",
         config.color,
         config.bg
       )}
@@ -106,7 +106,7 @@ export function StatusBadge({ status }: { status: string }) {
   return (
     <span
       className={cn(
-        "inline-block rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide",
+        "inline-block rounded-full px-2 py-0.5 font-medium text-[10px] uppercase tracking-wide",
         isOk ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"
       )}
     >
@@ -133,7 +133,7 @@ export function PgSkeleton({ rows = 3 }: { rows?: number }) {
         <div key={i} className="flex items-center gap-3">
           <Skeleton className="h-7 w-7 rounded-full" />
           <Skeleton className="h-4 w-28" />
-          <Skeleton className="h-4 w-16 ml-auto" />
+          <Skeleton className="ml-auto h-4 w-16" />
           <Skeleton className="h-4 w-20" />
         </div>
       ))}
@@ -156,7 +156,7 @@ export function PgEmpty({ message = "No data found" }: { message?: string }) {
 
 export function PgError({ message }: { message: string }) {
   return (
-    <div className="flex items-center gap-2 rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
+    <div className="flex items-center gap-2 rounded-lg bg-destructive/10 px-4 py-3 text-destructive text-sm">
       <AlertTriangle className="h-4 w-4 shrink-0" />
       {message}
     </div>
@@ -167,7 +167,7 @@ export function PgError({ message }: { message: string }) {
 
 export function JsonViewer({ data }: { data: unknown }) {
   return (
-    <pre className="max-h-[400px] overflow-auto rounded-lg bg-muted/30 p-4 text-xs text-muted-foreground font-mono whitespace-pre-wrap break-all">
+    <pre className="max-h-[400px] overflow-auto whitespace-pre-wrap break-all rounded-lg bg-muted/30 p-4 font-mono text-muted-foreground text-xs">
       {JSON.stringify(data, null, 2)}
     </pre>
   );

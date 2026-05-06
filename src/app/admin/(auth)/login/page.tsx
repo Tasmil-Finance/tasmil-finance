@@ -23,15 +23,15 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="flex min-h-screen items-center justify-center bg-background">
       {/* Background with subtle gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
 
-      <div className="relative w-full max-w-md p-8 rounded-2xl border border-border bg-card">
+      <div className="relative w-full max-w-md rounded-2xl border border-border bg-card p-8">
         {/* Logo/Brand */}
-        <div className="flex items-center justify-center mb-6">
-          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent">
-            <Bot className="w-6 h-6 text-white" />
+        <div className="mb-6 flex items-center justify-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent">
+            <Bot className="h-6 w-6 text-white" />
           </div>
         </div>
 
@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="admin-email" className="mb-1.5 block text-sm font-medium">
+            <label htmlFor="admin-email" className="mb-1.5 block font-medium text-sm">
               Email
             </label>
             <Input
@@ -63,7 +63,7 @@ export default function AdminLoginPage() {
           </div>
 
           <div>
-            <label htmlFor="admin-password" className="mb-1.5 block text-sm font-medium">
+            <label htmlFor="admin-password" className="mb-1.5 block font-medium text-sm">
               Password
             </label>
             <Input
@@ -87,7 +87,7 @@ export default function AdminLoginPage() {
             </div>
           )}
 
-          <Button type="submit" disabled={isLoading} className="w-full h-11" variant="gradient">
+          <Button type="submit" disabled={isLoading} className="h-11 w-full" variant="gradient">
             {isLoading ? (
               <span className="flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />

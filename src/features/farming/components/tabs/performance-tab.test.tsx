@@ -20,7 +20,7 @@ describe("PerformanceTab", () => {
         unallocatedWalletUsd={0}
         publicKey="GABC"
         onOpenDrawer={() => {}}
-      />,
+      />
     );
     expect(screen.getByText("Portfolio Value")).toBeInTheDocument();
     expect(screen.getByText("Allocation")).toBeInTheDocument();
@@ -37,7 +37,7 @@ describe("PerformanceTab", () => {
         unallocatedWalletUsd={0}
         publicKey="GABC"
         onOpenDrawer={onOpenDrawer}
-      />,
+      />
     );
     fireEvent.click(screen.getByRole("button", { name: /see all/i }));
     expect(onOpenDrawer).toHaveBeenCalled();

@@ -92,7 +92,7 @@ function formatBalanceShort(value: number): string {
   return "0";
 }
 
-const isTestnet = process.env["NEXT_PUBLIC_STELLAR_NETWORK"] !== "mainnet";
+const isTestnet = process.env.NEXT_PUBLIC_STELLAR_NETWORK !== "mainnet";
 
 export function AggregatorPage() {
   const {
@@ -176,7 +176,7 @@ export function AggregatorPage() {
   }, []);
 
   // Toast notifications for swap result
-  const network = process.env["NEXT_PUBLIC_STELLAR_NETWORK"] === "mainnet" ? "public" : "testnet";
+  const network = process.env.NEXT_PUBLIC_STELLAR_NETWORK === "mainnet" ? "public" : "testnet";
   const CHAIN_EXPLORERS: Record<string, string> = {
     stellar: `https://stellar.expert/explorer/${network}/tx`,
     ethereum: "https://etherscan.io/tx",
@@ -198,7 +198,7 @@ export function AggregatorPage() {
       const base = CHAIN_EXPLORERS[agg.chainIn] ?? CHAIN_EXPLORERS.stellar;
       return `${base}/${hash}`;
     },
-    [agg.chainIn, network]
+    [agg.chainIn, CHAIN_EXPLORERS.stellar, CHAIN_EXPLORERS[agg.chainIn]]
   );
   useEffect(() => {
     if (agg.executeSuccess) {
@@ -216,7 +216,7 @@ export function AggregatorPage() {
         ),
       });
     }
-  }, [agg.executeSuccess]);
+  }, [agg.executeSuccess, getExplorerUrl, selectedProtocol]);
 
   useEffect(() => {
     if (agg.executeError) {
@@ -230,7 +230,7 @@ export function AggregatorPage() {
     addrStore.syncConnectedWallet("evm", evmAddress, "EVM Wallet");
     addrStore.syncConnectedWallet("solana", solanaAddress, "Solana Wallet");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stellarAddress, evmAddress, solanaAddress]);
+  }, [stellarAddress, evmAddress, solanaAddress, addrStore.syncConnectedWallet]);
 
   const resolveChainType = (chain: string): "stellar" | "evm" | "solana" =>
     chain === "stellar" ? "stellar" : chain === "solana" ? "solana" : "evm";
@@ -287,7 +287,7 @@ export function AggregatorPage() {
   const walletTokens = walletData?.tokens ?? [];
 
   // Solana SPL token balance
-  const solMintAddress = isSourceSolana ? agg.tokenIn?.addresses?.["solana"] : null;
+  const solMintAddress = isSourceSolana ? agg.tokenIn?.addresses?.solana : null;
   const { data: solanaTokenBal } = useSolanaTokenBalance(
     isSourceSolana ? solanaAddress : null,
     solMintAddress
@@ -317,7 +317,7 @@ export function AggregatorPage() {
       ? { balance: evmTokenBal }
       : isSourceStellar && agg.tokenIn
         ? (walletTokens.find(
-            (t) => t.assetCode.toUpperCase() === agg.tokenIn!.symbol.toUpperCase()
+            (t) => t.assetCode.toUpperCase() === agg.tokenIn?.symbol.toUpperCase()
           ) ?? null)
         : null;
 
@@ -337,17 +337,17 @@ export function AggregatorPage() {
   // Reset selected protocol when tokens change
   useEffect(() => {
     setSelectedProtocol(null);
-  }, [agg.tokenIn, agg.tokenOut]);
+  }, []);
 
   // Clear selected source/dest when chain changes (prevents cross-chain address mismatch)
   useEffect(() => {
     addrStore.setSelectedSource(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [agg.chainIn]);
+  }, [addrStore.setSelectedSource]);
   useEffect(() => {
     addrStore.setSelectedDest(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [agg.chainOut]);
+  }, [addrStore.setSelectedDest]);
 
   // Selected route quote — either user-selected or best
   const selectedQuote =
@@ -405,7 +405,7 @@ export function AggregatorPage() {
       hasUserInteracted.current = true;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [agg.tokens.length]);
+  }, [agg.tokens.length, agg.setAmount, agg.setTokenIn, agg.setTokenOut, agg.tokens.find]);
 
   // Sync state → URL only after user has interacted (prevents default tokens polluting URL)
   useEffect(() => {
@@ -434,11 +434,11 @@ export function AggregatorPage() {
     agg.filteredChainsIn.length > 0 ? agg.filteredChainsIn : agg.chains.map((c) => c.id);
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen w-full overflow-y-auto px-4 py-16">
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-y-auto px-4 py-16">
       <BackgroundRippleEffect rows={10} cols={22} cellSize={72} />
 
       {/* Hero text */}
-      <div className="relative z-20 space-y-3 mb-8 text-center">
+      <div className="relative z-20 mb-8 space-y-3 text-center">
         <Typography
           as="h1"
           variant="h1"
@@ -447,14 +447,14 @@ export function AggregatorPage() {
         >
           DeFi Aggregator
         </Typography>
-        <Typography variant="p" className="text-muted-foreground text-base max-w-md mx-auto">
+        <Typography variant="p" className="mx-auto max-w-md text-base text-muted-foreground">
           Compare rates across multiple DEXs and bridge assets to any supported chain — all in one
           place
         </Typography>
       </div>
 
       <div className="relative z-20 flex items-start gap-3">
-        <div ref={swapPanelRef} className="w-full sm:w-[480px] max-w-[480px]">
+        <div ref={swapPanelRef} className="w-full max-w-[480px] sm:w-[480px]">
           <BorderGlow
             animated
             className="w-full"
@@ -470,7 +470,7 @@ export function AggregatorPage() {
             <div className="flex items-center justify-between px-5 pt-4 pb-2">
               <div className="flex items-center gap-1.5">
                 {agg.mode && (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg bg-secondary text-muted-foreground border border-border">
+                  <span className="inline-flex items-center gap-1 rounded-lg border border-border bg-secondary px-2.5 py-1 font-semibold text-muted-foreground text-xs">
                     <ArrowLeftRight className="h-3 w-3" />
                     {agg.mode === "swap" ? "Swap" : "Bridge"}
                   </span>
@@ -500,12 +500,12 @@ export function AggregatorPage() {
             {activeTab === "bridge" ? (
               <div className="flex flex-col px-4 pb-4">
                 {/* Input/Output */}
-                <div className="flex flex-col relative gap-2 leading-4">
+                <div className="relative flex flex-col gap-2 leading-4">
                   {/* ── TOKEN IN ── */}
                   <div className="rounded-2xl p-4 pb-[15px]" style={{ background: C.sectionBg }}>
-                    <div className="grid grid-cols-9 gap-2 items-center h-7">
+                    <div className="grid h-7 grid-cols-9 items-center gap-2">
                       <label
-                        className="col-span-5 text-base font-normal leading-5"
+                        className="col-span-5 font-normal text-base leading-5"
                         style={{ color: C.mutedText }}
                       >
                         You pay
@@ -531,7 +531,7 @@ export function AggregatorPage() {
                         />
                       </div>
                     </div>
-                    <div className="mt-[10px] grid grid-cols-[1fr_auto] gap-1 w-full">
+                    <div className="mt-[10px] grid w-full grid-cols-[1fr_auto] gap-1">
                       <div className="min-w-0 overflow-hidden">
                         <input
                           type="text"
@@ -545,12 +545,12 @@ export function AggregatorPage() {
                               agg.setAmount(e.target.value);
                             }
                           }}
-                          className="w-full bg-transparent text-[28px] leading-[34px] font-normal focus:outline-none truncate"
+                          className="w-full truncate bg-transparent font-normal text-[28px] leading-[34px] focus:outline-none"
                           style={{ color: C.mainText }}
                         />
-                        <div className="flex items-center mt-0.5 h-5 gap-1.5">
+                        <div className="mt-0.5 flex h-5 items-center gap-1.5">
                           <span
-                            className="text-sm font-medium leading-5"
+                            className="font-medium text-sm leading-5"
                             style={{ color: C.mutedText }}
                           >
                             {inputAmount > 0 && tokenInPrice > 0
@@ -565,7 +565,7 @@ export function AggregatorPage() {
                               <button
                                 type="button"
                                 onClick={() => agg.setAmount(String(tokenInBalance.balance))}
-                                className="text-sm font-medium leading-5 underline decoration-dotted underline-offset-2 hover:opacity-80 transition-opacity cursor-pointer"
+                                className="cursor-pointer font-medium text-sm leading-5 underline decoration-dotted underline-offset-2 transition-opacity hover:opacity-80"
                                 style={{ color: C.dimText }}
                                 title="Use max balance"
                               >
@@ -576,7 +576,7 @@ export function AggregatorPage() {
                           )}
                         </div>
                       </div>
-                      <div className="justify-self-end self-start">
+                      <div className="self-start justify-self-end">
                         <AggregatorTokenPicker
                           selectedToken={agg.tokenIn}
                           selectedChain={agg.chainIn}
@@ -593,7 +593,7 @@ export function AggregatorPage() {
                   </div>
 
                   {/* ── SWAP ── */}
-                  <div className="flex justify-center -my-2 relative z-10">
+                  <div className="-my-2 relative z-10 flex justify-center">
                     <button
                       type="button"
                       onClick={() => {
@@ -601,7 +601,7 @@ export function AggregatorPage() {
                         agg.swapDirection();
                         cycleSwap();
                       }}
-                      className="rounded-lg h-9 w-9 flex items-center justify-center transition-colors hover:brightness-125"
+                      className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:brightness-125"
                       style={{ background: C.interactive }}
                     >
                       <motion.div
@@ -616,9 +616,9 @@ export function AggregatorPage() {
 
                   {/* ── TOKEN OUT ── */}
                   <div className="rounded-2xl p-4 pb-[15px]" style={{ background: C.sectionBg }}>
-                    <div className="grid grid-cols-9 gap-2 items-center h-7">
+                    <div className="grid h-7 grid-cols-9 items-center gap-2">
                       <label
-                        className="col-span-5 text-base font-normal leading-5"
+                        className="col-span-5 font-normal text-base leading-5"
                         style={{ color: C.mutedText }}
                       >
                         You receive
@@ -659,23 +659,23 @@ export function AggregatorPage() {
                         />
                       </div>
                     </div>
-                    <div className="mt-[10px] grid grid-cols-[1fr_auto] gap-1 w-full">
+                    <div className="mt-[10px] grid w-full grid-cols-[1fr_auto] gap-1">
                       <div className="min-w-0 overflow-hidden">
                         {agg.isLoadingQuotes ? (
                           <div className="space-y-2 pt-1">
                             <div
-                              className="h-[34px] w-32 rounded-lg animate-pulse"
+                              className="h-[34px] w-32 animate-pulse rounded-lg"
                               style={{ background: C.interactive, opacity: 0.4 }}
                             />
                             <div
-                              className="h-5 w-16 rounded animate-pulse"
+                              className="h-5 w-16 animate-pulse rounded"
                               style={{ background: C.interactive, opacity: 0.4 }}
                             />
                           </div>
                         ) : (
                           <>
                             <p
-                              className="text-[28px] leading-[34px] font-normal truncate"
+                              className="truncate font-normal text-[28px] leading-[34px]"
                               style={{ color: C.mainText }}
                             >
                               {selectedQuote?.status === "ok"
@@ -683,7 +683,7 @@ export function AggregatorPage() {
                                 : "0"}
                             </p>
                             <span
-                              className="text-sm font-medium leading-5 mt-0.5 block h-5"
+                              className="mt-0.5 block h-5 font-medium text-sm leading-5"
                               style={{ color: C.mutedText }}
                             >
                               {outputAmount > 0 && tokenOutPrice > 0
@@ -693,7 +693,7 @@ export function AggregatorPage() {
                           </>
                         )}
                       </div>
-                      <div className="justify-self-end self-start">
+                      <div className="self-start justify-self-end">
                         <AggregatorTokenPicker
                           selectedToken={agg.tokenOut}
                           selectedChain={agg.chainOut}
@@ -713,7 +713,7 @@ export function AggregatorPage() {
                 {/* ── Best quote summary (above CTA, like reference image) ── */}
                 {selectedQuote?.status === "ok" && !agg.isLoadingQuotes && (
                   <div
-                    className="rounded-2xl px-3.5 py-3 text-sm mt-3"
+                    className="mt-3 rounded-2xl px-3.5 py-3 text-sm"
                     style={{ background: C.sectionBg }}
                   >
                     <div className="flex items-center justify-between">
@@ -726,7 +726,7 @@ export function AggregatorPage() {
                       </span>
                     </div>
                     {selectedQuote.gasFee && (
-                      <div className="flex items-center justify-between mt-1.5">
+                      <div className="mt-1.5 flex items-center justify-between">
                         <span className="flex items-center gap-1.5" style={{ color: C.dimText }}>
                           <Info className="h-3.5 w-3.5" /> Gas fee
                         </span>
@@ -735,7 +735,7 @@ export function AggregatorPage() {
                         </span>
                       </div>
                     )}
-                    <div className="flex items-center justify-between mt-1.5">
+                    <div className="mt-1.5 flex items-center justify-between">
                       <span className="flex items-center gap-1.5" style={{ color: C.dimText }}>
                         <Clock className="h-3.5 w-3.5" /> Estimated time
                       </span>
@@ -747,11 +747,11 @@ export function AggregatorPage() {
                 {/* ── Trustline Warning (shows all missing with individual buttons) ── */}
                 {agg.needsTrustline && agg.missingTrustlines.length > 0 && (
                   <div
-                    className="rounded-2xl p-4 mt-3 space-y-3"
+                    className="mt-3 space-y-3 rounded-2xl p-4"
                     style={{ background: "var(--secondary)", border: "1px solid var(--border)" }}
                   >
                     <p
-                      className="text-sm font-semibold flex items-center gap-1.5"
+                      className="flex items-center gap-1.5 font-semibold text-sm"
                       style={{ color: "var(--foreground)" }}
                     >
                       <Info className="h-4 w-4" style={{ color: "var(--primary)" }} />
@@ -765,9 +765,9 @@ export function AggregatorPage() {
                           className="flex items-center gap-3 rounded-xl p-3"
                           style={{ background: "var(--input)" }}
                         >
-                          <div className="flex flex-col flex-1 min-w-0">
+                          <div className="flex min-w-0 flex-1 flex-col">
                             <span
-                              className="text-sm font-medium"
+                              className="font-medium text-sm"
                               style={{ color: "var(--foreground)" }}
                             >
                               {sym}
@@ -782,7 +782,7 @@ export function AggregatorPage() {
                             type="button"
                             onClick={() => agg.addTrustlineFor(sym)}
                             disabled={agg.isAddingTrustline}
-                            className={`shrink-0 rounded-xl font-semibold px-4 py-2.5 text-xs transition-all active:scale-[0.98] relative overflow-hidden ${
+                            className={`relative shrink-0 overflow-hidden rounded-xl px-4 py-2.5 font-semibold text-xs transition-all active:scale-[0.98] ${
                               isSigning
                                 ? "bg-[var(--secondary)] text-[var(--muted-foreground)]"
                                 : "bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] text-black"
@@ -790,7 +790,7 @@ export function AggregatorPage() {
                           >
                             {isSigning ? (
                               <span className="flex items-center gap-1.5">
-                                <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24">
+                                <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24">
                                   <circle
                                     className="opacity-25"
                                     cx="12"
@@ -819,7 +819,7 @@ export function AggregatorPage() {
                 )}
 
                 {/* ── CTA ── */}
-                <div className="flex flex-col gap-2 mt-3">
+                <div className="mt-3 flex flex-col gap-2">
                   {needsWallet ? (
                     <button
                       type="button"
@@ -839,10 +839,10 @@ export function AggregatorPage() {
                                 ? connectSolana
                                 : connectEvm
                       }
-                      className={`w-full rounded-2xl font-bold py-4 text-base transition-all flex items-center justify-center gap-2 relative overflow-hidden ${
+                      className={`relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-2xl py-4 font-bold text-base transition-all ${
                         isUnsupportedChain
                           ? "cursor-not-allowed opacity-50"
-                          : "active:scale-[0.98] hover:scale-[1.02] bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] text-black"
+                          : "bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] text-black hover:scale-[1.02] active:scale-[0.98]"
                       }`}
                       style={
                         isUnsupportedChain
@@ -851,7 +851,7 @@ export function AggregatorPage() {
                       }
                     >
                       {!isUnsupportedChain && (
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 h-4 w-[50%] rounded-full bg-white/80 blur-xl" />
+                        <div className="-translate-x-1/2 absolute top-0 left-1/2 h-4 w-[50%] rounded-full bg-white/80 blur-xl" />
                       )}
                       <Wallet className="h-5 w-5" strokeWidth={2} />
                       <span>
@@ -883,14 +883,14 @@ export function AggregatorPage() {
                             selectedProtocol === "allbridge" ? allbridgeExecute : undefined,
                         })
                       }
-                      className={`w-full rounded-2xl font-bold py-3.5 text-[15px] transition-all flex items-center justify-center gap-2 active:scale-[0.98] relative overflow-hidden ${
+                      className={`relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-2xl py-3.5 font-bold text-[15px] transition-all active:scale-[0.98] ${
                         agg.isExecuting
                           ? "cursor-wait"
                           : aggHasAmount &&
                               selectedProtocol &&
                               !agg.needsTrustline &&
                               !insufficientBalance
-                            ? "bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] text-black hover:scale-[1.02] hover:from-[#C5F0FF] hover:to-[#1CCFFF] cursor-pointer"
+                            ? "cursor-pointer bg-gradient-to-b from-[#B5EAFF] to-[#00BFFF] text-black hover:scale-[1.02] hover:from-[#C5F0FF] hover:to-[#1CCFFF]"
                             : "cursor-not-allowed opacity-50"
                       }`}
                       style={
@@ -911,7 +911,7 @@ export function AggregatorPage() {
                         !agg.isExecuting &&
                         !agg.needsTrustline &&
                         !insufficientBalance && (
-                          <div className="absolute top-0 left-1/2 -translate-x-1/2 h-4 w-[50%] rounded-full bg-white/80 blur-xl" />
+                          <div className="-translate-x-1/2 absolute top-0 left-1/2 h-4 w-[50%] rounded-full bg-white/80 blur-xl" />
                         )}
                       {agg.isExecuting
                         ? "Signing..."
@@ -1039,7 +1039,7 @@ function WalletHub({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center -space-x-1.5 cursor-pointer"
+        className="-space-x-1.5 flex cursor-pointer items-center"
       >
         {wallets.length > 0 ? (
           wallets.map((w) => (
@@ -1052,7 +1052,7 @@ function WalletHub({
           ))
         ) : (
           <span
-            className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg"
+            className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs"
             style={{ background: "var(--secondary)", color: "var(--muted-foreground)" }}
           >
             <Wallet className="h-3.5 w-3.5" /> Connect
@@ -1068,11 +1068,11 @@ function WalletHub({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -5, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-10 z-50 w-80 rounded-2xl p-4 shadow-xl"
+            className="absolute top-10 right-0 z-50 w-80 rounded-2xl p-4 shadow-xl"
             style={{ background: "var(--popover)", border: "1px solid var(--border)" }}
           >
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+            <div className="mb-3 flex items-center justify-between">
+              <p className="font-semibold text-sm" style={{ color: "var(--foreground)" }}>
                 Connected wallets
               </p>
               <button type="button" onClick={() => setOpen(false)}>
@@ -1081,14 +1081,14 @@ function WalletHub({
             </div>
 
             {/* Connect new wallet */}
-            <div className="flex justify-center gap-3 mb-3">
+            <div className="mb-3 flex justify-center gap-3">
               <button
                 type="button"
                 onClick={() => {
                   setOpen(false);
                   setTimeout(onConnectStellar, 200);
                 }}
-                className="h-10 w-10 flex items-center justify-center rounded-xl transition-colors hover:brightness-125"
+                className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors hover:brightness-125"
                 style={{ background: "var(--secondary)" }}
                 title="Stellar"
               >
@@ -1104,7 +1104,7 @@ function WalletHub({
                   setOpen(false);
                   setTimeout(onConnectEvm, 200);
                 }}
-                className="h-10 w-10 flex items-center justify-center rounded-xl transition-colors hover:brightness-125"
+                className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors hover:brightness-125"
                 style={{ background: "var(--secondary)" }}
                 title="EVM"
               >
@@ -1120,7 +1120,7 @@ function WalletHub({
                   setOpen(false);
                   setTimeout(onConnectSolana, 200);
                 }}
-                className="h-10 w-10 flex items-center justify-center rounded-xl transition-colors hover:brightness-125"
+                className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors hover:brightness-125"
                 style={{ background: "var(--secondary)" }}
                 title="Solana"
               >
@@ -1143,11 +1143,11 @@ function WalletHub({
                   <TokenImage
                     src={w.logo}
                     alt={w.chain}
-                    className="h-9 w-9 rounded-full object-contain shrink-0"
+                    className="h-9 w-9 shrink-0 rounded-full object-contain"
                   />
-                  <div className="flex flex-col min-w-0 flex-1">
+                  <div className="flex min-w-0 flex-1 flex-col">
                     <span
-                      className="text-sm font-medium truncate"
+                      className="truncate font-medium text-sm"
                       style={{ color: "var(--foreground)" }}
                     >
                       {truncAddr(w.addr)}
@@ -1162,7 +1162,7 @@ function WalletHub({
                       w.onDisconnect();
                       setOpen(false);
                     }}
-                    className="p-1.5 rounded-lg hover:bg-[var(--input)] transition-colors"
+                    className="rounded-lg p-1.5 transition-colors hover:bg-[var(--input)]"
                     title="Disconnect"
                   >
                     <Unplug className="h-4 w-4" style={{ color: "var(--ring)" }} />
@@ -1171,7 +1171,7 @@ function WalletHub({
               ))}
 
               {wallets.length === 0 && (
-                <p className="text-sm text-center py-4" style={{ color: "var(--ring)" }}>
+                <p className="py-4 text-center text-sm" style={{ color: "var(--ring)" }}>
                   No wallets connected
                 </p>
               )}
@@ -1214,7 +1214,7 @@ function ExchangeTab({ stellarAddress }: { stellarAddress: string | null }) {
     <div className="flex flex-col gap-3 px-4 pb-4">
       {/* Token selector */}
       <div className="space-y-2">
-        <span className="text-sm font-medium" style={{ color: "var(--muted-foreground)" }}>
+        <span className="font-medium text-sm" style={{ color: "var(--muted-foreground)" }}>
           Token to receive
         </span>
         <div className="flex gap-2">
@@ -1223,7 +1223,7 @@ function ExchangeTab({ stellarAddress }: { stellarAddress: string | null }) {
               key={t}
               type="button"
               onClick={() => setSelectedToken(t)}
-              className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all"
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 font-semibold text-sm transition-all"
               style={{
                 background: selectedToken === t ? "var(--primary)" : "var(--secondary)",
                 color:
@@ -1247,7 +1247,7 @@ function ExchangeTab({ stellarAddress }: { stellarAddress: string | null }) {
 
       {/* Exchange picker */}
       <div className="space-y-2">
-        <span className="text-sm font-medium" style={{ color: "var(--muted-foreground)" }}>
+        <span className="font-medium text-sm" style={{ color: "var(--muted-foreground)" }}>
           Send from
         </span>
         <div className="grid grid-cols-2 gap-2">
@@ -1274,25 +1274,25 @@ function ExchangeTab({ stellarAddress }: { stellarAddress: string | null }) {
 
       {/* Deposit address */}
       {selectedExchange && (
-        <div className="rounded-2xl p-4 space-y-3" style={{ background: "var(--secondary)" }}>
-          <p className="text-sm font-medium" style={{ color: "var(--foreground)" }}>
+        <div className="space-y-3 rounded-2xl p-4" style={{ background: "var(--secondary)" }}>
+          <p className="font-medium text-sm" style={{ color: "var(--foreground)" }}>
             Send {selectedToken} to this Stellar address
           </p>
 
           {depositAddress ? (
             <>
               <div
-                className="flex items-center gap-2 rounded-xl p-3 cursor-pointer transition-colors hover:brightness-110"
+                className="flex cursor-pointer items-center gap-2 rounded-xl p-3 transition-colors hover:brightness-110"
                 style={{ background: "var(--input)" }}
                 onClick={copyAddress}
               >
                 <code
-                  className="flex-1 text-xs break-all font-mono"
+                  className="flex-1 break-all font-mono text-xs"
                   style={{ color: "var(--foreground)" }}
                 >
                   {depositAddress}
                 </code>
-                <span className="text-xs shrink-0 font-medium" style={{ color: "var(--primary)" }}>
+                <span className="shrink-0 font-medium text-xs" style={{ color: "var(--primary)" }}>
                   {copied ? "Copied!" : "Copy"}
                 </span>
               </div>
@@ -1308,7 +1308,7 @@ function ExchangeTab({ stellarAddress }: { stellarAddress: string | null }) {
                 className="flex items-start gap-2 rounded-xl px-3 py-2.5 text-xs"
                 style={{ background: "rgba(59,130,246,0.1)", color: "#60A5FA" }}
               >
-                <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                 <span>
                   Only send <strong>{selectedToken}</strong> on <strong>Stellar network</strong> to
                   this address. Sending other tokens or using wrong network will result in loss of
@@ -1317,7 +1317,7 @@ function ExchangeTab({ stellarAddress }: { stellarAddress: string | null }) {
               </div>
             </>
           ) : (
-            <p className="text-sm text-center py-4" style={{ color: "var(--ring)" }}>
+            <p className="py-4 text-center text-sm" style={{ color: "var(--ring)" }}>
               Connect your Stellar wallet to get deposit address
             </p>
           )}
@@ -1325,7 +1325,7 @@ function ExchangeTab({ stellarAddress }: { stellarAddress: string | null }) {
       )}
 
       {!selectedExchange && (
-        <p className="text-sm text-center py-6" style={{ color: "var(--ring)" }}>
+        <p className="py-6 text-center text-sm" style={{ color: "var(--ring)" }}>
           Select an exchange to see deposit instructions
         </p>
       )}

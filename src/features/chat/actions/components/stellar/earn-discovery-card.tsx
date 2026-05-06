@@ -2,11 +2,11 @@
 
 import { TrendingUp } from "lucide-react";
 import { memo } from "react";
+import { Bar, MetricBox, Stat } from "@/features/protocols/cards/base/indicators";
+import { EmptyState, ProtocolCard } from "@/features/protocols/cards/base/protocol-card";
+import { fmt } from "@/features/protocols/lib/formatting";
 import { TokenImage } from "@/shared/components/token-image";
 import { useResultData } from "../../hooks/use-result-data";
-import { ProtocolCard, EmptyState } from "@/features/protocols/cards/base/protocol-card";
-import { MetricBox, Bar, Stat } from "@/features/protocols/cards/base/indicators";
-import { fmt } from "@/features/protocols/lib/formatting";
 import { ScrollableList } from "../base/indicators";
 
 interface EarnOpportunity {
@@ -80,7 +80,9 @@ function EarnDiscoveryCardComponent({ type, result, toolCallId, status }: EarnDi
     })) ??
     [];
 
-  const validApys = items.map((o) => o.apy).filter((v): v is number => v != null && Number.isFinite(v));
+  const validApys = items
+    .map((o) => o.apy)
+    .filter((v): v is number => v != null && Number.isFinite(v));
   const bestApy = validApys.length > 0 ? Math.max(...validApys) : null;
   const protocols = new Set(items.map((o) => o.protocol));
 
@@ -111,17 +113,17 @@ function EarnDiscoveryCardComponent({ type, result, toolCallId, status }: EarnDi
             .map((opp, idx) => (
               <div
                 key={`${opp.protocol}-${opp.name}-${idx}`}
-                className="space-y-2 rounded-lg border border-border p-3 hover:bg-muted/20 transition-colors"
+                className="space-y-2 rounded-lg border border-border p-3 transition-colors hover:bg-muted/20"
               >
                 {/* Header row: protocol + type tags */}
                 <div className="flex items-center gap-1.5">
-                  <span className="rounded-md bg-muted px-1.5 py-px text-[10px] font-medium text-foreground">
+                  <span className="rounded-md bg-muted px-1.5 py-px font-medium text-[10px] text-foreground">
                     {opp.protocol}
                   </span>
-                  <span className="rounded-md bg-muted px-1.5 py-px text-[10px] font-medium text-muted-foreground">
+                  <span className="rounded-md bg-muted px-1.5 py-px font-medium text-[10px] text-muted-foreground">
                     {opp.type}
                   </span>
-                  <span className="rounded-md bg-muted px-1.5 py-px text-[10px] font-medium text-muted-foreground">
+                  <span className="rounded-md bg-muted px-1.5 py-px font-medium text-[10px] text-muted-foreground">
                     {opp.risk}
                   </span>
                 </div>
@@ -134,17 +136,26 @@ function EarnDiscoveryCardComponent({ type, result, toolCallId, status }: EarnDi
                   {opp.assets.map((a) => (
                     <div key={a} className="flex items-center gap-1">
                       <TokenImage src={null} alt={a} className="h-4 w-4 rounded-full" />
-                      <span className="text-xs text-foreground">{a}</span>
+                      <span className="text-foreground text-xs">{a}</span>
                     </div>
                   ))}
                 </div>
 
                 {/* Stats: compact grid */}
                 <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
-                  <Stat label="APY" value={opp.apy != null && Number.isFinite(opp.apy) ? `${opp.apy.toFixed(2)}%` : "N/A"} />
+                  <Stat
+                    label="APY"
+                    value={
+                      opp.apy != null && Number.isFinite(opp.apy) ? `${opp.apy.toFixed(2)}%` : "N/A"
+                    }
+                  />
                   {opp.tvl && <Stat label="TVL" value={`$${fmt(opp.tvl)}`} />}
-                  {opp.supplyApy != null && <Stat label="Supply" value={`${opp.supplyApy.toFixed(2)}%`} />}
-                  {opp.borrowApy != null && <Stat label="Borrow" value={`${opp.borrowApy.toFixed(2)}%`} />}
+                  {opp.supplyApy != null && (
+                    <Stat label="Supply" value={`${opp.supplyApy.toFixed(2)}%`} />
+                  )}
+                  {opp.borrowApy != null && (
+                    <Stat label="Borrow" value={`${opp.borrowApy.toFixed(2)}%`} />
+                  )}
                 </div>
 
                 {/* Utilization bar */}

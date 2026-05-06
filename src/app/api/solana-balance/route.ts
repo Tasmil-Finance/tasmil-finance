@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
 const SOLANA_RPC =
-  process.env["NEXT_PUBLIC_SOLANA_RPC_URL"] ||
-  (process.env["NEXT_PUBLIC_STELLAR_NETWORK"] === "mainnet"
+  process.env.NEXT_PUBLIC_SOLANA_RPC_URL ||
+  (process.env.NEXT_PUBLIC_STELLAR_NETWORK === "mainnet"
     ? "https://solana-rpc.publicnode.com"
     : "https://api.devnet.solana.com");
 

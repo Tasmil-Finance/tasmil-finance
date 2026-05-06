@@ -1,6 +1,6 @@
-import { test, expect } from "../fixtures/chat.fixture";
+import { expect, test } from "../fixtures/chat.fixture";
+import { assertToolCalled, getLatestTrace } from "../helpers/langsmith";
 import { TASMIL_TESTS } from "../helpers/test-prompts";
-import { getLatestTrace, assertToolCalled } from "../helpers/langsmith";
 
 test.describe("Tasmil Managed Strategies", () => {
   test.describe.configure({ mode: "serial" });
@@ -20,7 +20,12 @@ test.describe("Tasmil Managed Strategies", () => {
         await firstOption.click();
         await chatPage.waitForResponse();
         const { type: nextType, locator: nextCard } = await chatPage.waitForAnyCard();
-        expect([config.expectedCard, "card-account-setup", "card-strategy-preset", "card-stellar-execute"]).toContain(nextType);
+        expect([
+          config.expectedCard,
+          "card-account-setup",
+          "card-strategy-preset",
+          "card-stellar-execute",
+        ]).toContain(nextType);
 
         if (config.assertions.textContains) {
           for (const text of config.assertions.textContains) {

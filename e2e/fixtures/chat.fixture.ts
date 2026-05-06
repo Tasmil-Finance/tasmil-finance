@@ -1,7 +1,7 @@
 import { test as base } from "@playwright/test";
 import { ChatPage } from "../page-objects/chat.page";
-import { FUNDED_WALLET, EMPTY_WALLET, injectMockWallet } from "./test-wallet";
 import { authenticateWallet } from "./auth";
+import { EMPTY_WALLET, FUNDED_WALLET, injectMockWallet } from "./test-wallet";
 
 /**
  * Setup flow:
@@ -22,10 +22,14 @@ async function setupWallet(page: import("@playwright/test").Page, wallet: typeof
 
   // Handle tunnel interstitial
   try {
-    const btn = page.locator('button:has-text("Continue"), button:has-text("Visit Site"), a:has-text("Visit Site")');
+    const btn = page.locator(
+      'button:has-text("Continue"), button:has-text("Visit Site"), a:has-text("Visit Site")'
+    );
     await btn.first().click({ timeout: 2_000 });
     await page.waitForLoadState("domcontentloaded", { timeout: 10_000 });
-  } catch { /* no interstitial */ }
+  } catch {
+    /* no interstitial */
+  }
 
   await page.waitForLoadState("networkidle", { timeout: 20_000 }).catch(() => {});
 
@@ -45,7 +49,7 @@ export const test = base.extend<{
     const chatPage = new ChatPage(page);
     await page.waitForSelector(
       'textarea, [contenteditable="true"], input[placeholder*="message" i], [role="textbox"]',
-      { timeout: 30_000 },
+      { timeout: 30_000 }
     );
     await use(chatPage);
   },
@@ -55,7 +59,7 @@ export const test = base.extend<{
     const chatPage = new ChatPage(page);
     await page.waitForSelector(
       'textarea, [contenteditable="true"], input[placeholder*="message" i], [role="textbox"]',
-      { timeout: 30_000 },
+      { timeout: 30_000 }
     );
     await use(chatPage);
   },

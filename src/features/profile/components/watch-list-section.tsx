@@ -14,7 +14,7 @@ export function WatchListSection() {
 
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+      <h2 className="font-semibold text-muted-foreground text-sm uppercase tracking-wider">
         Watching · {items.length}
       </h2>
       <div className="flex flex-wrap gap-2">
@@ -33,7 +33,7 @@ export function WatchListSection() {
                 className="flex items-center gap-1.5 hover:opacity-80"
               >
                 <TokenImage alt={item.symbol} className="h-5 w-5 rounded-full text-[9px]" />
-                <span className="text-sm font-medium text-foreground">{item.symbol}</span>
+                <span className="font-medium text-foreground text-sm">{item.symbol}</span>
               </button>
               <button
                 type="button"

@@ -63,18 +63,18 @@ export function AquaPoolsCard({ pools, mode = "playground" }: AquaPoolsCardProps
         <CardHeader
           icon={<Droplets className="h-3.5 w-3.5" />}
           title="Aquarius Pools"
-          right={<span className="text-xs text-muted-foreground">{pools.length}</span>}
+          right={<span className="text-muted-foreground text-xs">{pools.length}</span>}
         />
       )}
       {pools.map((pool, i) => {
         const isOpen = open.has(i);
         const label = resolvePoolLabel(pool);
         return (
-          <div key={pool.address || i} className={cn(i > 0 && "border-t border-border")}>
+          <div key={pool.address || i} className={cn(i > 0 && "border-border border-t")}>
             <button
               type="button"
               onClick={() => flip(i)}
-              className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-muted/30 transition-colors"
+              className="flex w-full items-center gap-2 px-4 py-2.5 transition-colors hover:bg-muted/30"
             >
               <ChevronDown
                 className={cn(
@@ -82,7 +82,7 @@ export function AquaPoolsCard({ pools, mode = "playground" }: AquaPoolsCardProps
                   isOpen && "rotate-180"
                 )}
               />
-              <span className="text-[13px] font-medium text-foreground flex-1 text-left truncate">
+              <span className="flex-1 truncate text-left font-medium text-[13px] text-foreground">
                 {label}
               </span>
               <Tag type={poolTypeTag(pool.poolType)} />
@@ -114,14 +114,14 @@ function PoolDetail({ pool }: { pool: AquaPoolCardProps }) {
   const tokens = pool.tokens ?? [];
 
   return (
-    <div className="pb-2 px-4 space-y-1.5">
+    <div className="space-y-1.5 px-4 pb-2">
       {/* Token list */}
       {tokens.length > 0 && (
         <div className="space-y-1">
           {tokens.map((t, j) => (
             <div key={t.address || j} className="flex items-center gap-2.5 py-1 pl-5">
               <TokenImage src={null} alt={t.symbol ?? "?"} className="h-5 w-5 rounded-full" />
-              <span className="text-xs font-medium text-foreground">
+              <span className="font-medium text-foreground text-xs">
                 {t.symbol ?? t.address.slice(0, 8)}
               </span>
             </div>
@@ -154,7 +154,7 @@ function PoolDetail({ pool }: { pool: AquaPoolCardProps }) {
         </span>
         <span className="text-muted-foreground">
           <span className="text-muted-foreground/50">APR </span>
-          <span className="text-foreground tabular-nums font-medium">
+          <span className="font-medium text-foreground tabular-nums">
             {pool.totalApy != null && pool.totalApy > 0 ? `${pool.totalApy.toFixed(2)}%` : "0%"}
           </span>
         </span>

@@ -93,7 +93,7 @@ export function WelcomeRewardPage() {
         <div className="space-y-2">
           <Badge
             variant="secondary"
-            className="border border-primary/20 bg-primary/10 text-[11px] uppercase tracking-[0.16em] text-primary"
+            className="border border-primary/20 bg-primary/10 text-[11px] text-primary uppercase tracking-[0.16em]"
           >
             Welcome reward
           </Badge>
@@ -115,7 +115,7 @@ export function WelcomeRewardPage() {
               <div className="space-y-2">
                 <Badge
                   variant="secondary"
-                  className="border border-border bg-muted/40 text-[11px] uppercase tracking-[0.16em] text-muted-foreground"
+                  className="border border-border bg-muted/40 text-[11px] text-muted-foreground uppercase tracking-[0.16em]"
                 >
                   {status.unlocked ? "Unlocked" : "In progress"}
                 </Badge>
@@ -135,7 +135,7 @@ export function WelcomeRewardPage() {
             <div className="rounded-xl border border-border bg-muted/10 p-4">
               <div className="flex items-end justify-between gap-4">
                 <div>
-                  <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                  <p className="font-medium text-[11px] text-muted-foreground uppercase tracking-[0.16em]">
                     Tracked volume
                   </p>
                   <p className="mt-1 font-semibold text-2xl text-foreground">
@@ -182,7 +182,7 @@ export function WelcomeRewardPage() {
               <Button variant="gradient" onClick={() => router.push("/chat/new")}>
                 Keep Trading
               </Button>
-              {process.env["NEXT_PUBLIC_APP_ENV"] === "development" ? (
+              {process.env.NEXT_PUBLIC_APP_ENV === "development" ? (
                 <Button variant="outline" onClick={() => router.push("/aggregator")}>
                   Open Aggregator
                 </Button>

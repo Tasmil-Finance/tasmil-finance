@@ -47,19 +47,19 @@ export function AquaPositionsCard({ data, mode = "playground" }: AquaPositionsCa
       >
         <div className="space-y-2">
           {data.totalValueUsd != null && (
-            <div className="flex justify-between text-sm font-medium">
+            <div className="flex justify-between font-medium text-sm">
               <span className="text-muted-foreground">Total Value</span>
               <span>${fmt(data.totalValueUsd)}</span>
             </div>
           )}
-          <div className="border-t pt-2 space-y-2">
+          <div className="space-y-2 border-t pt-2">
             {positions.map((pos, i) => (
               <div key={pos.poolAddress || i} className="space-y-1">
                 <div className="flex justify-between text-sm">
                   <span className="font-medium">{resolvePositionLabel(pos)}</span>
                   {pos.valueUsd != null && <span>${fmt(pos.valueUsd)}</span>}
                 </div>
-                <div className="flex gap-3 text-xs text-muted-foreground">
+                <div className="flex gap-3 text-muted-foreground text-xs">
                   {pos.shares != null && <span>Shares: {fmt(pos.shares)}</span>}
                   {pos.feeApy != null && (
                     <span>
@@ -88,19 +88,19 @@ export function AquaPositionsCard({ data, mode = "playground" }: AquaPositionsCa
         title="Aquarius LP Positions"
         right={
           data.totalValueUsd != null ? (
-            <span className="text-xs font-medium text-foreground">${fmt(data.totalValueUsd)}</span>
+            <span className="font-medium text-foreground text-xs">${fmt(data.totalValueUsd)}</span>
           ) : undefined
         }
       />
       <div className="divide-y divide-border">
         {positions.map((pos, i) => (
-          <div key={pos.poolAddress || i} className="px-4 py-3 space-y-1.5">
+          <div key={pos.poolAddress || i} className="space-y-1.5 px-4 py-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-foreground">
+              <span className="font-medium text-foreground text-sm">
                 {resolvePositionLabel(pos)}
               </span>
               {pos.poolType && (
-                <span className="rounded-md px-1.5 py-px text-[10px] font-medium text-muted-foreground bg-muted capitalize">
+                <span className="rounded-md bg-muted px-1.5 py-px font-medium text-[10px] text-muted-foreground capitalize">
                   {pos.poolType.replace(/_/g, " ")}
                 </span>
               )}

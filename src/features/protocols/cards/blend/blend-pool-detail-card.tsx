@@ -23,12 +23,12 @@ export function BlendPoolDetailCard({ pool, mode = "playground" }: BlendPoolDeta
       icon={isChat ? Database : undefined}
     >
       {!isChat && (
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-border">
+        <div className="flex items-center justify-between border-border border-b px-4 py-2.5">
           <div className="flex items-center gap-2">
             <Database className="h-4 w-4 text-muted-foreground" />
             <div>
-              <p className="text-[13px] font-medium text-foreground">{pool.name}</p>
-              <p className="text-[10px] text-muted-foreground font-mono">{trunc(pool.address)}</p>
+              <p className="font-medium text-[13px] text-foreground">{pool.name}</p>
+              <p className="font-mono text-[10px] text-muted-foreground">{trunc(pool.address)}</p>
             </div>
           </div>
           <Tag type={pool.status} />
@@ -64,11 +64,11 @@ export function BlendPoolDetailCard({ pool, mode = "playground" }: BlendPoolDeta
             {pool.reserves.map((r, i) => (
               <div
                 key={r.assetAddress || i}
-                className="px-4 py-3 hover:bg-muted/20 transition-colors"
+                className="px-4 py-3 transition-colors hover:bg-muted/20"
               >
-                <div className="flex items-center gap-2.5 mb-2">
+                <div className="mb-2 flex items-center gap-2.5">
                   <TokenImage src={null} alt={r.symbol} className="h-6 w-6 rounded-full" />
-                  <span className="text-sm font-medium text-foreground flex-1">{r.symbol}</span>
+                  <span className="flex-1 font-medium text-foreground text-sm">{r.symbol}</span>
                   <div className="w-20">
                     <Bar value={r.utilization} />
                   </div>

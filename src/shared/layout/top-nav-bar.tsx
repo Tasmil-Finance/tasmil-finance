@@ -23,7 +23,7 @@ export function TopNavBar({ sidebarData, showRightSidebar }: TopNavBarProps) {
   return (
     <nav
       data-testid="top-nav-bar"
-      className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-6 border-b border-border bg-background px-4"
+      className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-6 border-border border-b bg-background px-4"
     >
       <Link href="/chat/new" className="flex items-center gap-2">
         <Image src={sidebarData.header.logo_url} width={28} height={28} alt="Logo" />

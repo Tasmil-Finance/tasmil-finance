@@ -72,7 +72,7 @@ export function TransactionList({ address }: { address: string }) {
       filters: parseFilters(searchParams.get("filter")),
       query: searchParams.get("q") ?? "",
     }),
-    [searchParams],
+    [searchParams]
   );
 
   const setFilterState = useCallback(
@@ -85,7 +85,7 @@ export function TransactionList({ address }: { address: string }) {
       const qs = params.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname);
     },
-    [router, pathname, searchParams],
+    [router, pathname, searchParams]
   );
 
   const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } =
@@ -94,7 +94,7 @@ export function TransactionList({ address }: { address: string }) {
   const allRaw = data?.pages.flatMap((p) => p.ops) ?? [];
   const allAttrs = (data?.pages ?? []).reduce<Record<string, NonNullable<TxGroup["attrs"]>>>(
     (acc, p) => Object.assign(acc, p.attrsByTx),
-    {},
+    {}
   );
 
   const contractIds = useMemo(() => {
@@ -111,13 +111,13 @@ export function TransactionList({ address }: { address: string }) {
 
   const decoded: DecodedOp[] = useMemo(
     () => allRaw.map((r) => decodeOperation(r, address, lookup)),
-    [allRaw, address, lookup],
+    [allRaw, address, lookup]
   );
 
   const groups = useMemo(() => groupByTransaction(decoded, allAttrs), [decoded, allAttrs]);
   const filtered = useMemo(
     () => groups.filter((g) => passesFilters(g, filterState)),
-    [groups, filterState],
+    [groups, filterState]
   );
 
   const datedGroups = useMemo(() => groupByDate<DatedGroup>(filtered), [filtered]);
@@ -134,7 +134,7 @@ export function TransactionList({ address }: { address: string }) {
       (entries) => {
         if (entries[0]?.isIntersecting) loadMore();
       },
-      { threshold: 0.1 },
+      { threshold: 0.1 }
     );
     obs.observe(el);
     return () => obs.disconnect();
@@ -147,7 +147,7 @@ export function TransactionList({ address }: { address: string }) {
         {[4, 3].map((count, gi) => (
           <div key={gi} className="flex flex-col gap-2">
             <Skeleton className="h-4 w-28" />
-            <div className="overflow-hidden rounded-xl border border-border bg-card divide-y divide-border">
+            <div className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
               {Array.from({ length: count }).map((_, i) => (
                 <div key={i} className="flex items-center gap-4 px-5 py-3.5">
                   <Skeleton className="h-9 w-9 shrink-0 rounded-full" />
@@ -171,13 +171,13 @@ export function TransactionList({ address }: { address: string }) {
   if (groups.length === 0) {
     return (
       <div className="flex flex-col gap-4">
-        <h2 className="text-xl font-semibold text-foreground">Transaction History</h2>
+        <h2 className="font-semibold text-foreground text-xl">Transaction History</h2>
         <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-card py-20">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted/20">
             <Clock className="h-8 w-8 text-muted-foreground opacity-50" />
           </div>
           <p className="font-medium text-foreground">No transactions yet</p>
-          <p className="max-w-xs text-center text-sm text-muted-foreground">
+          <p className="max-w-xs text-center text-muted-foreground text-sm">
             Stellar operations will appear here as you transact on-chain.
           </p>
         </div>
@@ -188,22 +188,22 @@ export function TransactionList({ address }: { address: string }) {
   return (
     <div className="flex flex-col gap-2">
       <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-foreground">Transaction History</h2>
-        <span className="text-sm text-muted-foreground">{groups.length} transactions</span>
+        <h2 className="font-semibold text-foreground text-xl">Transaction History</h2>
+        <span className="text-muted-foreground text-sm">{groups.length} transactions</span>
       </div>
 
       <TransactionFilterBar value={filterState} onChange={setFilterState} />
 
       {filtered.length === 0 && (
-        <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
+        <div className="rounded-xl border border-border bg-card p-8 text-center text-muted-foreground text-sm">
           No transactions match these filters.
         </div>
       )}
 
       {datedGroups.map((dateGroup) => (
         <div key={dateGroup.key} className="flex flex-col gap-2">
-          <p className="px-1 pt-2 text-sm font-semibold text-muted-foreground">{dateGroup.label}</p>
-          <div className="overflow-hidden rounded-xl border border-border bg-card divide-y divide-border/60">
+          <p className="px-1 pt-2 font-semibold text-muted-foreground text-sm">{dateGroup.label}</p>
+          <div className="divide-y divide-border/60 overflow-hidden rounded-xl border border-border bg-card">
             {dateGroup.items.map((g) => (
               <TransactionRow key={g.txHash} group={g} address={address} />
             ))}
@@ -214,7 +214,7 @@ export function TransactionList({ address }: { address: string }) {
       {hasNextPage && (
         <div ref={sentinelRef} className="flex items-center justify-center py-6">
           {isFetchingNextPage && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
               <Loader2 className="h-4 w-4 animate-spin" />
               Loading more…
             </div>
@@ -223,7 +223,7 @@ export function TransactionList({ address }: { address: string }) {
       )}
 
       {!hasNextPage && groups.length > 0 && (
-        <p className="py-4 text-center text-[11px] uppercase tracking-widest text-muted-foreground/30">
+        <p className="py-4 text-center text-[11px] text-muted-foreground/30 uppercase tracking-widest">
           End of history
         </p>
       )}

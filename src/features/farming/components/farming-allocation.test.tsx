@@ -23,11 +23,7 @@ const positions = [
 describe("FarmingAllocation color stability", () => {
   it("assigns same color to same protocol regardless of order", () => {
     const { container: c1 } = render(
-      <FarmingAllocation
-        positions={positions}
-        unallocatedWalletUsd={0}
-        isLoading={false}
-      />
+      <FarmingAllocation positions={positions} unallocatedWalletUsd={0} isLoading={false} />
     );
     const { container: c2 } = render(
       <FarmingAllocation

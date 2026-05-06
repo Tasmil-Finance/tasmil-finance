@@ -19,9 +19,8 @@ export async function GET(req: NextRequest) {
   try {
     // Build headers with API key
     const headers: Record<string, string> = { Accept: "application/json" };
-    const apiKey =
-      process.env["SOROSWAP_API_KEYS"]?.split(",")[0] ?? process.env["SOROSWAP_API_KEY"];
-    if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`;
+    const apiKey = process.env.SOROSWAP_API_KEYS?.split(",")[0] ?? process.env.SOROSWAP_API_KEY;
+    if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
 
     const res = await fetch(`${SOROSWAP_API_BASE}/liquidity/positions/${user}?network=${network}`, {
       headers,

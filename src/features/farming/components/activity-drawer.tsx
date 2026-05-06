@@ -1,13 +1,7 @@
 "use client";
 
 import type { ActivityItem } from "@/features/account/types";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/shared/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/shared/ui/sheet";
 import { FarmingActivity } from "./farming-activity";
 
 interface ActivityDrawerProps {

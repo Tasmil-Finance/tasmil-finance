@@ -43,17 +43,17 @@ export function DefindexVaultsCard({ vaults, mode = "playground" }: DefindexVaul
         <CardHeader
           icon={<Vault className="h-3.5 w-3.5" />}
           title="DeFindex Vaults"
-          right={<span className="text-xs text-muted-foreground">{vaults.length}</span>}
+          right={<span className="text-muted-foreground text-xs">{vaults.length}</span>}
         />
       )}
       {vaults.map((vault, i) => {
         const isOpen = open.has(i);
         return (
-          <div key={vault.address || i} className={cn(i > 0 && "border-t border-border")}>
+          <div key={vault.address || i} className={cn(i > 0 && "border-border border-t")}>
             <button
               type="button"
               onClick={() => flip(i)}
-              className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-muted/30 transition-colors"
+              className="flex w-full items-center gap-2 px-4 py-2.5 transition-colors hover:bg-muted/30"
             >
               <ChevronDown
                 className={cn(
@@ -61,7 +61,7 @@ export function DefindexVaultsCard({ vaults, mode = "playground" }: DefindexVaul
                   isOpen && "rotate-180"
                 )}
               />
-              <span className="text-[13px] font-medium text-foreground flex-1 text-left truncate">
+              <span className="flex-1 truncate text-left font-medium text-[13px] text-foreground">
                 {cleanVaultName(vault.name) || trunc(vault.address)}
               </span>
               <StatusBadge status={vault.status} />
@@ -94,8 +94,8 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span
       className={cn(
-        "rounded-md px-1.5 py-px text-[10px] font-medium",
-        isOk ? "text-emerald-400 bg-emerald-400/10" : "text-amber-400 bg-amber-400/10"
+        "rounded-md px-1.5 py-px font-medium text-[10px]",
+        isOk ? "bg-emerald-400/10 text-emerald-400" : "bg-amber-400/10 text-amber-400"
       )}
     >
       {isOk ? "Active" : "Unavailable"}
@@ -109,7 +109,7 @@ function VaultMeta({ vault }: { vault: DefindexVaultCardProps }) {
   const apy = vault.apy;
 
   return (
-    <div className="pb-3 px-4 pl-9 space-y-2">
+    <div className="space-y-2 px-4 pb-3 pl-9">
       <div className="grid grid-cols-3 gap-3">
         <MetricMini label="Asset" value={vault.asset ?? "—"} />
         <MetricMini label="TVL" value={tvl != null ? `$${fmt(tvl)}` : "—"} />
@@ -124,7 +124,7 @@ function VaultMeta({ vault }: { vault: DefindexVaultCardProps }) {
           Total Supply: {fmt(supply)} dfTokens
         </div>
       )}
-      <span className="text-[10px] text-muted-foreground/50 font-mono block truncate">
+      <span className="block truncate font-mono text-[10px] text-muted-foreground/50">
         {vault.address}
       </span>
     </div>
@@ -143,7 +143,7 @@ function MetricMini({
   return (
     <div>
       <p className="text-[9px] text-muted-foreground/50 uppercase">{label}</p>
-      <p className={cn("text-xs font-medium text-foreground tabular-nums", valueClass)}>{value}</p>
+      <p className={cn("font-medium text-foreground text-xs tabular-nums", valueClass)}>{value}</p>
     </div>
   );
 }

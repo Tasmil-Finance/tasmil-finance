@@ -38,17 +38,17 @@ export function AllbridgePoolInfoCard({ data, mode = "playground" }: Props) {
 
   return (
     <ProtocolCard mode="playground">
-      <div className="px-4 py-3 border-b border-border">
-        <p className="text-sm font-medium text-foreground">
+      <div className="border-border border-b px-4 py-3">
+        <p className="font-medium text-foreground text-sm">
           {data.symbol} Pool — <span className="capitalize">{data.chain}</span>
         </p>
         {data.poolAddress && (
-          <p className="text-[10px] text-muted-foreground/60 font-mono mt-0.5">
+          <p className="mt-0.5 font-mono text-[10px] text-muted-foreground/60">
             {trunc(data.poolAddress, 10, 6)}
           </p>
         )}
       </div>
-      <div className="p-4 space-y-3">
+      <div className="space-y-3 p-4">
         <div className="grid grid-cols-2 gap-2">
           <MetricBox label="APR (7d)" value={data.apr7d != null ? String(data.apr7d) : "N/A"} />
           <MetricBox label="APR (30d)" value={data.apr30d != null ? String(data.apr30d) : "N/A"} />

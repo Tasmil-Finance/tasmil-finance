@@ -1,6 +1,6 @@
-import { test, expect } from "./fixtures/chat.fixture";
-import { ALL_PROTOCOL_TESTS } from "./helpers/test-prompts";
+import { expect, test } from "./fixtures/chat.fixture";
 import type { ProtocolTestCase } from "./helpers/test-prompts";
+import { ALL_PROTOCOL_TESTS } from "./helpers/test-prompts";
 
 /**
  * Full Protocol Tests — all protocol actions x2 wallets.
@@ -21,7 +21,7 @@ import type { ProtocolTestCase } from "./helpers/test-prompts";
 async function runFundedTest(
   chatPage: import("./page-objects/chat.page").ChatPage,
   testCase: ProtocolTestCase,
-  label: string,
+  label: string
 ) {
   await chatPage.sendMessage(testCase.prompt);
   await chatPage.waitForResponse();
@@ -40,7 +40,7 @@ async function runFundedTest(
     const hasExpectedCard = allCardTypes.some((t) => acceptableTypes.includes(t));
     expect(
       hasExpectedCard,
-      `Expected [${acceptableTypes.join(", ")}] but got [${allCardTypes.join(", ")}]`,
+      `Expected [${acceptableTypes.join(", ")}] but got [${allCardTypes.join(", ")}]`
     ).toBe(true);
   }
 
@@ -60,9 +60,7 @@ async function runFundedTest(
 
   // Sign button check
   if (testCase.behavior.shouldShowSigningCard && testCase.signingCard?.hasSignButton) {
-    const signButton = chatPage.page.locator(
-      'button:has-text("Sign"), button:has-text("Confirm")',
-    );
+    const signButton = chatPage.page.locator('button:has-text("Sign"), button:has-text("Confirm")');
     if ((await signButton.count()) === 0) {
       console.warn(`[WARN] No Sign button: ${label}`);
     }
@@ -78,7 +76,7 @@ async function runFundedTest(
 async function runEmptyTest(
   chatPageEmpty: import("./page-objects/chat.page").ChatPage,
   testCase: ProtocolTestCase,
-  label: string,
+  label: string
 ) {
   await chatPageEmpty.sendMessage(testCase.prompt);
   await chatPageEmpty.waitForResponse();
@@ -90,7 +88,7 @@ async function runEmptyTest(
   const cards = await chatPageEmpty.getAllCards();
   const text = await chatPageEmpty.getLastResponseText();
   expect(cards.length > 0 || text.length > 20, `No response (empty): "${testCase.prompt}"`).toBe(
-    true,
+    true
   );
 
   const isExecutePrompt =
@@ -103,7 +101,7 @@ async function runEmptyTest(
     const lower = responseText.toLowerCase();
     console.log(
       `[EMPTY] ${label}: cards=${cards.length}, ` +
-        `balance-mentioned=${lower.includes("balance") || lower.includes("insufficient") || lower.includes("0")}`,
+        `balance-mentioned=${lower.includes("balance") || lower.includes("insufficient") || lower.includes("0")}`
     );
   } else {
     // For read-only actions: should still return data

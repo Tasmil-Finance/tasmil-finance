@@ -8,7 +8,7 @@ import {
 } from "@allbridge/bridge-core-sdk";
 import { useCallback, useRef } from "react";
 
-const STELLAR_NETWORK = process.env["NEXT_PUBLIC_STELLAR_NETWORK"] ?? "testnet";
+const STELLAR_NETWORK = process.env.NEXT_PUBLIC_STELLAR_NETWORK ?? "testnet";
 
 const CHAIN_TO_ALLBRIDGE: Record<string, string> = {
   stellar: "SRB",
@@ -40,7 +40,7 @@ function createSdk(): AllbridgeCoreSdk {
         : "https://horizon-testnet.stellar.org",
     // Solana
     [ChainSymbol.SOL]:
-      process.env["NEXT_PUBLIC_SOLANA_RPC_URL"] || "https://solana-rpc.publicnode.com",
+      process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://solana-rpc.publicnode.com",
     // EVM chains
     [ChainSymbol.ETH]: "https://ethereum-rpc.publicnode.com",
     [ChainSymbol.BSC]: "https://bsc-rpc.publicnode.com",
@@ -141,7 +141,7 @@ export function useAllbridgeExecute() {
         value: evmTx.value,
       });
     },
-    []
+    [getSdk]
   );
 
   return { execute };

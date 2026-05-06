@@ -36,9 +36,7 @@ const nextConfig: NextConfig = {
         // Next.js compress:false handles this, but tunnel proxies may
         // add their own gzip layer that corrupts SSE streams.
         source: "/:path*",
-        headers: [
-          { key: "Cache-Control", value: "no-transform" },
-        ],
+        headers: [{ key: "Cache-Control", value: "no-transform" }],
       },
     ];
   },
@@ -92,9 +90,13 @@ const nextConfig: NextConfig = {
     config.watchOptions = {
       ...config.watchOptions,
       ignored: [
-        ...(Array.isArray(config.watchOptions?.ignored) ? config.watchOptions.ignored : config.watchOptions?.ignored ? [config.watchOptions.ignored] : []),
-        '**/e2e/test-results/**',
-        '**/node_modules/**',
+        ...(Array.isArray(config.watchOptions?.ignored)
+          ? config.watchOptions.ignored
+          : config.watchOptions?.ignored
+            ? [config.watchOptions.ignored]
+            : []),
+        "**/e2e/test-results/**",
+        "**/node_modules/**",
       ],
     };
 

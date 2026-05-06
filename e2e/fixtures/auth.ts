@@ -24,10 +24,14 @@ export async function authenticateWallet(page: Page, wallet: WalletConfig): Prom
     // Navigate first so we have an origin for localStorage
     await page.goto("/chat/new", { waitUntil: "domcontentloaded" });
     try {
-      const btn = page.locator('button:has-text("Continue"), button:has-text("Visit Site"), a:has-text("Visit Site")');
+      const btn = page.locator(
+        'button:has-text("Continue"), button:has-text("Visit Site"), a:has-text("Visit Site")'
+      );
       await btn.first().click({ timeout: 5_000 });
       await page.waitForLoadState("networkidle");
-    } catch { /* no warning */ }
+    } catch {
+      /* no warning */
+    }
     await page.waitForLoadState("load");
     await page.waitForTimeout(1_000);
     await injectAuthState(page, publicKey, cached.accessToken, cached.user);
@@ -44,10 +48,14 @@ export async function authenticateWallet(page: Page, wallet: WalletConfig): Prom
 
   // Dismiss tunnel/ngrok interstitial if present
   try {
-    const continueBtn = page.locator('button:has-text("Continue"), button:has-text("Visit Site"), a:has-text("Visit Site")');
+    const continueBtn = page.locator(
+      'button:has-text("Continue"), button:has-text("Visit Site"), a:has-text("Visit Site")'
+    );
     await continueBtn.first().click({ timeout: 5_000 });
     await page.waitForLoadState("domcontentloaded", { timeout: 15_000 });
-  } catch { /* no warning */ }
+  } catch {
+    /* no warning */
+  }
 
   // Wait for SPA to be ready (don't use "load" — tunnels are slow)
   await page.waitForLoadState("networkidle", { timeout: 30_000 }).catch(() => {});
@@ -65,7 +73,7 @@ export async function authenticateWallet(page: Page, wallet: WalletConfig): Prom
         return json.data.challenge as string;
       }
       if (res.status >= 500 && attempt < 2) {
-        await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+        await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
         continue;
       }
       throw new Error(`Challenge failed: ${res.status}`);

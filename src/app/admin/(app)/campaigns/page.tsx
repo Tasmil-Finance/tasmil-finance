@@ -35,13 +35,13 @@ function ActiveCampaignCard({ campaign }: { campaign: CampaignRun }) {
     current.targetedCount > 0 ? Math.round((current.sentCount / current.targetedCount) * 100) : 0;
 
   return (
-    <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-4 space-y-3">
+    <div className="space-y-3 rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-4">
       <div className="flex items-center justify-between">
         <p className="font-semibold text-sm">{current.name}</p>
         <StatusBadge status={current.status} />
       </div>
       <div>
-        <div className="mb-1 flex justify-between text-xs text-muted-foreground">
+        <div className="mb-1 flex justify-between text-muted-foreground text-xs">
           <span>{current.sentCount} sent</span>
           <span>{current.targetedCount} targeted</span>
         </div>
@@ -61,7 +61,7 @@ function ActiveCampaignCard({ campaign }: { campaign: CampaignRun }) {
         variant="outline"
         size="sm"
         disabled
-        className="w-full text-xs text-red-400 border-red-500/30"
+        className="w-full border-red-500/30 text-red-400 text-xs"
         title="Not yet supported"
       >
         Abort (not yet supported)
@@ -86,7 +86,7 @@ function NewCampaignForm() {
         <Typography variant="h3" className="font-semibold text-sm">
           New Campaign
         </Typography>
-        <p className="mt-0.5 text-xs text-muted-foreground">
+        <p className="mt-0.5 text-muted-foreground text-xs">
           Targets all waitlist entries with a confirmed email
         </p>
       </div>
@@ -144,7 +144,7 @@ export default function AdminCampaignsPage() {
         ) : (
           <div className="flex-1 overflow-auto rounded-lg border border-border">
             <table className="w-full text-sm">
-              <thead className="sticky top-0 border-b border-border bg-card">
+              <thead className="sticky top-0 border-border border-b bg-card">
                 <tr className="text-left">
                   <th className="px-4 py-3 font-medium text-muted-foreground">Name</th>
                   <th className="px-4 py-3 font-medium text-muted-foreground">Status</th>

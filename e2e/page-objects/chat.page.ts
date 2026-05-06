@@ -41,12 +41,16 @@ export class ChatPage {
   constructor(page: Page) {
     this.page = page;
     // The chat input — try multiple selectors to match the app's actual markup
-    this.messageInput = page.locator(
-      'textarea, [contenteditable="true"], input[placeholder*="message" i], [role="textbox"]'
-    ).first();
-    this.sendButton = page.locator(
-      'button[type="submit"], button:has(svg[class*="send" i]), button[aria-label*="send" i]'
-    ).first();
+    this.messageInput = page
+      .locator(
+        'textarea, [contenteditable="true"], input[placeholder*="message" i], [role="textbox"]'
+      )
+      .first();
+    this.sendButton = page
+      .locator(
+        'button[type="submit"], button:has(svg[class*="send" i]), button[aria-label*="send" i]'
+      )
+      .first();
     this.messageList = page.locator('[data-testid="agent-response"], [class*="message"]');
   }
 
@@ -83,10 +87,13 @@ export class ChatPage {
     // Phase 1: Wait for AI to START (stop button appears)
     await this.page.waitForTimeout(2000);
     try {
-      await this.page.waitForFunction(() => {
-        const btns = document.querySelectorAll('button');
-        return Array.from(btns).some(b => b.className.includes('destructive'));
-      }, { timeout: 15_000 });
+      await this.page.waitForFunction(
+        () => {
+          const btns = document.querySelectorAll("button");
+          return Array.from(btns).some((b) => b.className.includes("destructive"));
+        },
+        { timeout: 15_000 }
+      );
     } catch {
       // AI might respond very fast
     }
@@ -94,10 +101,13 @@ export class ChatPage {
     // Phase 2: Wait for stop button to disappear (AI done streaming)
     // Only check the stop button — NOT spinners, because tool calls
     // can leave stuck spinners (e.g. duplicate flow_compose_plan)
-    await this.page.waitForFunction(() => {
-      const btns = Array.from(document.querySelectorAll('button'));
-      return !btns.some(b => b.className.includes('destructive'));
-    }, { timeout: 170000, polling: 1000 });
+    await this.page.waitForFunction(
+      () => {
+        const btns = Array.from(document.querySelectorAll("button"));
+        return !btns.some((b) => b.className.includes("destructive"));
+      },
+      { timeout: 170000, polling: 1000 }
+    );
 
     // Phase 3: Wait 8s after stop button gone for final rendering
     await this.page.waitForTimeout(8000);
@@ -105,11 +115,12 @@ export class ChatPage {
     // Phase 4: If HMR recompiled during the wait, the page might show "Compiling..."
     // or the welcome screen. Wait for it to settle.
     try {
-      await this.page.waitForFunction(
-        () => !document.body.textContent?.includes('Compiling'),
-        { timeout: 15_000 }
-      );
-    } catch { /* no compiling indicator — OK */ }
+      await this.page.waitForFunction(() => !document.body.textContent?.includes("Compiling"), {
+        timeout: 15_000,
+      });
+    } catch {
+      /* no compiling indicator — OK */
+    }
 
     // Scroll to bottom
     await this.scrollToBottom();
@@ -148,23 +159,31 @@ export class ChatPage {
   async selectClarifyOption(label: string) {
     const clarifyCard = this.page.locator('[data-testid="card-clarify"]').last();
     // ClarifyCard options have aria-label="Select {label}"
-    const option = clarifyCard.locator(`[aria-label*="${label}"], button:has-text("${label}")`).first();
+    const option = clarifyCard
+      .locator(`[aria-label*="${label}"], button:has-text("${label}")`)
+      .first();
     await option.click();
   }
 
   /** Click confirm/approve on a PlanPreviewCard. */
   async confirmPlan() {
     const planCard = this.page.locator('[data-testid="card-plan-preview"]').last();
-    const confirmBtn = planCard.locator('button:has-text("Confirm"), button:has-text("Approve"), button:has-text("Execute")').first();
+    const confirmBtn = planCard
+      .locator('button:has-text("Confirm"), button:has-text("Approve"), button:has-text("Execute")')
+      .first();
     await confirmBtn.click();
   }
 
   /** Click the sign/submit button on a TX execute card. */
   async signTransaction() {
-    const txCard = this.page.locator(
-      '[data-testid="card-stellar-execute"], [data-testid="card-swap-execute"], [data-testid="card-bridge-execute"], [data-testid="card-blend-tx"], [data-testid="card-aqua-tx"]'
-    ).last();
-    const signBtn = txCard.locator('button:has-text("Sign"), button:has-text("Submit"), button:has-text("Confirm")').first();
+    const txCard = this.page
+      .locator(
+        '[data-testid="card-stellar-execute"], [data-testid="card-swap-execute"], [data-testid="card-bridge-execute"], [data-testid="card-blend-tx"], [data-testid="card-aqua-tx"]'
+      )
+      .last();
+    const signBtn = txCard
+      .locator('button:has-text("Sign"), button:has-text("Submit"), button:has-text("Confirm")')
+      .first();
     await signBtn.click();
   }
 
@@ -181,8 +200,8 @@ export class ChatPage {
         '[data-testid="chat-messages"]',
         '[data-testid="agent-response"]',
         // The chat messages scroll container (overflow-y-auto in the main area)
-        'main .overflow-y-auto',
-        'main',
+        "main .overflow-y-auto",
+        "main",
       ];
 
       for (const sel of selectors) {
@@ -194,7 +213,7 @@ export class ChatPage {
 
       // 2. Fallback: find the largest text block that's NOT the sidebar
       //    The sidebar is typically <200px wide; the chat area is the rest.
-      const allDivs = document.querySelectorAll('div');
+      const allDivs = document.querySelectorAll("div");
       let bestText = "";
       for (const div of allDivs) {
         const rect = div.getBoundingClientRect();
@@ -220,7 +239,7 @@ export class ChatPage {
       const selectors = [
         '[class*="overflow-y"]',
         '[class*="scroll"]',
-        'main',
+        "main",
         '[role="log"]',
         '[data-testid="chat-messages"]',
       ];
@@ -252,26 +271,32 @@ export class ChatPage {
     // Guard: verify the conversation is still rendered (not reset by HMR/Fast Refresh).
     // If the page shows the welcome screen instead of messages, wait for HMR to complete.
     for (let attempt = 0; attempt < 3; attempt++) {
-      const hasMessages = await this.page.locator('[data-testid^="card-"], [data-testid="agent-response"]').count() > 0
-        || await this.page.locator('button[class*="destructive"]').count() > 0
-        || await this.page.evaluate(() => {
+      const hasMessages =
+        (await this.page
+          .locator('[data-testid^="card-"], [data-testid="agent-response"]')
+          .count()) > 0 ||
+        (await this.page.locator('button[class*="destructive"]').count()) > 0 ||
+        (await this.page.evaluate(() => {
           // Check if any AI message text is visible (not just the welcome screen)
           const msgs = document.querySelectorAll('[class*="message"], [class*="prose"]');
           return msgs.length > 2; // welcome screen has ~2 elements, conversations have more
-        });
+        }));
 
       if (hasMessages) break;
 
       // Page likely reset by HMR — wait for recompile to finish
-      console.warn(`[screenshotFullPage] Conversation not visible (attempt ${attempt + 1}/3), waiting for HMR...`);
+      console.warn(
+        `[screenshotFullPage] Conversation not visible (attempt ${attempt + 1}/3), waiting for HMR...`
+      );
       await this.page.waitForTimeout(3000);
       // Check if "Compiling..." indicator disappears
       try {
-        await this.page.waitForFunction(
-          () => !document.body.textContent?.includes('Compiling'),
-          { timeout: 10_000 }
-        );
-      } catch { /* no compiling indicator */ }
+        await this.page.waitForFunction(() => !document.body.textContent?.includes("Compiling"), {
+          timeout: 10_000,
+        });
+      } catch {
+        /* no compiling indicator */
+      }
       await this.page.waitForTimeout(2000);
     }
 
@@ -279,8 +304,9 @@ export class ChatPage {
 
     const totalHeight = await this.page.evaluate(() => {
       // Find the chat messages scroll container (overflow-y-auto with scrollHeight > clientHeight)
-      const scrollEl = document.querySelector('.overflow-y-auto') as HTMLElement
-        || document.querySelector('[data-scrollable="true"]') as HTMLElement;
+      const scrollEl =
+        (document.querySelector(".overflow-y-auto") as HTMLElement) ||
+        (document.querySelector('[data-scrollable="true"]') as HTMLElement);
 
       if (!scrollEl) return 900;
 
@@ -289,25 +315,25 @@ export class ChatPage {
       // Keep chat input and suggestions visible in screenshots
 
       // Remove overflow on the scroll container
-      scrollEl.style.setProperty('overflow', 'visible', 'important');
-      scrollEl.style.setProperty('max-height', 'none', 'important');
-      scrollEl.style.setProperty('height', 'auto', 'important');
-      scrollEl.style.setProperty('flex', 'none', 'important');
+      scrollEl.style.setProperty("overflow", "visible", "important");
+      scrollEl.style.setProperty("max-height", "none", "important");
+      scrollEl.style.setProperty("height", "auto", "important");
+      scrollEl.style.setProperty("flex", "none", "important");
 
       // Walk up parents and remove any height/overflow constraints
       let parent = scrollEl.parentElement;
       while (parent && parent !== document.body) {
         const cs = window.getComputedStyle(parent);
-        if (cs.overflow !== 'visible' || cs.maxHeight !== 'none') {
-          parent.style.setProperty('overflow', 'visible', 'important');
-          parent.style.setProperty('max-height', 'none', 'important');
-          parent.style.setProperty('height', 'auto', 'important');
+        if (cs.overflow !== "visible" || cs.maxHeight !== "none") {
+          parent.style.setProperty("overflow", "visible", "important");
+          parent.style.setProperty("max-height", "none", "important");
+          parent.style.setProperty("height", "auto", "important");
         }
         parent = parent.parentElement;
       }
 
-      document.documentElement.style.setProperty('overflow', 'visible', 'important');
-      document.body.style.setProperty('overflow', 'visible', 'important');
+      document.documentElement.style.setProperty("overflow", "visible", "important");
+      document.body.style.setProperty("overflow", "visible", "important");
 
       return contentHeight + 150;
     });

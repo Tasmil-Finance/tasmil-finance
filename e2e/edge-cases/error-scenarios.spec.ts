@@ -1,4 +1,4 @@
-import { test, expect } from "../fixtures/chat.fixture";
+import { expect, test } from "../fixtures/chat.fixture";
 
 test.describe("Edge Cases — Error Scenarios (Empty Wallet)", () => {
   test.describe.configure({ mode: "serial" });

@@ -33,7 +33,10 @@ export function BaseInfoCard({
     return (
       <div
         data-testid={testId}
-        className={cn("w-fit min-w-[280px] max-w-[360px] rounded-lg border bg-card/40 p-4 shadow-sm", className)}
+        className={cn(
+          "w-fit min-w-[280px] max-w-[360px] rounded-lg border bg-card/40 p-4 shadow-sm",
+          className
+        )}
       >
         <div className="flex items-center gap-3">
           <div
@@ -67,7 +70,13 @@ export function BaseInfoCard({
   }
 
   return (
-    <div data-testid={testId} className={cn("w-fit min-w-[280px] max-w-[360px] rounded-lg border bg-card p-4 shadow-sm", className)}>
+    <div
+      data-testid={testId}
+      className={cn(
+        "w-fit min-w-[280px] max-w-[360px] rounded-lg border bg-card p-4 shadow-sm",
+        className
+      )}
+    >
       {(Icon || title) && (
         <div className="mb-3 flex items-center gap-3">
           {Icon && (

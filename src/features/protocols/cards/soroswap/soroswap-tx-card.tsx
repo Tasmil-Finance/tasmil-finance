@@ -167,14 +167,14 @@ export function SoroswapTxCard({ tx, mode = "playground", stream, toolCallId, re
           </div>
         ) : trustlineBlocking ? (
           <div className="mt-2 space-y-2">
-            <p className="text-xs text-amber-400">
+            <p className="text-amber-400 text-xs">
               Trustline required for {outputAsset.symbol ?? "output token"}
             </p>
             <button
               type="button"
               onClick={addTrustline}
               disabled={trustlineAdding}
-              className="w-full rounded-lg bg-amber-500/20 py-2.5 text-sm font-semibold text-amber-400 hover:bg-amber-500/30 disabled:opacity-40 flex items-center justify-center gap-1.5"
+              className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-amber-500/20 py-2.5 font-semibold text-amber-400 text-sm hover:bg-amber-500/30 disabled:opacity-40"
             >
               {trustlineAdding ? (
                 <>
@@ -190,7 +190,7 @@ export function SoroswapTxCard({ tx, mode = "playground", stream, toolCallId, re
             type="button"
             onClick={handleSign}
             disabled={signing || !xdr || trustlineChecking}
-            className="mt-2 w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+            className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5 font-semibold text-primary-foreground text-sm hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {trustlineChecking ? (
               <>
@@ -210,34 +210,34 @@ export function SoroswapTxCard({ tx, mode = "playground", stream, toolCallId, re
   }
 
   return (
-    <div className="relative rounded-xl border border-border bg-card overflow-hidden">
-      <div className="px-4 py-3 border-b border-border">
-        <p className="text-sm font-medium text-foreground">Transaction Overview</p>
+    <div className="relative overflow-hidden rounded-xl border border-border bg-card">
+      <div className="border-border border-b px-4 py-3">
+        <p className="font-medium text-foreground text-sm">Transaction Overview</p>
       </div>
-      <div className="px-4 py-3 space-y-2.5">
+      <div className="space-y-2.5 px-4 py-3">
         <div className="flex items-center gap-2">
           <cfg.icon className={`h-4 w-4 ${cfg.iconColor}`} />
-          <span className="text-xs text-muted-foreground">Operation</span>
-          <span className="ml-auto text-sm font-medium text-foreground capitalize">
+          <span className="text-muted-foreground text-xs">Operation</span>
+          <span className="ml-auto font-medium text-foreground text-sm capitalize">
             {tx.operation.replace(/_/g, " ")}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <Fuel className="h-4 w-4 text-muted-foreground/50" />
-          <span className="text-xs text-muted-foreground">Gas</span>
-          <span className="ml-auto text-sm text-muted-foreground tabular-nums">{fmtGas(fee)}</span>
+          <span className="text-muted-foreground text-xs">Gas</span>
+          <span className="ml-auto text-muted-foreground text-sm tabular-nums">{fmtGas(fee)}</span>
         </div>
         {tx.route && tx.route.length > 0 && (
           <div className="flex items-center gap-2">
             <ArrowRightLeft className="h-4 w-4 text-muted-foreground/50" />
-            <span className="text-xs text-muted-foreground">Route</span>
-            <span className="ml-auto text-sm text-foreground">{tx.route.join(" → ")}</span>
+            <span className="text-muted-foreground text-xs">Route</span>
+            <span className="ml-auto text-foreground text-sm">{tx.route.join(" → ")}</span>
           </div>
         )}
         {tx.context?.amountOut && (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground ml-6">Est. Output</span>
-            <span className="ml-auto text-sm font-medium text-emerald-400 tabular-nums">
+            <span className="ml-6 text-muted-foreground text-xs">Est. Output</span>
+            <span className="ml-auto font-medium text-emerald-400 text-sm tabular-nums">
               {fmt(tx.context.amountOut)}
             </span>
           </div>
@@ -245,12 +245,12 @@ export function SoroswapTxCard({ tx, mode = "playground", stream, toolCallId, re
         <button
           type="button"
           onClick={() => setShowXdr(!showXdr)}
-          className="text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+          className="text-[10px] text-muted-foreground/50 transition-colors hover:text-muted-foreground"
         >
           {showXdr ? "Hide XDR" : "Show XDR"}
         </button>
         {showXdr && (
-          <pre className="mt-1 max-h-[100px] overflow-auto rounded-lg bg-secondary p-2 text-[10px] text-muted-foreground font-mono break-all">
+          <pre className="mt-1 max-h-[100px] overflow-auto break-all rounded-lg bg-secondary p-2 font-mono text-[10px] text-muted-foreground">
             {xdr}
           </pre>
         )}
@@ -262,22 +262,22 @@ export function SoroswapTxCard({ tx, mode = "playground", stream, toolCallId, re
             href={getExplorerUrl("tx", txResult.hash ?? "")}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full rounded-lg py-2 text-xs font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-center hover:bg-emerald-500/15 transition-colors"
+            className="block w-full rounded-lg border border-emerald-500/20 bg-emerald-500/10 py-2 text-center font-semibold text-emerald-400 text-xs transition-colors hover:bg-emerald-500/15"
           >
             Transaction confirmed · {trunc(txResult.hash ?? "")}
           </a>
         ) : txError ? (
-          <div className="rounded-lg py-2 px-3 text-xs bg-destructive/10 border border-destructive/20 text-destructive text-center">
-            Failed · {txError.length > 80 ? txError.slice(0, 80) + "…" : txError}
+          <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-center text-destructive text-xs">
+            Failed · {txError.length > 80 ? `${txError.slice(0, 80)}…` : txError}
           </div>
         ) : trustlineBlocking ? (
           <div className="space-y-2">
-            <div className="rounded-lg py-2 px-3 text-xs bg-amber-500/10 border border-amber-500/20 text-amber-400 text-center">
+            <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-center text-amber-400 text-xs">
               Trustline required for {outputAsset.symbol ?? "output token"}
             </div>
             <button
               type="button"
-              className="w-full rounded-lg py-2 text-xs font-semibold bg-amber-500/20 border border-amber-500/30 text-amber-400 hover:bg-amber-500/30 transition-all active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-1.5"
+              className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/20 py-2 font-semibold text-amber-400 text-xs transition-all hover:bg-amber-500/30 active:scale-[0.98] disabled:opacity-40"
               onClick={addTrustline}
               disabled={trustlineAdding}
             >
@@ -291,14 +291,14 @@ export function SoroswapTxCard({ tx, mode = "playground", stream, toolCallId, re
             </button>
           </div>
         ) : cancelled ? (
-          <div className="rounded-lg py-2 px-3 text-xs bg-muted border border-border text-muted-foreground text-center">
+          <div className="rounded-lg border border-border bg-muted px-3 py-2 text-center text-muted-foreground text-xs">
             Transaction cancelled
           </div>
         ) : (
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="flex-1 rounded-lg py-2 text-xs font-semibold border border-border text-muted-foreground hover:bg-secondary hover:text-foreground transition-all active:scale-[0.98]"
+              className="flex-1 rounded-lg border border-border py-2 font-semibold text-muted-foreground text-xs transition-all hover:bg-secondary hover:text-foreground active:scale-[0.98]"
               disabled={signing}
               onClick={() => {
                 setCancelled(true);
@@ -313,7 +313,7 @@ export function SoroswapTxCard({ tx, mode = "playground", stream, toolCallId, re
             </button>
             <button
               type="button"
-              className="flex-1 rounded-lg py-2 text-xs font-semibold bg-gradient-to-b from-[#C5B5FF] to-[#7B61FF] text-white hover:from-[#D5C5FF] hover:to-[#8B71FF] transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-b from-[#C5B5FF] to-[#7B61FF] py-2 font-semibold text-white text-xs transition-all hover:from-[#D5C5FF] hover:to-[#8B71FF] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
               onClick={handleSign}
               disabled={signing || !xdr || trustlineChecking}
             >

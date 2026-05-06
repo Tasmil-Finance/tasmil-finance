@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getBlendClient, getNetwork } from "../_sdk";
 
-const MCP_URL = process.env["NEXT_PUBLIC_MCP_STELLAR_URL"] ?? "http://localhost:3009";
+const MCP_URL = process.env.NEXT_PUBLIC_MCP_STELLAR_URL ?? "http://localhost:3009";
 
 export async function GET() {
   const network = getNetwork();
@@ -51,7 +51,7 @@ export async function GET() {
       { success: false, error: d.error ?? "MCP query failed" },
       { status: 500 }
     );
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { success: false, error: "Both SDK and MCP failed. Is mcp-stellar running?" },
       { status: 500 }

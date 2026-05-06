@@ -68,7 +68,7 @@ export function BlendReserveCard({ reserve, mode = "playground" }: BlendReserveC
             </div>
           )}
           {(reserve.supplyEmissionApy != null || reserve.borrowEmissionApy != null) && (
-            <div className="border-t pt-1.5 mt-1">
+            <div className="mt-1 border-t pt-1.5">
               {reserve.supplyEmissionApy != null && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Supply Emission</span>
@@ -91,20 +91,20 @@ export function BlendReserveCard({ reserve, mode = "playground" }: BlendReserveC
   // Playground mode — rich card
   return (
     <ProtocolCard mode="playground">
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
+      <div className="flex items-center gap-3 border-border border-b px-4 py-3">
         <TokenImage src={null} alt={sym} className="h-7 w-7 rounded-full" />
         <div>
-          <p className="text-sm font-medium text-foreground">{sym}</p>
+          <p className="font-medium text-foreground text-sm">{sym}</p>
           <p className="text-[10px] text-muted-foreground">Reserve Detail</p>
         </div>
       </div>
-      <div className="p-4 space-y-3">
+      <div className="space-y-3 p-4">
         <div className="grid grid-cols-2 gap-2">
           <MetricBox label="Supply APY" value={pct(reserve.supplyApy)} />
           <MetricBox label="Borrow APY" value={pct(reserve.borrowApy)} />
         </div>
         <div>
-          <div className="flex justify-between text-[10px] mb-1">
+          <div className="mb-1 flex justify-between text-[10px]">
             <span className="text-muted-foreground">Utilization</span>
             <span className="text-foreground tabular-nums">{pct(reserve.utilization)}</span>
           </div>

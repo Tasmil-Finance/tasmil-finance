@@ -27,9 +27,9 @@ export function ProgressStepper({ steps, className }: ProgressStepperProps) {
             <div
               data-step={step.id}
               className={cn(
-                "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 text-xs font-semibold transition-all duration-300",
+                "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 font-semibold text-xs transition-all duration-300",
                 step.state === "done" &&
-                  "border-green-500 bg-green-500 text-white animate-stepper-pop",
+                  "animate-stepper-pop border-green-500 bg-green-500 text-white",
                 step.state === "active" && "border-primary bg-primary/10 text-primary",
                 step.state === "inactive" && "border-border bg-background text-muted-foreground"
               )}
@@ -58,7 +58,7 @@ export function ProgressStepper({ steps, className }: ProgressStepperProps) {
           <React.Fragment key={step.id}>
             <span
               className={cn(
-                "w-9 shrink-0 text-center text-xs font-medium leading-tight",
+                "w-9 shrink-0 text-center font-medium text-xs leading-tight",
                 step.state === "done" && "text-green-600",
                 step.state === "active" && "text-primary",
                 step.state === "inactive" && "text-muted-foreground"

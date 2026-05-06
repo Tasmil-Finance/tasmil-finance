@@ -54,21 +54,24 @@ export function BaseOperationCard({
 
   // Merge persisted result with local state
   const persistedResult = result as Record<string, unknown> | undefined;
-  const hasPersistedResult = persistedResult?.["success"] !== undefined;
+  const hasPersistedResult = persistedResult?.success !== undefined;
   const effectiveResult =
     txResult ??
     (hasPersistedResult
       ? {
-          success: Boolean(persistedResult?.["success"]),
-          hash: persistedResult?.["hash"] as string | undefined,
+          success: Boolean(persistedResult?.success),
+          hash: persistedResult?.hash as string | undefined,
           message: String(
-            persistedResult?.["message"] ??
-              (persistedResult?.["success"] ? "Transaction successful!" : "Transaction failed")
+            persistedResult?.message ??
+              (persistedResult?.success ? "Transaction successful!" : "Transaction failed")
           ),
         }
       : null);
 
-  const cardClass = cn("w-full max-w-[360px] min-w-[280px] rounded-lg border bg-card p-5 shadow-sm", className);
+  const cardClass = cn(
+    "w-full max-w-[360px] min-w-[280px] rounded-lg border bg-card p-5 shadow-sm",
+    className
+  );
   const cardProps = testId ? { "data-testid": testId } : {};
 
   const handleExecute = async () => {

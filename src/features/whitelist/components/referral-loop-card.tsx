@@ -12,7 +12,7 @@ export function ReferralLoopCard() {
       <Typography variant="h4" className="mb-2 font-semibold tracking-tight">
         Climb the queue with referrals
       </Typography>
-      <Typography variant="p" className="mb-4 text-sm leading-6 text-muted-foreground">
+      <Typography variant="p" className="mb-4 text-muted-foreground text-sm leading-6">
         Every friend who connects their wallet using your link moves you up. The more successful
         referrals, the higher you rank.
       </Typography>
@@ -20,7 +20,7 @@ export function ReferralLoopCard() {
       <div className="space-y-3">
         <div className="flex items-start gap-3">
           <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary">
-            <span className="text-[10px] font-bold">1</span>
+            <span className="font-bold text-[10px]">1</span>
           </div>
           <Typography variant="small" className="text-muted-foreground">
             Share your unique referral link
@@ -28,7 +28,7 @@ export function ReferralLoopCard() {
         </div>
         <div className="flex items-start gap-3">
           <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary">
-            <span className="text-[10px] font-bold">2</span>
+            <span className="font-bold text-[10px]">2</span>
           </div>
           <Typography variant="small" className="text-muted-foreground">
             Friend connects their Stellar wallet
@@ -36,7 +36,7 @@ export function ReferralLoopCard() {
         </div>
         <div className="flex items-start gap-3">
           <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary">
-            <span className="text-[10px] font-bold">3</span>
+            <span className="font-bold text-[10px]">3</span>
           </div>
           <Typography variant="small" className="text-muted-foreground">
             You move up the waitlist queue

@@ -22,7 +22,7 @@ export function AllbridgeRoutesCard({ routes, mode = "playground" }: Props) {
         iconColor="text-blue-500"
         iconBg="bg-blue-500/10"
       >
-        <p className="text-xs text-muted-foreground">No bridge routes found.</p>
+        <p className="text-muted-foreground text-xs">No bridge routes found.</p>
       </ProtocolCard>
     );
   }
@@ -37,14 +37,14 @@ export function AllbridgeRoutesCard({ routes, mode = "playground" }: Props) {
         iconBg="bg-blue-500/10"
         subtitle={`${routes.length} routes`}
       >
-        <div className="space-y-2 max-h-[300px] overflow-auto">
+        <div className="max-h-[300px] space-y-2 overflow-auto">
           {routes.map((r, i) => (
-            <div key={i} className="rounded-lg border border-border/50 p-2 space-y-0.5">
+            <div key={i} className="space-y-0.5 rounded-lg border border-border/50 p-2">
               <div className="flex items-center gap-1.5 text-sm">
                 <span className="font-medium capitalize">{r.fromChain}</span>
                 <ArrowRight className="h-3 w-3 text-muted-foreground/40" />
                 <span className="font-medium capitalize">{r.toChain}</span>
-                <span className="text-muted-foreground text-xs ml-auto">{r.asset}</span>
+                <span className="ml-auto text-muted-foreground text-xs">{r.asset}</span>
               </div>
               <div className="flex justify-between text-[11px] text-muted-foreground">
                 <span>Fee: {r.estimatedFee ?? "~0.3%"}</span>
@@ -59,22 +59,22 @@ export function AllbridgeRoutesCard({ routes, mode = "playground" }: Props) {
 
   return (
     <ProtocolCard mode="playground">
-      <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-        <p className="text-sm font-medium text-foreground">Bridge Routes</p>
+      <div className="flex items-center justify-between border-border border-b px-4 py-3">
+        <p className="font-medium text-foreground text-sm">Bridge Routes</p>
         <span className="text-[10px] text-muted-foreground">{routes.length} routes</span>
       </div>
-      <div className="p-4 space-y-2 max-h-[400px] overflow-auto">
+      <div className="max-h-[400px] space-y-2 overflow-auto p-4">
         {routes.map((r, i) => (
           <div key={i} className="rounded-lg border border-border/50 bg-secondary/30 p-3">
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="rounded-md bg-secondary px-2 py-0.5 text-sm font-medium text-foreground capitalize">
+            <div className="mb-1.5 flex items-center gap-2">
+              <span className="rounded-md bg-secondary px-2 py-0.5 font-medium text-foreground text-sm capitalize">
                 {r.fromChain}
               </span>
               <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/40" />
-              <span className="rounded-md bg-secondary px-2 py-0.5 text-sm font-medium text-foreground capitalize">
+              <span className="rounded-md bg-secondary px-2 py-0.5 font-medium text-foreground text-sm capitalize">
                 {r.toChain}
               </span>
-              <span className="ml-auto text-xs font-semibold text-foreground">{r.asset}</span>
+              <span className="ml-auto font-semibold text-foreground text-xs">{r.asset}</span>
             </div>
             <div className="flex gap-4 text-[11px] text-muted-foreground">
               <span>

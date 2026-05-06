@@ -11,7 +11,8 @@ interface WalletConfig {
 
 /** Funded wallet — has real balances for happy-path tests. */
 export const FUNDED_WALLET: WalletConfig = {
-  publicKey: process.env.E2E_WALLET_PUBLIC_KEY || "GDQI7LOGDRQRM5OXEIEY7TDHUYEHGQ7RX3KOJU3FNUP6HBDHUGWA3I6R",
+  publicKey:
+    process.env.E2E_WALLET_PUBLIC_KEY || "GDQI7LOGDRQRM5OXEIEY7TDHUYEHGQ7RX3KOJU3FNUP6HBDHUGWA3I6R",
   recoveryPhrase: process.env.E2E_WALLET_RECOVERY_PHRASE || undefined,
   secretKey: process.env.E2E_WALLET_SECRET_KEY || undefined,
   hdIndex: parseInt(process.env.E2E_WALLET_HD_INDEX || "0", 10),
@@ -19,7 +20,9 @@ export const FUNDED_WALLET: WalletConfig = {
 
 /** Empty wallet — zero balance for edge-case tests. */
 export const EMPTY_WALLET: WalletConfig = {
-  publicKey: process.env.E2E_WALLET_EMPTY_PUBLIC_KEY || "GC5D3EMZTDLRAOBMQN3ITUWLXMB7V2A6QKZ6GLJHWDDAE2BB6S6ICGLV",
+  publicKey:
+    process.env.E2E_WALLET_EMPTY_PUBLIC_KEY ||
+    "GC5D3EMZTDLRAOBMQN3ITUWLXMB7V2A6QKZ6GLJHWDDAE2BB6S6ICGLV",
   recoveryPhrase: process.env.E2E_WALLET_EMPTY_RECOVERY_PHRASE || undefined,
   secretKey: process.env.E2E_WALLET_EMPTY_SECRET_KEY || undefined,
   hdIndex: parseInt(process.env.E2E_WALLET_EMPTY_HD_INDEX || "0", 10),
@@ -100,7 +103,9 @@ export async function injectMockWallet(page: Page, wallet: WalletConfig | string
         getPublicKey: () => Promise.resolve(params.pubKey),
         getAddress: () => Promise.resolve({ address: params.pubKey }),
         signTransaction: (xdr: string) => {
-          console.log(`[E2E Wallet] signTransaction (canSign: ${params.canSign}, addr: ${params.pubKey.slice(0, 8)}...)`);
+          console.log(
+            `[E2E Wallet] signTransaction (canSign: ${params.canSign}, addr: ${params.pubKey.slice(0, 8)}...)`
+          );
           return Promise.resolve({ signedTxXdr: xdr, signerAddress: params.pubKey });
         },
         signAuthEntry: (entry: string) => {
@@ -146,19 +151,19 @@ export async function setWalletState(page: Page, wallet: WalletConfig | string) 
   const config = typeof wallet === "string" ? { publicKey: wallet, hdIndex: 0 } : wallet;
   const pubKey = await resolvePublicKey(config);
 
-  await page.addInitScript(
-    (key: string) => {
-      localStorage.setItem(
-        "wallet-store",
-        JSON.stringify({ state: { publicKey: key, isConnected: true, walletType: "FREIGHTER" }, version: 0 })
-      );
-      localStorage.setItem(
-        "auth-store",
-        JSON.stringify({ state: { isAuthenticated: true, publicKey: key }, version: 0 })
-      );
-    },
-    pubKey
-  );
+  await page.addInitScript((key: string) => {
+    localStorage.setItem(
+      "wallet-store",
+      JSON.stringify({
+        state: { publicKey: key, isConnected: true, walletType: "FREIGHTER" },
+        version: 0,
+      })
+    );
+    localStorage.setItem(
+      "auth-store",
+      JSON.stringify({ state: { isAuthenticated: true, publicKey: key }, version: 0 })
+    );
+  }, pubKey);
 }
 
 /**

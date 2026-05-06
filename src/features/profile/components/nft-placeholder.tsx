@@ -10,7 +10,7 @@ export function NftPlaceholder() {
       </div>
       <div className="flex flex-col gap-1">
         <h3 className="font-semibold text-foreground">NFTs not available on Stellar</h3>
-        <p className="max-w-sm text-sm text-muted-foreground">
+        <p className="max-w-sm text-muted-foreground text-sm">
           The Stellar Classic network does not have a native NFT standard. NFT support is coming in
           a future update.
         </p>

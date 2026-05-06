@@ -56,7 +56,7 @@ async function fetchOperations(address: string, cursor?: string): Promise<Operat
   if (cursor) params.set("cursor", cursor);
 
   const res = await fetch(
-    `${activeNetwork.horizonUrl}/accounts/${address}/operations?${params.toString()}`,
+    `${activeNetwork.horizonUrl}/accounts/${address}/operations?${params.toString()}`
   );
   if (!res.ok) return { ops: [], attrsByTx: {}, nextCursor: null };
 

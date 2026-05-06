@@ -29,7 +29,7 @@ import type { Config } from "wagmi";
 
 const projectId = process.env.NEXT_PUBLIC_REOWN_PROJECT_ID ?? "";
 
-const isTestnet = process.env["NEXT_PUBLIC_STELLAR_NETWORK"] !== "mainnet";
+const isTestnet = process.env.NEXT_PUBLIC_STELLAR_NETWORK !== "mainnet";
 
 export const EVM_NETWORKS: [AppKitNetwork, ...AppKitNetwork[]] = [
   mainnet,

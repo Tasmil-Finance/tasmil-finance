@@ -184,9 +184,7 @@ export function useAguiStream(config: AguiStreamConfig): StreamContextType {
                   id: msg.id,
                   type: "tool",
                   content:
-                    typeof msg.content === "string"
-                      ? msg.content
-                      : JSON.stringify(msg.content),
+                    typeof msg.content === "string" ? msg.content : JSON.stringify(msg.content),
                   tool_call_id: msg.tool_call_id,
                 } as unknown as Message;
               default:
@@ -223,7 +221,7 @@ export function useAguiStream(config: AguiStreamConfig): StreamContextType {
 
     loadHistory();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config.threadId]);
+  }, [config.threadId, config.apiUrl, config.defaultHeaders, config.fetchStateHistory]);
 
   // ── Flush building message into messages state ──────────────────
   const flushBuilding = useCallback(() => {
@@ -624,7 +622,15 @@ export function useAguiStream(config: AguiStreamConfig): StreamContextType {
         setError(err instanceof Error ? err : new Error(String(err)));
       }
     },
-    [config.apiUrl, config.assistantId, config.defaultHeaders, config.onThreadId, flushBuilding]
+    [
+      config.apiUrl,
+      config.assistantId,
+      config.defaultHeaders,
+      config.onThreadId,
+      flushBuilding,
+      config.onFirstResponse,
+      debouncedFlush,
+    ]
   );
 
   // ── Stop ────────────────────────────────────────────────────────

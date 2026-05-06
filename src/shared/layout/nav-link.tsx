@@ -14,7 +14,7 @@ export function NavLink({ item }: { item: NavItem }) {
       href={item.url}
       data-active={isActive ? "true" : "false"}
       className={cn(
-        "text-sm font-medium transition-colors",
+        "font-medium text-sm transition-colors",
         isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
       )}
     >

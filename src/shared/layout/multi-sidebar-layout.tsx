@@ -41,7 +41,7 @@ function MobileHeader({
   const showClockTrigger = showRightSidebar && pathname.startsWith("/chat");
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-4">
+    <header className="flex h-14 shrink-0 items-center gap-3 border-border border-b bg-background px-4">
       <button
         type="button"
         onClick={toggleLeftSidebar}
@@ -51,7 +51,7 @@ function MobileHeader({
       </button>
       <Link href="/chat/new" className="flex items-center gap-2">
         <Image src={sidebarData.header.logo_url} width={24} height={24} alt="Logo" />
-        <span className="font-semibold text-sm text-foreground">
+        <span className="font-semibold text-foreground text-sm">
           {sidebarData.header.brand_name}
         </span>
       </Link>

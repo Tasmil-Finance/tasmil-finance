@@ -2,10 +2,9 @@
 
 import { CheckCircle2, Circle, Loader2, Rocket, XCircle } from "lucide-react";
 import { memo } from "react";
-import { useResultData } from "../../hooks/use-result-data";
-import { ProtocolCard } from "@/features/protocols/cards/base/protocol-card";
 import { MetricBox } from "@/features/protocols/cards/base/indicators";
-
+import { ProtocolCard } from "@/features/protocols/cards/base/protocol-card";
+import { useResultData } from "../../hooks/use-result-data";
 
 interface AccountSetupData {
   has_account?: boolean;
@@ -65,13 +64,10 @@ function StepIcon({ status }: { status: StepStatus }) {
   }
 }
 
-function AccountSetupCardComponent({
-  result,
-  status,
-}: AccountSetupCardProps) {
+function AccountSetupCardComponent({ result, status }: AccountSetupCardProps) {
   const { data, isLoading, hasError, errorMessage } = useResultData<AccountSetupData>(
     result,
-    status,
+    status
   );
 
   const hasAccount = data?.has_account ?? data?.hasAccount ?? false;
@@ -106,7 +102,7 @@ function AccountSetupCardComponent({
                   <StepIcon status={stepStatus} />
                   {!isLast && (
                     <div
-                      className={`mt-0.5 w-px flex-1 min-h-[16px] ${
+                      className={`mt-0.5 min-h-[16px] w-px flex-1 ${
                         stepStatus === "done" ? "bg-primary/30" : "bg-border"
                       }`}
                     />
@@ -116,9 +112,9 @@ function AccountSetupCardComponent({
                   <div className="font-medium text-xs">
                     {idx + 1}. {step.label}
                   </div>
-                  <div className="text-muted-foreground text-[10px]">{step.desc}</div>
+                  <div className="text-[10px] text-muted-foreground">{step.desc}</div>
                   {stepStatus === "in-progress" && (
-                    <div className="mt-0.5 font-medium text-primary text-[10px] animate-pulse">
+                    <div className="mt-0.5 animate-pulse font-medium text-[10px] text-primary">
                       Waiting for confirmation...
                     </div>
                   )}
@@ -128,7 +124,7 @@ function AccountSetupCardComponent({
           })}
 
           {data?.message && (
-            <div className="rounded-lg bg-secondary p-2.5 text-muted-foreground text-[10px] mt-2">
+            <div className="mt-2 rounded-lg bg-secondary p-2.5 text-[10px] text-muted-foreground">
               {data.message}
             </div>
           )}
@@ -173,7 +169,7 @@ function AccountSetupCardComponent({
         )}
 
         {data?.message && (
-          <div className="rounded-lg bg-secondary p-2.5 text-muted-foreground text-[10px]">
+          <div className="rounded-lg bg-secondary p-2.5 text-[10px] text-muted-foreground">
             {data.message}
           </div>
         )}

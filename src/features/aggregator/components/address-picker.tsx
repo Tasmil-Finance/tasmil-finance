@@ -160,44 +160,44 @@ export function AddressPicker({
         {selectedAddress ? (
           <button
             type="button"
-            className="flex items-center gap-1.5 rounded-lg py-1 px-2 text-sm transition-colors cursor-pointer"
+            className="flex cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1 text-sm transition-colors"
             style={{ color: "var(--muted-foreground)" }}
           >
-            <TokenImage src={logo} alt={chainType} className="h-4 w-4 rounded-full shrink-0" />
+            <TokenImage src={logo} alt={chainType} className="h-4 w-4 shrink-0 rounded-full" />
             <span>{truncAddr(selectedAddress)}</span>
             <ChevronDown className="h-3.5 w-3.5 shrink-0" />
           </button>
         ) : (
           <button
             type="button"
-            className="flex items-center gap-1.5 rounded-lg py-1 px-2 text-sm transition-colors cursor-pointer"
+            className="flex cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1 text-sm transition-colors"
             style={{ background: "var(--input)", color: "var(--muted-foreground)" }}
           >
-            <Plus className="w-4 h-4 shrink-0" />
+            <Plus className="h-4 w-4 shrink-0" />
             <span className="whitespace-nowrap">Add Address</span>
           </button>
         )}
       </DialogTrigger>
 
       <DialogContent
-        className="sm:max-w-[480px] p-0 gap-0 rounded-2xl overflow-hidden border-0"
+        className="gap-0 overflow-hidden rounded-2xl border-0 p-0 sm:max-w-[480px]"
         style={{ background: "var(--card)" }}
       >
         <DialogHeader className="px-6 pt-6 pb-4">
-          <DialogTitle className="text-lg font-semibold" style={{ color: "var(--foreground)" }}>
+          <DialogTitle className="font-semibold text-lg" style={{ color: "var(--foreground)" }}>
             {label} Address
           </DialogTitle>
         </DialogHeader>
 
-        <div className="px-6 pb-4 space-y-4">
+        <div className="space-y-4 px-6 pb-4">
           {/* ── Manual Address Input ── */}
           <div>
-            <p className="text-xs font-medium mb-2" style={{ color: "var(--muted-foreground)" }}>
+            <p className="mb-2 font-medium text-xs" style={{ color: "var(--muted-foreground)" }}>
               Enter {getChainLabel(chainType)} address
             </p>
             <div className="relative">
               <Pencil
-                className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4"
+                className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4"
                 style={{ color: "var(--ring)" }}
               />
               <input
@@ -217,7 +217,7 @@ export function AddressPicker({
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleAddManual();
                 }}
-                className="w-full rounded-xl py-3 pl-10 pr-10 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--primary)] border-0"
+                className="w-full rounded-xl border-0 py-3 pr-10 pl-10 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
                 style={{ background: "var(--secondary)", color: "var(--foreground)" }}
               />
               {manualInput && (
@@ -227,7 +227,7 @@ export function AddressPicker({
                     setManualInput("");
                     setManualError("");
                   }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  className="-translate-y-1/2 absolute top-1/2 right-3"
                 >
                   <X className="h-4 w-4" style={{ color: "var(--muted-foreground)" }} />
                 </button>
@@ -235,7 +235,7 @@ export function AddressPicker({
             </div>
             {manualError && (
               <p
-                className="flex items-center gap-1 mt-1.5 text-xs"
+                className="mt-1.5 flex items-center gap-1 text-xs"
                 style={{ color: "var(--destructive)" }}
               >
                 <AlertCircle className="h-3 w-3" /> {manualError}
@@ -245,12 +245,12 @@ export function AddressPicker({
               <button
                 type="button"
                 onClick={handleAddManual}
-                className="mt-2 w-full flex items-center gap-2 rounded-xl p-3 text-sm transition-colors"
+                className="mt-2 flex w-full items-center gap-2 rounded-xl p-3 text-sm transition-colors"
                 style={{ background: "var(--secondary)", color: "var(--foreground)" }}
               >
                 <TokenImage src={logo} alt={chainType} className="h-5 w-5 rounded-full" />
-                <span className="font-mono text-xs truncate flex-1">{manualInput}</span>
-                <span className="text-xs font-medium" style={{ color: "var(--primary)" }}>
+                <span className="flex-1 truncate font-mono text-xs">{manualInput}</span>
+                <span className="font-medium text-xs" style={{ color: "var(--primary)" }}>
                   Use this
                 </span>
               </button>
@@ -259,9 +259,9 @@ export function AddressPicker({
 
           {/* ── Connected Wallets ── */}
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="mb-2 flex items-center justify-between">
               <p
-                className="text-xs font-medium flex items-center gap-1.5"
+                className="flex items-center gap-1.5 font-medium text-xs"
                 style={{ color: "var(--muted-foreground)" }}
               >
                 <Wallet className="h-3.5 w-3.5" /> Connected Wallets
@@ -284,7 +284,7 @@ export function AddressPicker({
             <ScrollArea className="max-h-[280px]">
               <div className="flex flex-col gap-1">
                 {chainAddresses.length === 0 && (
-                  <p className="text-sm text-center py-6" style={{ color: "var(--ring)" }}>
+                  <p className="py-6 text-center text-sm" style={{ color: "var(--ring)" }}>
                     No wallets connected
                   </p>
                 )}
@@ -301,17 +301,17 @@ export function AddressPicker({
                       <TokenImage
                         src={logo}
                         alt={chainType}
-                        className="h-9 w-9 rounded-lg object-contain shrink-0"
+                        className="h-9 w-9 shrink-0 rounded-lg object-contain"
                       />
-                      <div className="flex flex-col min-w-0 flex-1">
+                      <div className="flex min-w-0 flex-1 flex-col">
                         <span
-                          className="text-sm font-medium truncate"
+                          className="truncate font-medium text-sm"
                           style={{ color: "var(--foreground)" }}
                         >
                           {truncAddr(item.address)}
                         </span>
                         <span
-                          className="text-xs flex items-center gap-1"
+                          className="flex items-center gap-1 text-xs"
                           style={{ color: "var(--muted-foreground)" }}
                         >
                           {item.source === "connected" ? (
@@ -338,7 +338,7 @@ export function AddressPicker({
                               onDisconnectStellar();
                             else if (item.chainType === "evm" && onDisconnectEvm) onDisconnectEvm();
                           }}
-                          className="p-1.5 rounded-lg hover:bg-[var(--secondary)] transition-colors"
+                          className="rounded-lg p-1.5 transition-colors hover:bg-[var(--secondary)]"
                           title="Disconnect"
                         >
                           <Unplug className="h-4 w-4" style={{ color: "var(--ring)" }} />
@@ -352,7 +352,7 @@ export function AddressPicker({
                             e.stopPropagation();
                             store.removeAddress(item.address);
                           }}
-                          className="p-1.5 rounded-lg hover:bg-[var(--secondary)] transition-colors"
+                          className="rounded-lg p-1.5 transition-colors hover:bg-[var(--secondary)]"
                         >
                           <X className="h-3.5 w-3.5" style={{ color: "var(--ring)" }} />
                         </button>

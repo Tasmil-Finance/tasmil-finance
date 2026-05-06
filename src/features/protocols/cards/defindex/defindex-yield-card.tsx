@@ -49,12 +49,12 @@ export function DefindexYieldCard({ opportunities, mode = "playground" }: Props)
         <CardHeader
           icon={<TrendingUp className="h-3.5 w-3.5" />}
           title="DeFindex Vaults"
-          right={<span className="text-xs text-muted-foreground">{opportunities.length}</span>}
+          right={<span className="text-muted-foreground text-xs">{opportunities.length}</span>}
         />
       )}
 
       {/* Table header */}
-      <div className="grid grid-cols-[1fr_auto_auto_auto] gap-x-4 items-center px-4 py-2 border-b border-border text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider">
+      <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-x-4 border-border border-b px-4 py-2 font-semibold text-[10px] text-muted-foreground/60 uppercase tracking-wider">
         <span>Vault</span>
         <span className="w-24 text-right">TVL</span>
         <span className="w-16 text-center">Exposure</span>
@@ -78,11 +78,11 @@ export function DefindexYieldCard({ opportunities, mode = "playground" }: Props)
           return (
             <div
               key={opp.poolAddress ?? opp.pool ?? i}
-              className="grid grid-cols-[1fr_auto_auto_auto] gap-x-4 items-center px-4 py-3 hover:bg-muted/20 transition-colors"
+              className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-x-4 px-4 py-3 transition-colors hover:bg-muted/20"
             >
               {/* Vault name + symbol */}
               <div className="min-w-0">
-                <p className="text-[13px] font-medium text-foreground truncate">{displayName}</p>
+                <p className="truncate font-medium text-[13px] text-foreground">{displayName}</p>
                 {symbol && (
                   <p className="text-[10px] text-muted-foreground/60 uppercase">{symbol}</p>
                 )}
@@ -90,15 +90,15 @@ export function DefindexYieldCard({ opportunities, mode = "playground" }: Props)
 
               {/* TVL */}
               <div className="w-24 text-right">
-                <p className="text-xs font-medium text-foreground tabular-nums">
+                <p className="font-medium text-foreground text-xs tabular-nums">
                   {tvlNum != null ? `${fmt(tvlNum)} ${asset}` : "—"}
                 </p>
                 <p className="text-[10px] text-muted-foreground/60">{asset}</p>
               </div>
 
               {/* Exposure */}
-              <div className="w-16 flex items-center justify-center gap-1.5">
-                <TokenImage src={null} alt={asset} className="h-4 w-4 rounded-full shrink-0" />
+              <div className="flex w-16 items-center justify-center gap-1.5">
+                <TokenImage src={null} alt={asset} className="h-4 w-4 shrink-0 rounded-full" />
                 <span className="text-[11px] text-muted-foreground">{asset}</span>
               </div>
 
@@ -106,7 +106,7 @@ export function DefindexYieldCard({ opportunities, mode = "playground" }: Props)
               <div className="w-16 text-right">
                 <span
                   className={cn(
-                    "text-sm font-semibold tabular-nums",
+                    "font-semibold text-sm tabular-nums",
                     apyNum != null && apyNum > 0 ? "text-emerald-400" : "text-muted-foreground"
                   )}
                 >

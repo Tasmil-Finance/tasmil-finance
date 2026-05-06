@@ -35,7 +35,7 @@ export function LeaderboardTable({
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card">
-      <div className="grid grid-cols-[60px_1fr_1fr_120px] gap-4 px-6 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+      <div className="grid grid-cols-[60px_1fr_1fr_120px] gap-4 px-6 py-3 font-semibold text-muted-foreground text-xs uppercase tracking-wider">
         <span>Rank</span>
         <span>Wallet</span>
         <span>Volume</span>
@@ -53,12 +53,12 @@ export function LeaderboardTable({
               data-current-user={isCurrentUser ? "true" : "false"}
               className={cn(
                 "grid grid-cols-[60px_1fr_1fr_120px] items-center gap-4 px-6 py-3.5",
-                isCurrentUser && "bg-primary/5 ring-1 ring-inset ring-primary/30"
+                isCurrentUser && "bg-primary/5 ring-1 ring-primary/30 ring-inset"
               )}
             >
               <span className="font-bold text-foreground">#{entry.rank}</span>
               <span
-                className="truncate font-mono text-sm text-foreground"
+                className="truncate font-mono text-foreground text-sm"
                 title={entry.walletAddress}
               >
                 {shorten(entry.walletAddress)}
@@ -66,7 +66,7 @@ export function LeaderboardTable({
               <span className="font-semibold text-foreground">{formatUsd(entry.volumeUsd)}</span>
               <span
                 className={cn(
-                  "inline-flex w-fit rounded-full px-2 py-0.5 text-xs font-semibold",
+                  "inline-flex w-fit rounded-full px-2 py-0.5 font-semibold text-xs",
                   tierStyle.bg,
                   tierStyle.text
                 )}
@@ -79,18 +79,18 @@ export function LeaderboardTable({
 
         {currentUserRank && currentUserWallet && !hasUserOnPage && (
           <div
-            className="grid grid-cols-[60px_1fr_1fr_120px] items-center gap-4 border-t-2 border-dashed border-primary/30 bg-primary/5 px-6 py-3.5"
+            className="grid grid-cols-[60px_1fr_1fr_120px] items-center gap-4 border-primary/30 border-t-2 border-dashed bg-primary/5 px-6 py-3.5"
             data-testid="leaderboard-tail-row"
           >
             <span className="font-bold text-foreground">#{currentUserRank.rank}</span>
-            <span className="truncate font-mono text-sm text-foreground">
+            <span className="truncate font-mono text-foreground text-sm">
               {shorten(currentUserWallet)}{" "}
-              <span className="text-xs text-muted-foreground">(you)</span>
+              <span className="text-muted-foreground text-xs">(you)</span>
             </span>
             <span className="font-semibold text-foreground">
               {formatUsd(currentUserRank.volumeUsd)}
             </span>
-            <span className="text-xs text-muted-foreground">—</span>
+            <span className="text-muted-foreground text-xs">—</span>
           </div>
         )}
       </div>

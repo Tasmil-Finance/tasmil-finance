@@ -2,12 +2,12 @@
 
 import { BarChart3, Gift, Globe, History, Key, Lock, User, Wallet } from "lucide-react";
 import { memo } from "react";
+import { MetricBox, Row } from "@/features/protocols/cards/base/indicators";
+import { EmptyState, ProtocolCard } from "@/features/protocols/cards/base/protocol-card";
 import { TokenImage } from "@/shared/components/token-image";
 import { truncateAddress } from "@/shared/config/stellar";
 import { useResultData } from "../../hooks/use-result-data";
 import { formatNumber, formatPercent, formatPrice } from "../../lib/formatting";
-import { ProtocolCard, EmptyState } from "@/features/protocols/cards/base/protocol-card";
-import { MetricBox, Row } from "@/features/protocols/cards/base/indicators";
 import { ProtocolBadge, ScrollableList } from "../base/indicators";
 
 interface AccountInfoCardProps {
@@ -127,7 +127,9 @@ function QueryContent({
 
 function resolveAssetName(token: any): string {
   if (token.asset_type === "native" || token.assetType === "native") return "XLM";
-  return token.assetCode ?? token.asset_code ?? token.code ?? token.symbol ?? token.asset ?? "Unknown";
+  return (
+    token.assetCode ?? token.asset_code ?? token.code ?? token.symbol ?? token.asset ?? "Unknown"
+  );
 }
 
 // ─── Account Info View ────────────────────────────────────────────
@@ -145,24 +147,27 @@ function AccountInfoView({ data }: { data: any }) {
         <MetricBox label="Subentries" value={String(subentries ?? 0)} />
       </div>
 
-      {account.sequence && (
-        <Row label="Sequence" value={account.sequence} />
-      )}
+      {account.sequence && <Row label="Sequence" value={account.sequence} />}
 
       {balances.length > 0 && (
-        <div className="border-t border-border pt-2">
-          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5 px-0.5">
+        <div className="border-border border-t pt-2">
+          <p className="mb-1.5 px-0.5 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
             Balances ({balances.length})
           </p>
           <div className="space-y-0.5">
             {balances.slice(0, 10).map((b: any, i: number) => {
               const name = resolveAssetName(b);
               return (
-                <div key={i} className="flex items-center py-1 px-0.5 rounded hover:bg-muted/20 transition-colors">
-                  <TokenImage src={null} alt={name} className="h-5 w-5 rounded-full mr-2" />
-                  <span className="text-xs font-medium text-foreground flex-1">{name}</span>
-                  <span className="text-xs text-foreground tabular-nums">
-                    {Number.parseFloat(b.balance).toLocaleString(undefined, { maximumFractionDigits: 4 })}
+                <div
+                  key={i}
+                  className="flex items-center rounded px-0.5 py-1 transition-colors hover:bg-muted/20"
+                >
+                  <TokenImage src={null} alt={name} className="mr-2 h-5 w-5 rounded-full" />
+                  <span className="flex-1 font-medium text-foreground text-xs">{name}</span>
+                  <span className="text-foreground text-xs tabular-nums">
+                    {Number.parseFloat(b.balance).toLocaleString(undefined, {
+                      maximumFractionDigits: 4,
+                    })}
                   </span>
                 </div>
               );
@@ -215,11 +220,16 @@ function AssetsView({ data, toolCallId }: { data: any; toolCallId?: string }) {
         {assets.map((a: any, i: number) => {
           const name = resolveAssetName(a);
           return (
-            <div key={i} className="flex items-center py-1.5 px-0.5 rounded hover:bg-muted/20 transition-colors">
-              <TokenImage src={null} alt={name} className="h-5 w-5 rounded-full mr-2" />
-              <span className="text-xs font-medium flex-1">{name}</span>
+            <div
+              key={i}
+              className="flex items-center rounded px-0.5 py-1.5 transition-colors hover:bg-muted/20"
+            >
+              <TokenImage src={null} alt={name} className="mr-2 h-5 w-5 rounded-full" />
+              <span className="flex-1 font-medium text-xs">{name}</span>
               <span className="text-xs tabular-nums">
-                {Number.parseFloat(a.balance).toLocaleString(undefined, { maximumFractionDigits: 4 })}
+                {Number.parseFloat(a.balance).toLocaleString(undefined, {
+                  maximumFractionDigits: 4,
+                })}
               </span>
             </div>
           );
@@ -238,7 +248,10 @@ function HistoryView({ data, toolCallId }: { data: any; toolCallId?: string }) {
       <MetricBox label="Operations" value={String(data.count ?? ops.length)} />
       <ScrollableList id={`history-${toolCallId}`} maxHeight={280}>
         {ops.map((op: any, i: number) => (
-          <div key={op.id ?? i} className="space-y-1 rounded-lg border border-border p-2.5 text-xs hover:bg-muted/20 transition-colors">
+          <div
+            key={op.id ?? i}
+            className="space-y-1 rounded-lg border border-border p-2.5 text-xs transition-colors hover:bg-muted/20"
+          >
             <div className="flex justify-between">
               <span className="font-medium capitalize">{op.type?.replace(/_/g, " ")}</span>
               <span className="text-muted-foreground">
@@ -264,8 +277,8 @@ function LockedView({ data }: { data: any }) {
         <MetricBox label="Total XLM" value={`${data.totalXlm ?? "\u2014"} XLM`} />
         <MetricBox label="Available" value={`${data.available ?? "\u2014"} XLM`} />
       </div>
-      <div className="border-t border-border pt-2 space-y-1">
-        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 px-0.5">
+      <div className="space-y-1 border-border border-t pt-2">
+        <p className="mb-1 px-0.5 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
           Locked Breakdown
         </p>
         <Row label="Base Reserve" value={`${locked.baseReserve ?? 0} XLM`} />
@@ -288,7 +301,10 @@ function ClaimableView({ data, toolCallId }: { data: any; toolCallId?: string })
       <MetricBox label="Claimable" value={String(data.count ?? balances.length)} />
       <ScrollableList id={`claimable-${toolCallId}`} maxHeight={250}>
         {balances.map((b: any, i: number) => (
-          <div key={b.id ?? i} className="space-y-1 rounded-lg border border-border p-2.5 text-xs hover:bg-muted/20 transition-colors">
+          <div
+            key={b.id ?? i}
+            className="space-y-1 rounded-lg border border-border p-2.5 text-xs transition-colors hover:bg-muted/20"
+          >
             <Row label="Asset" value={b.asset} />
             <Row label="Amount" value={b.amount} />
             <Row label="Sponsor" value={truncateAddress(b.sponsor ?? "")} />
@@ -308,10 +324,17 @@ function OffersView({ data, toolCallId }: { data: any; toolCallId?: string }) {
       <MetricBox label="Open Orders" value={String(data.count ?? offers.length)} />
       <ScrollableList id={`offers-${toolCallId}`} maxHeight={250}>
         {offers.map((o: any, i: number) => (
-          <div key={o.id ?? i} className="space-y-1 rounded-lg border border-border p-2.5 text-xs hover:bg-muted/20 transition-colors">
+          <div
+            key={o.id ?? i}
+            className="space-y-1 rounded-lg border border-border p-2.5 text-xs transition-colors hover:bg-muted/20"
+          >
             <div className="flex justify-between">
-              <span>Sell <span className="font-medium">{o.selling}</span></span>
-              <span>Buy <span className="font-medium">{o.buying}</span></span>
+              <span>
+                Sell <span className="font-medium">{o.selling}</span>
+              </span>
+              <span>
+                Buy <span className="font-medium">{o.buying}</span>
+              </span>
             </div>
             <Row label="Amount" value={o.amount} />
             <Row label="Price" value={o.price} />
@@ -331,15 +354,22 @@ function TradesView({ data, toolCallId }: { data: any; toolCallId?: string }) {
       <MetricBox label="Trades" value={String(data.count ?? trades.length)} />
       <ScrollableList id={`trades-${toolCallId}`} maxHeight={250}>
         {trades.map((t: any, i: number) => (
-          <div key={t.id ?? i} className="space-y-1 rounded-lg border border-border p-2.5 text-xs hover:bg-muted/20 transition-colors">
+          <div
+            key={t.id ?? i}
+            className="space-y-1 rounded-lg border border-border p-2.5 text-xs transition-colors hover:bg-muted/20"
+          >
             <div className="flex justify-between">
-              <span>{t.baseAmount} {t.baseAsset}</span>
+              <span>
+                {t.baseAmount} {t.baseAsset}
+              </span>
               <span className="text-muted-foreground">{"\u2194"}</span>
-              <span>{t.counterAmount} {t.counterAsset}</span>
+              <span>
+                {t.counterAmount} {t.counterAsset}
+              </span>
             </div>
             {t.price && <Row label="Price" value={t.price} />}
             {t.createdAt && (
-              <div className="text-muted-foreground text-[10px]">
+              <div className="text-[10px] text-muted-foreground">
                 {new Date(t.createdAt).toLocaleDateString()}
               </div>
             )}
@@ -377,7 +407,10 @@ function PositionsView({ data, toolCallId }: { data: any; toolCallId?: string })
       <MetricBox label="Positions" value={String(data.count ?? positions.length)} />
       <ScrollableList id={`positions-${toolCallId}`} maxHeight={250}>
         {positions.map((p: any, i: number) => (
-          <div key={i} className="space-y-1 rounded-lg border border-border p-2.5 text-xs hover:bg-muted/20 transition-colors">
+          <div
+            key={i}
+            className="space-y-1 rounded-lg border border-border p-2.5 text-xs transition-colors hover:bg-muted/20"
+          >
             <div className="flex items-center gap-2">
               <ProtocolBadge name={p.protocol} />
               <span className="text-muted-foreground">{p.type}</span>
@@ -408,12 +441,15 @@ function SignersView({ data }: { data: any }) {
           <MetricBox label="High" value={String(data.thresholds.high)} />
         </div>
       )}
-      <div className="border-t border-border pt-2 space-y-1">
-        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 px-0.5">
+      <div className="space-y-1 border-border border-t pt-2">
+        <p className="mb-1 px-0.5 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
           Master Weight: {data.masterWeight}
         </p>
         {signers.map((s: any, i: number) => (
-          <div key={i} className="flex justify-between text-xs py-0.5 px-0.5 rounded hover:bg-muted/20 transition-colors">
+          <div
+            key={i}
+            className="flex justify-between rounded px-0.5 py-0.5 text-xs transition-colors hover:bg-muted/20"
+          >
             <span className="font-mono">{truncateAddress(s.key)}</span>
             <span className="text-muted-foreground">weight: {s.weight}</span>
           </div>
@@ -470,26 +506,54 @@ function BlendPositionView({ data, args }: { data: any; args?: Record<string, an
 
       {summary && (
         <div className="grid grid-cols-2 gap-1.5">
-          {summary.totalSuppliedUsd && <MetricBox label="Supplied" value={`$${formatNumber(Number(summary.totalSuppliedUsd))}`} />}
-          {summary.totalBorrowedUsd && <MetricBox label="Borrowed" value={`$${formatNumber(Number(summary.totalBorrowedUsd))}`} />}
-          {summary.availableBorrowUsd && <MetricBox label="Available" value={`$${formatNumber(Number(summary.availableBorrowUsd))}`} />}
-          {summary.healthFactor && <MetricBox label="Health" value={Number(summary.healthFactor).toFixed(2)} />}
+          {summary.totalSuppliedUsd && (
+            <MetricBox
+              label="Supplied"
+              value={`$${formatNumber(Number(summary.totalSuppliedUsd))}`}
+            />
+          )}
+          {summary.totalBorrowedUsd && (
+            <MetricBox
+              label="Borrowed"
+              value={`$${formatNumber(Number(summary.totalBorrowedUsd))}`}
+            />
+          )}
+          {summary.availableBorrowUsd && (
+            <MetricBox
+              label="Available"
+              value={`$${formatNumber(Number(summary.availableBorrowUsd))}`}
+            />
+          )}
+          {summary.healthFactor && (
+            <MetricBox label="Health" value={Number(summary.healthFactor).toFixed(2)} />
+          )}
         </div>
       )}
 
       {supplied.length > 0 && (
-        <div className="border-t border-border pt-2">
-          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 px-0.5">Supplied</p>
+        <div className="border-border border-t pt-2">
+          <p className="mb-1 px-0.5 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
+            Supplied
+          </p>
           {supplied.map((p, i) => (
-            <div key={i} className="flex items-center py-1.5 px-0.5 rounded hover:bg-muted/20 transition-colors">
-              <TokenImage src={null} alt={p.symbol ?? p.asset} className="h-5 w-5 rounded-full mr-2" />
-              <span className="text-xs font-medium flex-1">{p.symbol ?? p.asset}</span>
+            <div
+              key={i}
+              className="flex items-center rounded px-0.5 py-1.5 transition-colors hover:bg-muted/20"
+            >
+              <TokenImage
+                src={null}
+                alt={p.symbol ?? p.asset}
+                className="mr-2 h-5 w-5 rounded-full"
+              />
+              <span className="flex-1 font-medium text-xs">{p.symbol ?? p.asset}</span>
               {p.isCollateral && (
-                <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] mr-2">Collateral</span>
+                <span className="mr-2 rounded-md bg-muted px-1.5 py-0.5 text-[10px]">
+                  Collateral
+                </span>
               )}
               <span className="text-xs tabular-nums">{formatNumber(Number(p.suppliedAmount))}</span>
               {p.netApy != null && (
-                <span className="text-[10px] ml-2 tabular-nums text-muted-foreground">
+                <span className="ml-2 text-[10px] text-muted-foreground tabular-nums">
                   {formatPercent(p.netApy)}
                 </span>
               )}
@@ -499,15 +563,26 @@ function BlendPositionView({ data, args }: { data: any; args?: Record<string, an
       )}
 
       {borrowed.length > 0 && (
-        <div className="border-t border-border pt-2">
-          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 px-0.5">Borrowed</p>
+        <div className="border-border border-t pt-2">
+          <p className="mb-1 px-0.5 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
+            Borrowed
+          </p>
           {borrowed.map((p, i) => (
-            <div key={i} className="flex items-center py-1.5 px-0.5 rounded hover:bg-muted/20 transition-colors">
-              <TokenImage src={null} alt={p.symbol ?? p.asset} className="h-5 w-5 rounded-full mr-2" />
-              <span className="text-xs font-medium flex-1">{p.symbol ?? p.asset}</span>
+            <div
+              key={i}
+              className="flex items-center rounded px-0.5 py-1.5 transition-colors hover:bg-muted/20"
+            >
+              <TokenImage
+                src={null}
+                alt={p.symbol ?? p.asset}
+                className="mr-2 h-5 w-5 rounded-full"
+              />
+              <span className="flex-1 font-medium text-xs">{p.symbol ?? p.asset}</span>
               <span className="text-xs tabular-nums">{formatNumber(Number(p.borrowedAmount))}</span>
               {p.borrowApy != null && (
-                <span className="text-[10px] ml-2 tabular-nums text-muted-foreground">{formatPercent(p.borrowApy)}</span>
+                <span className="ml-2 text-[10px] text-muted-foreground tabular-nums">
+                  {formatPercent(p.borrowApy)}
+                </span>
               )}
             </div>
           ))}
@@ -533,12 +608,12 @@ function BlendBackstopBalanceView({ data }: { data: any }) {
       {data?.pool && <Row label="Pool" value={truncateAddress(String(data.pool))} />}
       {shares != null && <MetricBox label="Backstop Shares" value={String(shares)} />}
       {queued.length > 0 && (
-        <div className="border-t border-border pt-2">
-          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 px-0.5">
+        <div className="border-border border-t pt-2">
+          <p className="mb-1 px-0.5 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
             Queued Withdrawals ({queued.length})
           </p>
           {queued.map((q: any, i: number) => (
-            <div key={i} className="rounded-lg bg-secondary p-2.5 space-y-1 text-xs">
+            <div key={i} className="space-y-1 rounded-lg bg-secondary p-2.5 text-xs">
               <Row label="Amount" value={q.amountHuman ?? q.amount} />
               {q.expiration != null && <Row label="Expiration" value={String(q.expiration)} />}
             </div>
@@ -546,7 +621,7 @@ function BlendBackstopBalanceView({ data }: { data: any }) {
         </div>
       )}
       {queued.length === 0 && (
-        <div className="text-[10px] text-muted-foreground px-0.5">No queued withdrawals.</div>
+        <div className="px-0.5 text-[10px] text-muted-foreground">No queued withdrawals.</div>
       )}
     </div>
   );

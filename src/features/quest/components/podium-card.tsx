@@ -50,12 +50,12 @@ export function PodiumCard({ rank, walletAddress, volumeUsd }: PodiumCardProps) 
       data-testid={`podium-rank-${rank}`}
     >
       <Trophy className="h-8 w-8 text-foreground" />
-      <div className="text-3xl font-bold text-foreground">#{rank}</div>
-      <div className="font-mono text-sm text-muted-foreground">{shorten(walletAddress)}</div>
-      <div className="text-lg font-semibold text-foreground">{formatUsd(volumeUsd)}</div>
+      <div className="font-bold text-3xl text-foreground">#{rank}</div>
+      <div className="font-mono text-muted-foreground text-sm">{shorten(walletAddress)}</div>
+      <div className="font-semibold text-foreground text-lg">{formatUsd(volumeUsd)}</div>
       <span
         className={cn(
-          "rounded-full px-2.5 py-0.5 text-xs font-semibold",
+          "rounded-full px-2.5 py-0.5 font-semibold text-xs",
           tierStyle.bg,
           tierStyle.text
         )}

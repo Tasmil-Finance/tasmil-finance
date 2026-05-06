@@ -41,13 +41,13 @@ export function DefindexVaultDetailCard({ vault, mode = "playground" }: Props) {
 
       {/* Assets & Strategies */}
       {vault.assets && vault.assets.length > 0 && (
-        <div className="px-4 pb-3 space-y-2">
+        <div className="space-y-2 px-4 pb-3">
           <SectionLabel icon={<Coins className="h-3 w-3" />} title="Assets & Strategies" />
           {vault.assets.map((asset) => (
-            <div key={asset.address} className="rounded-lg bg-secondary/50 p-2.5 space-y-1.5">
+            <div key={asset.address} className="space-y-1.5 rounded-lg bg-secondary/50 p-2.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-foreground">{asset.symbol}</span>
-                <span className="text-[10px] text-muted-foreground/50 font-mono">
+                <span className="font-medium text-foreground text-xs">{asset.symbol}</span>
+                <span className="font-mono text-[10px] text-muted-foreground/50">
                   {trunc(asset.address)}
                 </span>
               </div>
@@ -59,10 +59,10 @@ export function DefindexVaultDetailCard({ vault, mode = "playground" }: Props) {
                       s.paused ? "bg-amber-400" : "bg-emerald-400"
                     )}
                   />
-                  <span className="text-[11px] text-muted-foreground flex-1 truncate">
+                  <span className="flex-1 truncate text-[11px] text-muted-foreground">
                     {s.name}
                   </span>
-                  <span className="text-[10px] text-muted-foreground/50 font-mono">
+                  <span className="font-mono text-[10px] text-muted-foreground/50">
                     {trunc(s.address)}
                   </span>
                 </div>
@@ -74,7 +74,7 @@ export function DefindexVaultDetailCard({ vault, mode = "playground" }: Props) {
 
       {/* Fund Breakdown */}
       {vault.totalManagedFunds && vault.totalManagedFunds.length > 0 && (
-        <div className="px-4 pb-3 space-y-2">
+        <div className="space-y-2 px-4 pb-3">
           <SectionLabel icon={<BarChart3 className="h-3 w-3" />} title="Fund Breakdown" />
           {vault.totalManagedFunds.map((fund) => {
             const total = Number(fund.total_amount) / 1e7;
@@ -83,12 +83,12 @@ export function DefindexVaultDetailCard({ vault, mode = "playground" }: Props) {
             const idlePct = total > 0 ? (idle / total) * 100 : 0;
 
             return (
-              <div key={fund.asset} className="rounded-lg bg-secondary/50 p-2.5 space-y-1.5">
+              <div key={fund.asset} className="space-y-1.5 rounded-lg bg-secondary/50 p-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-muted-foreground/50 font-mono">
+                  <span className="font-mono text-[10px] text-muted-foreground/50">
                     {trunc(fund.asset)}
                   </span>
-                  <span className="text-xs font-medium text-foreground tabular-nums">
+                  <span className="font-medium text-foreground text-xs tabular-nums">
                     {fmt(total)}
                   </span>
                 </div>
@@ -101,7 +101,7 @@ export function DefindexVaultDetailCard({ vault, mode = "playground" }: Props) {
                   />
                 </div>
                 {/* Allocation bar */}
-                <div className="h-1.5 w-full rounded-full bg-border overflow-hidden flex">
+                <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-border">
                   <div className="h-full bg-muted-foreground/30" style={{ width: `${idlePct}%` }} />
                   <div
                     className="h-full bg-emerald-400/60"
@@ -121,7 +121,7 @@ export function DefindexVaultDetailCard({ vault, mode = "playground" }: Props) {
                             sa.paused ? "bg-amber-400" : "bg-emerald-400"
                           )}
                         />
-                        <span className="text-muted-foreground/60 font-mono flex-1 truncate">
+                        <span className="flex-1 truncate font-mono text-muted-foreground/60">
                           {trunc(sa.strategy_address)}
                         </span>
                         <span className="text-muted-foreground tabular-nums">
@@ -139,9 +139,9 @@ export function DefindexVaultDetailCard({ vault, mode = "playground" }: Props) {
 
       {/* Roles */}
       {vault.roles && (
-        <div className="px-4 pb-3 space-y-2">
+        <div className="space-y-2 px-4 pb-3">
           <SectionLabel icon={<Shield className="h-3 w-3" />} title="Roles" />
-          <div className="rounded-lg bg-secondary/50 p-2.5 space-y-1">
+          <div className="space-y-1 rounded-lg bg-secondary/50 p-2.5">
             <RoleRow label="Manager" address={vault.roles.manager} />
             <RoleRow label="Emergency" address={vault.roles.emergencyManager} />
             <RoleRow label="Rebalance" address={vault.roles.rebalanceManager} />
@@ -156,14 +156,14 @@ export function DefindexVaultDetailCard({ vault, mode = "playground" }: Props) {
           <div className="flex items-center gap-3 text-[11px]">
             <span className="text-muted-foreground">
               Vault Fee:{" "}
-              <span className="text-foreground font-medium">
+              <span className="font-medium text-foreground">
                 {(vault.feesBps.vaultFee / 100).toFixed(2)}%
               </span>
             </span>
             <span className="text-muted-foreground/30">|</span>
             <span className="text-muted-foreground">
               DeFindex Fee:{" "}
-              <span className="text-foreground font-medium">
+              <span className="font-medium text-foreground">
                 {(vault.feesBps.defindexFee / 100).toFixed(2)}%
               </span>
             </span>
@@ -179,8 +179,8 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span
       className={cn(
-        "rounded-md px-1.5 py-px text-[10px] font-medium",
-        isOk ? "text-emerald-400 bg-emerald-400/10" : "text-amber-400 bg-amber-400/10"
+        "rounded-md px-1.5 py-px font-medium text-[10px]",
+        isOk ? "bg-emerald-400/10 text-emerald-400" : "bg-amber-400/10 text-amber-400"
       )}
     >
       {isOk ? "Active" : "Unavailable"}
@@ -192,7 +192,7 @@ function SectionLabel({ icon, title }: { icon: React.ReactNode; title: string })
   return (
     <div className="flex items-center gap-1.5">
       <span className="text-muted-foreground/60">{icon}</span>
-      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+      <span className="font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
         {title}
       </span>
     </div>
@@ -203,9 +203,9 @@ function MiniStat({ label, value, sub }: { label: string; value: string; sub?: s
   return (
     <div>
       <p className="text-[9px] text-muted-foreground/50 uppercase">{label}</p>
-      <p className="text-xs text-foreground tabular-nums">
+      <p className="text-foreground text-xs tabular-nums">
         {value}
-        {sub && <span className="text-muted-foreground/60 ml-1">({sub})</span>}
+        {sub && <span className="ml-1 text-muted-foreground/60">({sub})</span>}
       </p>
     </div>
   );
@@ -215,7 +215,7 @@ function RoleRow({ label, address }: { label: string; address: string }) {
   return (
     <div className="flex items-center justify-between py-0.5">
       <span className="text-[10px] text-muted-foreground">{label}</span>
-      <span className="text-[10px] text-muted-foreground/70 font-mono">{trunc(address, 8, 6)}</span>
+      <span className="font-mono text-[10px] text-muted-foreground/70">{trunc(address, 8, 6)}</span>
     </div>
   );
 }

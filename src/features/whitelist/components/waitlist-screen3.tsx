@@ -94,11 +94,11 @@ export function WaitlistScreen3({ submittedEmail }: WaitlistScreen3Props) {
       <ProgressStepper steps={steps} />
 
       {/* Wallet identity */}
-      <div className="rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 space-y-0.5">
-        <p className="text-sm font-semibold text-foreground leading-tight">
+      <div className="space-y-0.5 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3">
+        <p className="font-semibold text-foreground text-sm leading-tight">
           Registered as <span className="font-mono">{displayAddress}</span>
         </p>
-        <p className="text-xs text-muted-foreground leading-tight">Wallet verified.</p>
+        <p className="text-muted-foreground text-xs leading-tight">Wallet verified.</p>
       </div>
 
       {/* Stats */}
@@ -111,7 +111,7 @@ export function WaitlistScreen3({ submittedEmail }: WaitlistScreen3Props) {
             <Typography variant="h2" className="mt-0.5 font-bold">
               {status?.queueRank != null ? `#${String(status.queueRank)}` : "u2014"}
               {status?.totalEntries != null && status?.queueRank != null && (
-                <span className="ml-2 text-base font-normal text-muted-foreground">
+                <span className="ml-2 font-normal text-base text-muted-foreground">
                   of {status.totalEntries}
                 </span>
               )}
@@ -136,7 +136,7 @@ export function WaitlistScreen3({ submittedEmail }: WaitlistScreen3Props) {
           </Typography>
           {referralUrl ? (
             <div className="flex items-center gap-2">
-              <div className="min-w-0 flex-1 overflow-hidden text-ellipsis rounded-lg border border-border bg-background px-3 py-2 font-mono text-xs text-muted-foreground">
+              <div className="min-w-0 flex-1 overflow-hidden text-ellipsis rounded-lg border border-border bg-background px-3 py-2 font-mono text-muted-foreground text-xs">
                 {referralUrl}
               </div>
               <Button size="icon" variant="outline" onClick={handleCopy} className="shrink-0">
@@ -151,7 +151,7 @@ export function WaitlistScreen3({ submittedEmail }: WaitlistScreen3Props) {
               </Button>
             </div>
           ) : (
-            <div className="rounded-lg border border-border bg-background px-3 py-2 font-mono text-xs text-muted-foreground italic">
+            <div className="rounded-lg border border-border bg-background px-3 py-2 font-mono text-muted-foreground text-xs italic">
               Referral link will appear after registration sync completes.
             </div>
           )}

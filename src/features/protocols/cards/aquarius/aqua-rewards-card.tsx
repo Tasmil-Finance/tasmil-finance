@@ -41,7 +41,7 @@ export function AquaRewardsCard({ data, mode = "playground" }: AquaRewardsCardCo
       >
         <div className="space-y-1.5">
           {data.totalDailyReward != null && (
-            <div className="flex justify-between text-sm font-medium mb-2">
+            <div className="mb-2 flex justify-between font-medium text-sm">
               <span className="text-muted-foreground">Total Daily</span>
               <span className="text-emerald-400">{fmt(data.totalDailyReward)} AQUA</span>
             </div>
@@ -70,7 +70,7 @@ export function AquaRewardsCard({ data, mode = "playground" }: AquaRewardsCardCo
         title="AQUA Daily Rewards"
         right={
           data.totalDailyReward != null ? (
-            <span className="text-xs font-medium text-emerald-400">
+            <span className="font-medium text-emerald-400 text-xs">
               {fmt(data.totalDailyReward)} AQUA/day
             </span>
           ) : undefined
@@ -79,24 +79,24 @@ export function AquaRewardsCard({ data, mode = "playground" }: AquaRewardsCardCo
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
-            <tr className="text-muted-foreground/60 border-b border-border">
-              <th className="text-left py-1.5 px-4 font-medium">Pair</th>
-              <th className="text-right py-1.5 px-2 font-medium">AMM</th>
-              <th className="text-right py-1.5 px-2 font-medium">SDEX</th>
-              <th className="text-right py-1.5 px-4 font-medium">Total</th>
+            <tr className="border-border border-b text-muted-foreground/60">
+              <th className="px-4 py-1.5 text-left font-medium">Pair</th>
+              <th className="px-2 py-1.5 text-right font-medium">AMM</th>
+              <th className="px-2 py-1.5 text-right font-medium">SDEX</th>
+              <th className="px-4 py-1.5 text-right font-medium">Total</th>
             </tr>
           </thead>
           <tbody>
             {rewards.slice(0, 20).map((r) => (
-              <tr key={r.pair} className="border-b border-border/50 hover:bg-muted/20">
-                <td className="py-1.5 px-4 text-foreground font-medium">{r.pair}</td>
-                <td className="py-1.5 px-2 text-right tabular-nums text-muted-foreground">
+              <tr key={r.pair} className="border-border/50 border-b hover:bg-muted/20">
+                <td className="px-4 py-1.5 font-medium text-foreground">{r.pair}</td>
+                <td className="px-2 py-1.5 text-right text-muted-foreground tabular-nums">
                   {fmt(r.dailyAmmReward)}
                 </td>
-                <td className="py-1.5 px-2 text-right tabular-nums text-muted-foreground">
+                <td className="px-2 py-1.5 text-right text-muted-foreground tabular-nums">
                   {fmt(r.dailySdexReward)}
                 </td>
-                <td className="py-1.5 px-4 text-right tabular-nums text-emerald-400 font-medium">
+                <td className="px-4 py-1.5 text-right font-medium text-emerald-400 tabular-nums">
                   {fmt(r.dailyTotalReward)}
                 </td>
               </tr>

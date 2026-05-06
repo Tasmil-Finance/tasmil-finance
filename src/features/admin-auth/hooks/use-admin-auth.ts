@@ -38,7 +38,7 @@ export function useAdminAuth() {
 
       setAuth(data.accessToken, data.admin);
       return { success: true, accessToken: data.accessToken, admin: data.admin };
-    } catch (err) {
+    } catch (_err) {
       setError("Network error. Please try again.");
       return { success: false, message: "Network error" };
     } finally {

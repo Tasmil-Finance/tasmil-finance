@@ -1,10 +1,10 @@
 "use client";
 
-import { EarnDiscoveryCard } from "@/features/chat/actions/components/stellar/earn-discovery-card";
 import { AccountInfoCard } from "@/features/chat/actions/components/stellar/account-info-card";
-import { BridgeDiscoveryCard } from "@/features/chat/actions/components/stellar/bridge-discovery-card";
-import { StrategyPresetCard } from "@/features/chat/actions/components/stellar/strategy-preset-card";
 import { AccountSetupCard } from "@/features/chat/actions/components/stellar/account-setup-card";
+import { BridgeDiscoveryCard } from "@/features/chat/actions/components/stellar/bridge-discovery-card";
+import { EarnDiscoveryCard } from "@/features/chat/actions/components/stellar/earn-discovery-card";
+import { StrategyPresetCard } from "@/features/chat/actions/components/stellar/strategy-preset-card";
 
 // ─── Mock Data ───────────────────────────────────────────────────
 
@@ -207,7 +207,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function CardWrapper({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1">
-      <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{label}</span>
+      <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+        {label}
+      </span>
       <div className="max-w-[360px]">{children}</div>
     </div>
   );
@@ -221,7 +223,8 @@ export default function ChatCardsPlaygroundPage() {
       <div>
         <h1 className="text-xl font-bold">Chat Cards Playground</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Preview AI chat tool result cards with mock data. Test happy paths, empty states, and edge cases.
+          Preview AI chat tool result cards with mock data. Test happy paths, empty states, and edge
+          cases.
         </p>
       </div>
 

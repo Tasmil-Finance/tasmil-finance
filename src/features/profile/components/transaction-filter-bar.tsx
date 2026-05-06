@@ -49,23 +49,23 @@ export function TransactionFilterBar({ value, onChange }: Props) {
           type="button"
           onClick={() => toggle(c.value)}
           className={cn(
-            "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+            "rounded-full border px-3 py-1 font-medium text-xs transition-colors",
             isActive(c.value)
               ? "border-primary/40 bg-primary/10 text-primary"
-              : "border-border/60 bg-card text-muted-foreground hover:text-foreground",
+              : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
           )}
         >
           {c.label}
         </button>
       ))}
-      <div className="ml-auto relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+      <div className="relative ml-auto">
+        <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-3.5 w-3.5 text-muted-foreground" />
         <input
           type="text"
           placeholder="Search hash or address"
           value={value.query}
           onChange={(e) => onChange({ ...value, query: e.target.value })}
-          className="rounded-full border border-border/60 bg-card pl-8 pr-3 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none"
+          className="rounded-full border border-border/60 bg-card py-1 pr-3 pl-8 text-foreground text-xs placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none"
         />
       </div>
     </div>

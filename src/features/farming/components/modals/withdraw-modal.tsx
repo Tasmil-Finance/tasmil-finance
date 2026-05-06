@@ -39,16 +39,16 @@ export function WithdrawModal({
     <div className="space-y-4 pt-3">
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-lg border border-border bg-muted/10 p-3">
-          <p className="text-xs text-muted-foreground">Available (instant)</p>
-          <p className="text-lg font-semibold text-foreground">{formatUsd(availableUsd)}</p>
+          <p className="text-muted-foreground text-xs">Available (instant)</p>
+          <p className="font-semibold text-foreground text-lg">{formatUsd(availableUsd)}</p>
         </div>
         <div className="rounded-lg border border-border bg-muted/10 p-3">
-          <p className="text-xs text-muted-foreground">Locked (backstop)</p>
-          <p className="text-lg font-semibold text-foreground">{formatUsd(lockedUsd)}</p>
+          <p className="text-muted-foreground text-xs">Locked (backstop)</p>
+          <p className="font-semibold text-foreground text-lg">{formatUsd(lockedUsd)}</p>
         </div>
       </div>
       <div className="space-y-2">
-        <label htmlFor={inputId} className="block text-xs text-muted-foreground">
+        <label htmlFor={inputId} className="block text-muted-foreground text-xs">
           Withdraw amount (USD)
         </label>
         <div className="flex gap-2">

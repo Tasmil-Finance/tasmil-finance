@@ -173,7 +173,7 @@ export function AssistantMessage({
   return (
     <div className="group mr-auto flex w-full flex-col items-start gap-2 overflow-hidden md:flex-row md:gap-3">
       <div className="w-10 shrink-0">{!hideAvatar && <AgentAvatar />}</div>
-      <div className="flex min-w-0 w-full flex-1 flex-col gap-1">
+      <div className="flex w-full min-w-0 flex-1 flex-col gap-1">
         {isToolResult ? (
           <>
             <ToolResult message={message} />

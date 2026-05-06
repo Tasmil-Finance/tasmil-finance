@@ -23,7 +23,7 @@ export function AdminShell({ children, title }: AdminShellProps) {
   }
 
   return (
-    <div className="hidden lg:flex h-screen w-full overflow-hidden bg-background">
+    <div className="hidden h-screen w-full overflow-hidden bg-background lg:flex">
       <AdminSidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <AdminHeader title={title} />

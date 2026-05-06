@@ -34,7 +34,7 @@ function renderSwapAmounts(primary: DecodedOp) {
   return (
     <div
       data-testid="primary-amount"
-      className="flex items-center gap-2 text-sm font-semibold leading-none"
+      className="flex items-center gap-2 font-semibold text-sm leading-none"
     >
       <span className="text-destructive">{signedAmount(formatAmount(src.amount), false)}</span>
       <TokenImage alt={src.code} className="h-5 w-5 rounded-full text-[10px]" />
@@ -54,10 +54,7 @@ function renderSingleAmount(primary: DecodedOp) {
   return (
     <div
       data-testid="primary-amount"
-      className={cn(
-        "flex items-center gap-2 text-sm font-semibold leading-none",
-        colour
-      )}
+      className={cn("flex items-center gap-2 font-semibold text-sm leading-none", colour)}
     >
       <span>{signedAmount(formatAmount(delta.amount), delta.isCredit)}</span>
       <TokenImage alt={delta.code} className="h-5 w-5 rounded-full text-[10px]" />
@@ -102,16 +99,16 @@ export function TransactionRow({ group, address: _address }: TransactionRowProps
             <Icon className={cn("h-[15px] w-[15px]", style.fg)} />
           </div>
 
-          <div className="min-w-0 w-44 shrink-0">
-            <p className="truncate text-sm font-medium text-foreground">
+          <div className="w-44 min-w-0 shrink-0">
+            <p className="truncate font-medium text-foreground text-sm">
               {style.label}
               {moreOps > 0 && (
-                <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                <span className="ml-1.5 font-normal text-muted-foreground text-xs">
                   + {moreOps} ops
                 </span>
               )}
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               {subLabel ? `${subLabel} · ` : ""}
               {formatTime(group.createdAt)}
             </p>

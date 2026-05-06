@@ -1,6 +1,6 @@
-import { test, expect } from "../fixtures/chat.fixture";
+import { expect, test } from "../fixtures/chat.fixture";
+import { assertToolCalled, getLatestTrace } from "../helpers/langsmith";
 import { ALLBRIDGE_TESTS } from "../helpers/test-prompts";
-import { getLatestTrace, assertToolCalled } from "../helpers/langsmith";
 
 test.describe("Allbridge Cross-Chain Bridge", () => {
   test.describe.configure({ mode: "serial" });

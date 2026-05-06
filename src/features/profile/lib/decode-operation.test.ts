@@ -148,13 +148,27 @@ describe("decodeOperation — Soroban via asset_balance_changes", () => {
       type: "invoke_host_function",
       function: "HostFunctionTypeHostFunctionTypeInvokeContract",
       asset_balance_changes: [
-        { type: "transfer", from: OTHER, to: ADDR, amount: "12345678", asset_type: "credit_alphanum4", asset_issuer: "CC_USDC", asset_code: "USDC" },
+        {
+          type: "transfer",
+          from: OTHER,
+          to: ADDR,
+          amount: "12345678",
+          asset_type: "credit_alphanum4",
+          asset_issuer: "CC_USDC",
+          asset_code: "USDC",
+        },
       ],
     });
     const r = decodeOperation(op, ADDR, meta);
     expect(r.kind).toBe("receive");
     expect(r.deltas).toEqual([
-      { code: "USDC", amount: "1.2345678", isCredit: true, issuer: "CC_USDC", contractId: "CC_USDC" },
+      {
+        code: "USDC",
+        amount: "1.2345678",
+        isCredit: true,
+        issuer: "CC_USDC",
+        contractId: "CC_USDC",
+      },
     ]);
   });
 
@@ -162,7 +176,15 @@ describe("decodeOperation — Soroban via asset_balance_changes", () => {
     const op = base({
       type: "invoke_host_function",
       asset_balance_changes: [
-        { type: "transfer", from: ADDR, to: OTHER, amount: "10000000", asset_type: "credit_alphanum4", asset_issuer: "CC_USDC", asset_code: "USDC" },
+        {
+          type: "transfer",
+          from: ADDR,
+          to: OTHER,
+          amount: "10000000",
+          asset_type: "credit_alphanum4",
+          asset_issuer: "CC_USDC",
+          asset_code: "USDC",
+        },
       ],
     });
     const r = decodeOperation(op, ADDR, meta);
@@ -175,7 +197,15 @@ describe("decodeOperation — Soroban via asset_balance_changes", () => {
       type: "invoke_host_function",
       asset_balance_changes: [
         { type: "transfer", from: ADDR, to: "C_ROUTER", amount: "100000000", asset_type: "native" },
-        { type: "transfer", from: "C_ROUTER", to: ADDR, amount: "23500000", asset_type: "credit_alphanum4", asset_issuer: "CC_USDC", asset_code: "USDC" },
+        {
+          type: "transfer",
+          from: "C_ROUTER",
+          to: ADDR,
+          amount: "23500000",
+          asset_type: "credit_alphanum4",
+          asset_issuer: "CC_USDC",
+          asset_code: "USDC",
+        },
       ],
     });
     const r = decodeOperation(op, ADDR, meta);
@@ -190,7 +220,15 @@ describe("decodeOperation — Soroban via asset_balance_changes", () => {
     const op = base({
       type: "invoke_host_function",
       asset_balance_changes: [
-        { type: "transfer", from: ADDR, to: "CDF37Z2B5JDF5UB3I3Y3COFTH3I3JF3ECKKIXDZBOUAVEO7LN5LH2SXN", amount: "1000000", asset_type: "credit_alphanum4", asset_code: "USDC", asset_issuer: "CC_USDC" },
+        {
+          type: "transfer",
+          from: ADDR,
+          to: "CDF37Z2B5JDF5UB3I3Y3COFTH3I3JF3ECKKIXDZBOUAVEO7LN5LH2SXN",
+          amount: "1000000",
+          asset_type: "credit_alphanum4",
+          asset_code: "USDC",
+          asset_issuer: "CC_USDC",
+        },
       ],
     });
     const orig = process.env.NEXT_PUBLIC_STELLAR_NETWORK;
@@ -211,7 +249,11 @@ describe("decodeOperation — Soroban via asset_balance_changes", () => {
   });
 
   it("falls back to contract-other when balance changes are empty", () => {
-    const op = base({ type: "invoke_host_function", function: "do_thing", asset_balance_changes: [] });
+    const op = base({
+      type: "invoke_host_function",
+      function: "do_thing",
+      asset_balance_changes: [],
+    });
     const r = decodeOperation(op, ADDR, meta);
     expect(r.kind).toBe("contract-other");
     expect(r.rawFnName).toBe("do_thing");
@@ -224,7 +266,15 @@ describe("decodeOperation — Soroban via asset_balance_changes", () => {
       type: "invoke_host_function",
       function: "harvest",
       asset_balance_changes: [
-        { type: "transfer", from: OTHER, to: ADDR, amount: "5000000", asset_type: "credit_alphanum4", asset_issuer: "CC_BLND", asset_code: "BLND" },
+        {
+          type: "transfer",
+          from: OTHER,
+          to: ADDR,
+          amount: "5000000",
+          asset_type: "credit_alphanum4",
+          asset_issuer: "CC_BLND",
+          asset_code: "BLND",
+        },
       ],
     });
     const r = decodeOperation(op, ADDR, meta);
@@ -235,7 +285,15 @@ describe("decodeOperation — Soroban via asset_balance_changes", () => {
     const op = base({
       type: "invoke_host_function",
       asset_balance_changes: [
-        { type: "transfer", from: OTHER, to: ADDR, amount: "10000000", asset_type: "credit_alphanum4", asset_issuer: "CC_UNKNOWN", asset_code: "FOO" },
+        {
+          type: "transfer",
+          from: OTHER,
+          to: ADDR,
+          amount: "10000000",
+          asset_type: "credit_alphanum4",
+          asset_issuer: "CC_UNKNOWN",
+          asset_code: "FOO",
+        },
       ],
     });
     const r = decodeOperation(op, ADDR, () => undefined);

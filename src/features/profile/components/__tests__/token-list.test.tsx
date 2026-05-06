@@ -1,7 +1,7 @@
 import { act, render, screen } from "@testing-library/react";
 import { useWatchList } from "@/store/use-watch-list";
-import { TokenList } from "../token-list";
 import type { WalletToken } from "../../hooks/use-wallet-tokens";
+import { TokenList } from "../token-list";
 
 // Heavy children that do their own data fetching aren't relevant to this test.
 jest.mock("../add-asset-dialog", () => ({ AddAssetDialog: () => null }));

@@ -45,18 +45,18 @@ export function SoroswapPoolsCard({ pools, mode = "playground" }: SoroswapPoolsC
         <CardHeader
           icon={<ArrowRightLeft className="h-3.5 w-3.5" />}
           title="Soroswap Pools"
-          right={<span className="text-xs text-muted-foreground">{pools.length}</span>}
+          right={<span className="text-muted-foreground text-xs">{pools.length}</span>}
         />
       )}
       {pools.map((pool, i) => {
         const isOpen = open.has(i);
         const label = `${pool.tokenA} / ${pool.tokenB}`;
         return (
-          <div key={pool.address || i} className={cn(i > 0 && "border-t border-border")}>
+          <div key={pool.address || i} className={cn(i > 0 && "border-border border-t")}>
             <button
               type="button"
               onClick={() => flip(i)}
-              className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-muted/30 transition-colors"
+              className="flex w-full items-center gap-2 px-4 py-2.5 transition-colors hover:bg-muted/30"
             >
               <ChevronDown
                 className={cn(
@@ -64,7 +64,7 @@ export function SoroswapPoolsCard({ pools, mode = "playground" }: SoroswapPoolsC
                   isOpen && "rotate-180"
                 )}
               />
-              <span className="text-[13px] font-medium text-foreground flex-1 text-left truncate">
+              <span className="flex-1 truncate text-left font-medium text-[13px] text-foreground">
                 {label}
               </span>
               {pool.protocol && <Tag type={pool.protocol} />}
@@ -94,7 +94,7 @@ export function SoroswapPoolsCard({ pools, mode = "playground" }: SoroswapPoolsC
 
 function PoolDetail({ pool }: { pool: SoroswapPoolCardProps }) {
   return (
-    <div className="pb-2 px-4 space-y-1.5">
+    <div className="space-y-1.5 px-4 pb-2">
       <div className="space-y-1">
         {[
           { sym: pool.tokenA, reserve: pool.reserveA },
@@ -102,7 +102,7 @@ function PoolDetail({ pool }: { pool: SoroswapPoolCardProps }) {
         ].map((t) => (
           <div key={t.sym} className="flex items-center gap-2.5 py-1 pl-5">
             <TokenImage src={null} alt={t.sym} className="h-5 w-5 rounded-full" />
-            <span className="text-xs font-medium text-foreground w-14">{t.sym}</span>
+            <span className="w-14 font-medium text-foreground text-xs">{t.sym}</span>
             {t.reserve != null && (
               <span className="text-[11px] text-muted-foreground tabular-nums">
                 {fmt(Number(t.reserve) / 1e7)}

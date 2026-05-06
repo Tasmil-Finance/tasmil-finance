@@ -35,11 +35,11 @@ function MiniStat({
 }) {
   return (
     <div className="rounded-lg border border-border bg-background p-3">
-      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className={cn("text-xl font-bold leading-tight mt-0.5", valueColor ?? "text-foreground")}>
+      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</p>
+      <p className={cn("mt-0.5 font-bold text-xl leading-tight", valueColor ?? "text-foreground")}>
         {value}
       </p>
-      {sub && <p className="text-[10px] text-muted-foreground mt-0.5">{sub}</p>}
+      {sub && <p className="mt-0.5 text-[10px] text-muted-foreground">{sub}</p>}
     </div>
   );
 }
@@ -55,7 +55,7 @@ function KpiBadge({ label, variant }: { label: string; variant: "green" | "blue"
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold mt-1",
+        "mt-1 inline-flex items-center rounded px-1.5 py-0.5 font-semibold text-[10px]",
         cls
       )}
     >
@@ -76,11 +76,11 @@ function KpiCard({
   badge?: { label: string; variant: "green" | "blue" | "amber" };
 }) {
   return (
-    <Card className="border-t-2 border-t-blue-500/60 border-border bg-card">
+    <Card className="border-border border-t-2 border-t-blue-500/60 bg-card">
       <CardContent className="p-4">
-        <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">{label}</p>
-        <p className="text-2xl font-bold leading-none">{value}</p>
-        <p className="text-[11px] text-muted-foreground mt-1">{sub}</p>
+        <p className="mb-1 text-[10px] text-muted-foreground uppercase tracking-widest">{label}</p>
+        <p className="font-bold text-2xl leading-none">{value}</p>
+        <p className="mt-1 text-[11px] text-muted-foreground">{sub}</p>
         {badge && <KpiBadge label={badge.label} variant={badge.variant} />}
       </CardContent>
     </Card>
@@ -164,10 +164,10 @@ function GrowthChart({ data }: { data: Array<{ date: string; count: number }> })
     <Card className="border-border bg-card">
       <CardContent className="p-6">
         <div className="mb-4">
-          <Typography variant="h3" className="text-base font-semibold">
+          <Typography variant="h3" className="font-semibold text-base">
             Signups Over Time
           </Typography>
-          <Typography variant="p" className="text-xs text-muted-foreground">
+          <Typography variant="p" className="text-muted-foreground text-xs">
             Daily wallet registrations u2014 last 30 days
           </Typography>
         </div>
@@ -271,10 +271,10 @@ function ConversionFunnel({
     <Card className="border-border bg-card">
       <CardContent className="p-6">
         <div className="mb-4">
-          <Typography variant="h3" className="text-base font-semibold">
+          <Typography variant="h3" className="font-semibold text-base">
             Conversion Funnel
           </Typography>
-          <Typography variant="p" className="text-xs text-muted-foreground">
+          <Typography variant="p" className="text-muted-foreground text-xs">
             Wallet u2192 Email u2192 Access progression
           </Typography>
         </div>
@@ -294,7 +294,7 @@ function ConversionFunnel({
                     )}
                     style={{ width: `${Math.max(step.pct, 4)}%` }}
                   >
-                    <span className="text-[11px] font-semibold text-white">
+                    <span className="font-semibold text-[11px] text-white">
                       {step.count.toLocaleString()}
                     </span>
                   </div>
@@ -356,10 +356,10 @@ function EmailDelivery({
     <Card className="border-border bg-card">
       <CardContent className="p-6">
         <div className="mb-4">
-          <Typography variant="h3" className="text-base font-semibold">
+          <Typography variant="h3" className="font-semibold text-base">
             Email Delivery
           </Typography>
-          <Typography variant="p" className="text-xs text-muted-foreground">
+          <Typography variant="p" className="text-muted-foreground text-xs">
             Confirmation &amp; access email status
           </Typography>
         </div>
@@ -432,10 +432,10 @@ function ReferralPerformance({
     <Card className="border-border bg-card">
       <CardContent className="p-6">
         <div className="mb-4">
-          <Typography variant="h3" className="text-base font-semibold">
+          <Typography variant="h3" className="font-semibold text-base">
             Referral Performance
           </Typography>
-          <Typography variant="p" className="text-xs text-muted-foreground">
+          <Typography variant="p" className="text-muted-foreground text-xs">
             Viral growth metrics
           </Typography>
         </div>
@@ -459,19 +459,19 @@ function ReferralPerformance({
           />
         </div>
         {preview.length > 0 && (
-          <div className="space-y-2 border-t border-border pt-3">
-            <p className="mb-2 text-[10px] uppercase tracking-wide text-muted-foreground">
+          <div className="space-y-2 border-border border-t pt-3">
+            <p className="mb-2 text-[10px] text-muted-foreground uppercase tracking-wide">
               Top Referrers Preview
             </p>
             {preview.map((r, i) => (
               <div key={r.walletAddress} className="flex items-center gap-2">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-[10px] text-primary">
                   {i + 1}
                 </span>
                 <span className="flex-1 font-mono text-[11px] text-muted-foreground">
                   {r.walletAddress.slice(0, 4)}...{r.walletAddress.slice(-4)}
                 </span>
-                <span className="text-xs font-semibold text-primary">{r.referralCount}</span>
+                <span className="font-semibold text-primary text-xs">{r.referralCount}</span>
               </div>
             ))}
           </div>
@@ -499,15 +499,15 @@ function TopReferrers({
     <Card className="border-border bg-card">
       <CardContent className="p-6">
         <div className="mb-4">
-          <Typography variant="h3" className="text-base font-semibold">
+          <Typography variant="h3" className="font-semibold text-base">
             Top Referrers
           </Typography>
-          <Typography variant="p" className="text-xs text-muted-foreground">
+          <Typography variant="p" className="text-muted-foreground text-xs">
             Top 10 by successful referral count
           </Typography>
         </div>
         {referrers.length === 0 ? (
-          <p className="py-4 text-center text-sm text-muted-foreground">No referrals yet</p>
+          <p className="py-4 text-center text-muted-foreground text-sm">No referrals yet</p>
         ) : (
           <div className="divide-y divide-border">
             {referrers.map((r, i) => {
@@ -516,7 +516,7 @@ function TopReferrers({
                 <div key={r.walletAddress} className="flex items-center gap-3 py-2.5">
                   <span
                     className={cn(
-                      "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold",
+                      "flex h-5 w-5 shrink-0 items-center justify-center rounded-full font-bold text-[10px]",
                       style.bg,
                       style.text
                     )}
@@ -534,7 +534,7 @@ function TopReferrers({
                   </div>
                   <div className="flex shrink-0 items-center gap-1">
                     <TrendingUp className="h-3 w-3 text-primary" />
-                    <span className="text-xs font-semibold text-primary">{r.referralCount}</span>
+                    <span className="font-semibold text-primary text-xs">{r.referralCount}</span>
                   </div>
                 </div>
               );
@@ -574,10 +574,10 @@ function CampaignsSection({
     <Card className="border-border bg-card">
       <CardContent className="p-6">
         <div className="mb-4">
-          <Typography variant="h3" className="text-base font-semibold">
+          <Typography variant="h3" className="font-semibold text-base">
             Campaigns
           </Typography>
-          <Typography variant="p" className="text-xs text-muted-foreground">
+          <Typography variant="p" className="text-muted-foreground text-xs">
             Access email campaign runs
           </Typography>
         </div>
@@ -589,10 +589,10 @@ function CampaignsSection({
         {recentCampaign && (
           <div className="rounded-lg border border-border bg-background p-3">
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-[11px] font-semibold">{recentCampaign.name}</span>
+              <span className="font-semibold text-[11px]">{recentCampaign.name}</span>
               <span
                 className={cn(
-                  "rounded px-2 py-0.5 text-[10px] font-semibold",
+                  "rounded px-2 py-0.5 font-semibold text-[10px]",
                   statusColor[recentCampaign.status] ?? "bg-muted text-muted-foreground"
                 )}
               >
@@ -601,15 +601,15 @@ function CampaignsSection({
             </div>
             <div className="grid grid-cols-3 gap-2 text-center">
               <div>
-                <p className="text-base font-bold">{recentCampaign.targetedCount}</p>
+                <p className="font-bold text-base">{recentCampaign.targetedCount}</p>
                 <p className="text-[9px] text-muted-foreground">Targeted</p>
               </div>
               <div>
-                <p className="text-base font-bold text-green-400">{recentCampaign.sentCount}</p>
+                <p className="font-bold text-base text-green-400">{recentCampaign.sentCount}</p>
                 <p className="text-[9px] text-muted-foreground">Sent</p>
               </div>
               <div>
-                <p className="text-base font-bold text-red-400">{recentCampaign.failedCount}</p>
+                <p className="font-bold text-base text-red-400">{recentCampaign.failedCount}</p>
                 <p className="text-[9px] text-muted-foreground">Failed</p>
               </div>
             </div>
@@ -660,7 +660,7 @@ export default function AdminDashboardPage() {
   return (
     <div className="space-y-6 p-8">
       <div>
-        <Typography variant="h1" className="text-3xl font-bold">
+        <Typography variant="h1" className="font-bold text-3xl">
           Waitlist Dashboard
         </Typography>
         <Typography variant="p" className="mt-1 text-muted-foreground">

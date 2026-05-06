@@ -24,31 +24,34 @@ export function TransactionDetailPanel({ group }: Props) {
   const { feeChargedStroops, memo, memoType, ledger } = group.attrs;
 
   return (
-    <div data-testid="tx-detail-panel" className="border-t border-border/40 bg-muted/10 px-5 py-4 text-xs">
+    <div
+      data-testid="tx-detail-panel"
+      className="border-border/40 border-t bg-muted/10 px-5 py-4 text-xs"
+    >
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
-        <dt className="font-semibold uppercase tracking-wider text-muted-foreground">Tx Hash</dt>
+        <dt className="font-semibold text-muted-foreground uppercase tracking-wider">Tx Hash</dt>
         <dd className="flex items-center gap-2">
-          <code className="font-mono break-all text-foreground">{group.txHash}</code>
+          <code className="break-all font-mono text-foreground">{group.txHash}</code>
           <CopyButton text={group.txHash} />
           <a
             href={explorerUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary hover:underline whitespace-nowrap"
+            className="whitespace-nowrap text-primary hover:underline"
           >
             View ↗
           </a>
         </dd>
 
-        <dt className="font-semibold uppercase tracking-wider text-muted-foreground">Time</dt>
+        <dt className="font-semibold text-muted-foreground uppercase tracking-wider">Time</dt>
         <dd className="text-foreground">{new Date(group.createdAt).toISOString()}</dd>
 
-        <dt className="font-semibold uppercase tracking-wider text-muted-foreground">Fee</dt>
+        <dt className="font-semibold text-muted-foreground uppercase tracking-wider">Fee</dt>
         <dd className="text-foreground">{formatFeeXlm(feeChargedStroops)}</dd>
 
         {ledger !== undefined && (
           <>
-            <dt className="font-semibold uppercase tracking-wider text-muted-foreground">Ledger</dt>
+            <dt className="font-semibold text-muted-foreground uppercase tracking-wider">Ledger</dt>
             <dd className="text-foreground">
               <a
                 href={`${explorerLedgerBase}/ledger/${ledger}`}
@@ -64,7 +67,7 @@ export function TransactionDetailPanel({ group }: Props) {
 
         {memo && (
           <>
-            <dt className="font-semibold uppercase tracking-wider text-muted-foreground">Memo</dt>
+            <dt className="font-semibold text-muted-foreground uppercase tracking-wider">Memo</dt>
             <dd className="break-all text-foreground">
               {memo}
               {memoType ? ` (${memoType})` : ""}
@@ -72,7 +75,7 @@ export function TransactionDetailPanel({ group }: Props) {
           </>
         )}
 
-        <dt className="font-semibold uppercase tracking-wider text-muted-foreground">Operations</dt>
+        <dt className="font-semibold text-muted-foreground uppercase tracking-wider">Operations</dt>
         <dd className="flex flex-col gap-1">
           {group.ops.map((o) => {
             const style = getIconStyle(o.kind, o.successful);
@@ -80,16 +83,11 @@ export function TransactionDetailPanel({ group }: Props) {
               <div key={o.id} className="flex items-center gap-2 text-foreground">
                 <span className="font-medium">{style.label}</span>
                 {o.deltas.map((d, i) => (
-                  <span
-                    key={i}
-                    className={d.isCredit ? "text-emerald-400" : "text-destructive"}
-                  >
+                  <span key={i} className={d.isCredit ? "text-emerald-400" : "text-destructive"}>
                     {signedAmount(formatAmount(d.amount), d.isCredit)} {d.code}
                   </span>
                 ))}
-                {o.protocol && (
-                  <span className="text-muted-foreground">· {o.protocol}</span>
-                )}
+                {o.protocol && <span className="text-muted-foreground">· {o.protocol}</span>}
               </div>
             );
           })}

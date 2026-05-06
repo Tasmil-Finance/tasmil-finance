@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { TransactionFilterBar, type FilterState } from "../transaction-filter-bar";
+import { type FilterState, TransactionFilterBar } from "../transaction-filter-bar";
 
 describe("<TransactionFilterBar>", () => {
   it("renders chip per category", () => {
@@ -17,7 +17,7 @@ describe("<TransactionFilterBar>", () => {
         onChange={(s) => {
           state = s;
         }}
-      />,
+      />
     );
     fireEvent.click(screen.getByRole("button", { name: "Swap" }));
     expect(state.filters).toEqual(["swap"]);
@@ -31,7 +31,7 @@ describe("<TransactionFilterBar>", () => {
         onChange={(s) => {
           state = s;
         }}
-      />,
+      />
     );
     fireEvent.change(screen.getByPlaceholderText(/search/i), { target: { value: "abc" } });
     expect(state.query).toBe("abc");
