@@ -43,7 +43,7 @@ export function AssetPicker({ value, onChange, excludeKeys, disabled }: AssetPic
         <button
           type="button"
           disabled={disabled}
-          className="flex h-10 w-full items-center justify-between gap-2 rounded-md border border-border bg-background px-3 text-sm outline-none transition-colors hover:bg-muted/30 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-10 w-full items-center justify-between gap-2 rounded-md border border-border bg-transparent px-3 text-sm outline-none transition-colors hover:bg-muted/30 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {value ? (
             <span className="flex min-w-0 items-center gap-2">

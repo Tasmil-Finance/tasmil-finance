@@ -244,7 +244,7 @@ function decodeSoroban(
 ): DecodedOp {
   const fnName = op.function ?? undefined;
   const userChanges = (op.asset_balance_changes ?? []).filter(
-    (c) => c.from === address || c.to === address
+    (c) => (c.from === address || c.to === address) && !new BigNumber(c.amount).isZero(),
   );
 
   if (userChanges.length === 0) {

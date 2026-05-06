@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Loader2, Shield } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { checkWalletNetwork, parseSigningError } from "@/lib/stellar-network-check";
@@ -115,12 +115,9 @@ export function AddTrustlineDialog({ open, onOpenChange, existingTokens }: AddTr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md bg-popover text-popover-foreground">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-primary" />
-            Add Trustline
-          </DialogTitle>
+          <DialogTitle>Add Trustline</DialogTitle>
           <DialogDescription>
             Add a trustline to hold a new Stellar asset in your wallet.
           </DialogDescription>

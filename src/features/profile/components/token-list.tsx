@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ExternalLink, Plus, Wallet } from "lucide-react";
+import { ExternalLink, Plus } from "lucide-react";
 import { useState } from "react";
 import { TokenImage } from "@/shared/components/token-image";
 import { getExplorerUrl } from "@/shared/config/stellar";
@@ -69,7 +69,6 @@ export function TokenList({ tokens, totalUsd, isLoading }: TokenListProps) {
         <h2 className="font-semibold text-foreground text-xl">Assets</h2>
         <div className="overflow-hidden rounded-xl border border-border bg-card">
           <div className="flex items-center gap-3 px-6 py-4">
-            <Skeleton className="h-8 w-8 rounded-lg" />
             <Skeleton className="h-5 w-36" />
           </div>
           <div className="h-px bg-border" />
@@ -120,7 +119,7 @@ export function TokenList({ tokens, totalUsd, isLoading }: TokenListProps) {
           <Button
             variant="outline"
             size="sm"
-            className="gap-1.5"
+            className="gap-1.5 bg-card hover:bg-card/80"
             onClick={() => setTrustlineOpen(true)}
           >
             <Plus className="h-3.5 w-3.5" />
@@ -136,14 +135,10 @@ export function TokenList({ tokens, totalUsd, isLoading }: TokenListProps) {
       ) : (
         <div className="overflow-hidden rounded-xl border border-border bg-card">
           {/* Wallet summary */}
-          <div className="flex items-center gap-3 px-6 py-4">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-              <Wallet className="h-4.5 w-4.5 text-primary" />
-            </div>
-            <span className="font-medium text-foreground text-lg">
-              Wallet · {formatUsd(totalUsd)}
+          <div className="flex items-center gap-2 px-6 py-4">
+            <span className="text-lg font-medium text-foreground">
+              Wallet - {formatUsd(totalUsd).replace("$", "")}$ - {tokens.length} Assets
             </span>
-            <span className="text-base text-muted-foreground">{tokens.length} assets</span>
           </div>
 
           <div className="h-px bg-border" />
