@@ -472,8 +472,10 @@ export function ProtocolPositions({
       {cards.map((card, cardIdx) => {
         const isCollapsed = collapsed.has(card.protocol);
         const iconSrc = getProtocolIcon(card.protocol);
-        // Use tree layout when pools have distinct sub-names (e.g. "Blend · Etherfuse Pool")
-        const useTree = card.pools.some((p) => p.displayName.includes(" · "));
+        // Use tree layout only when multiple pools exist with distinct sub-names.
+        // A single-pool protocol uses the same flat layout as Aquarius for consistency.
+        const useTree =
+          card.pools.length > 1 && card.pools.some((p) => p.displayName.includes(" · "));
 
         return (
           <motion.div
