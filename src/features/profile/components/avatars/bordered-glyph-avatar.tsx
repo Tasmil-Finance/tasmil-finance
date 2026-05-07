@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  ArrowUp,
-  Plus,
-  type LucideIcon,
-  User,
-  Wallet,
-  XCircle,
-} from "lucide-react";
+import { ArrowUp, type LucideIcon, Plus, User, Wallet, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AvatarGlyph } from "../../lib/types";
 
@@ -38,7 +31,7 @@ export function BorderedGlyphAvatar({ glyph, corner, className }: BorderedGlyphA
     <div
       className={cn(
         "relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border/60",
-        className,
+        className
       )}
     >
       <Glyph className="h-5 w-5 text-muted-foreground" strokeWidth={1.5} />
@@ -47,7 +40,7 @@ export function BorderedGlyphAvatar({ glyph, corner, className }: BorderedGlyphA
           className={cn(
             "-bottom-0.5 -right-0.5 absolute flex h-4 w-4 items-center justify-center rounded-full bg-background",
             corner.tone === "primary" && "text-primary",
-            corner.tone === "destructive" && "text-destructive",
+            corner.tone === "destructive" && "text-destructive"
           )}
         >
           <Corner className="h-3 w-3" strokeWidth={2} />

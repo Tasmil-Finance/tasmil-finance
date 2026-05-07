@@ -1,6 +1,3 @@
-import { formatRowDate } from "@/shared/utils/date-group";
-import type { RowPresentation, TxGroup } from "./types";
-import type { OpKind } from "./types";
 import {
   ArrowDownLeft,
   ArrowLeftRight,
@@ -20,6 +17,8 @@ import {
   XCircle,
   Zap,
 } from "lucide-react";
+import { formatRowDate } from "@/shared/utils/date-group";
+import type { OpKind, RowPresentation, TxGroup } from "./types";
 
 const FAILED_PRESENTATION = {
   title: "Transaction Failed",
@@ -83,24 +82,42 @@ export function getOpLabel(kind: OpKind): string {
   const titled = TITLE_BY_KIND[kind];
   if (titled) return titled;
   switch (kind) {
-    case "send": return "Sent";
-    case "receive": return "Received";
-    case "swap": return "Swap";
-    case "lp-deposit": return "Added Liquidity";
-    case "lp-withdraw": return "Removed Liquidity";
-    case "lend-deposit": return "Deposit";
-    case "lend-withdraw": return "Withdraw";
-    case "harvest": return "Harvest";
-    case "trustline-add": return "Add trustline";
-    case "trustline-remove": return "Remove trustline";
-    case "create-account": return "Create Account";
-    case "merge-account": return "Merge Account";
-    case "claim-balance": return "Claim Balance";
-    case "lock-balance": return "Lock Balance";
-    case "contract-other": return "Contract Function";
-    case "classic-other": return "Operation";
-    case "soroban-token-mint": return "Mint";
-    default: return "Operation";
+    case "send":
+      return "Sent";
+    case "receive":
+      return "Received";
+    case "swap":
+      return "Swap";
+    case "lp-deposit":
+      return "Added Liquidity";
+    case "lp-withdraw":
+      return "Removed Liquidity";
+    case "lend-deposit":
+      return "Deposit";
+    case "lend-withdraw":
+      return "Withdraw";
+    case "harvest":
+      return "Harvest";
+    case "trustline-add":
+      return "Add trustline";
+    case "trustline-remove":
+      return "Remove trustline";
+    case "create-account":
+      return "Create Account";
+    case "merge-account":
+      return "Merge Account";
+    case "claim-balance":
+      return "Claim Balance";
+    case "lock-balance":
+      return "Lock Balance";
+    case "contract-other":
+      return "Contract Function";
+    case "classic-other":
+      return "Operation";
+    case "soroban-token-mint":
+      return "Mint";
+    default:
+      return "Operation";
   }
 }
 
@@ -113,37 +130,162 @@ export interface IconStyle {
 
 const OP_ICONS: Record<OpKind, IconStyle> = {
   send: { icon: ArrowUpRight, bg: "bg-destructive/10", fg: "text-destructive", label: "Sent" },
-  receive: { icon: ArrowDownLeft, bg: "bg-emerald-500/10", fg: "text-emerald-400", label: "Received" },
+  receive: {
+    icon: ArrowDownLeft,
+    bg: "bg-emerald-500/10",
+    fg: "text-emerald-400",
+    label: "Received",
+  },
   swap: { icon: ArrowLeftRight, bg: "bg-violet-500/10", fg: "text-violet-400", label: "Swap" },
-  "lp-deposit": { icon: Droplets, bg: "bg-violet-500/10", fg: "text-violet-400", label: "Added Liquidity" },
-  "lp-withdraw": { icon: Droplets, bg: "bg-amber-500/10", fg: "text-amber-400", label: "Removed Liquidity" },
-  "lend-deposit": { icon: PiggyBank, bg: "bg-emerald-500/10", fg: "text-emerald-400", label: "Deposit" },
+  "lp-deposit": {
+    icon: Droplets,
+    bg: "bg-violet-500/10",
+    fg: "text-violet-400",
+    label: "Added Liquidity",
+  },
+  "lp-withdraw": {
+    icon: Droplets,
+    bg: "bg-amber-500/10",
+    fg: "text-amber-400",
+    label: "Removed Liquidity",
+  },
+  "lend-deposit": {
+    icon: PiggyBank,
+    bg: "bg-emerald-500/10",
+    fg: "text-emerald-400",
+    label: "Deposit",
+  },
   "lend-withdraw": { icon: Wallet, bg: "bg-amber-500/10", fg: "text-amber-400", label: "Withdraw" },
   harvest: { icon: Zap, bg: "bg-emerald-500/10", fg: "text-emerald-400", label: "Harvest" },
-  "trustline-add": { icon: Shield, bg: "bg-blue-500/10", fg: "text-blue-400", label: "Add trustline" },
-  "trustline-remove": { icon: ShieldOff, bg: "bg-muted/30", fg: "text-muted-foreground", label: "Remove trustline" },
-  "create-account": { icon: UserPlus, bg: "bg-emerald-500/10", fg: "text-emerald-400", label: "Create Account" },
-  "merge-account": { icon: Link2, bg: "bg-muted/30", fg: "text-muted-foreground", label: "Merge Account" },
-  "claim-balance": { icon: Coins, bg: "bg-emerald-500/10", fg: "text-emerald-400", label: "Claim Balance" },
-  "lock-balance": { icon: Lock, bg: "bg-amber-500/10", fg: "text-amber-400", label: "Lock Balance" },
-  "contract-other": { icon: Layers, bg: "bg-muted/30", fg: "text-muted-foreground", label: "Contract Function" },
-  "classic-other": { icon: Layers, bg: "bg-muted/30", fg: "text-muted-foreground", label: "Operation" },
-  "manage-buy-offer": { icon: TrendingUp, bg: "bg-amber-500/10", fg: "text-amber-400", label: "Manage Buy Offer" },
-  "manage-sell-offer": { icon: TrendingUp, bg: "bg-amber-500/10", fg: "text-amber-400", label: "Manage Sell Offer" },
-  "passive-sell-offer": { icon: TrendingUp, bg: "bg-amber-500/10", fg: "text-amber-400", label: "Create Passive Sell Offer" },
-  "manage-data": { icon: Layers, bg: "bg-muted/30", fg: "text-muted-foreground", label: "Manage Data" },
-  "set-options": { icon: Layers, bg: "bg-muted/30", fg: "text-muted-foreground", label: "Set Options" },
-  "set-trustline-flags": { icon: Layers, bg: "bg-muted/30", fg: "text-muted-foreground", label: "Set Trustline Flags" },
+  "trustline-add": {
+    icon: Shield,
+    bg: "bg-blue-500/10",
+    fg: "text-blue-400",
+    label: "Add trustline",
+  },
+  "trustline-remove": {
+    icon: ShieldOff,
+    bg: "bg-muted/30",
+    fg: "text-muted-foreground",
+    label: "Remove trustline",
+  },
+  "create-account": {
+    icon: UserPlus,
+    bg: "bg-emerald-500/10",
+    fg: "text-emerald-400",
+    label: "Create Account",
+  },
+  "merge-account": {
+    icon: Link2,
+    bg: "bg-muted/30",
+    fg: "text-muted-foreground",
+    label: "Merge Account",
+  },
+  "claim-balance": {
+    icon: Coins,
+    bg: "bg-emerald-500/10",
+    fg: "text-emerald-400",
+    label: "Claim Balance",
+  },
+  "lock-balance": {
+    icon: Lock,
+    bg: "bg-amber-500/10",
+    fg: "text-amber-400",
+    label: "Lock Balance",
+  },
+  "contract-other": {
+    icon: Layers,
+    bg: "bg-muted/30",
+    fg: "text-muted-foreground",
+    label: "Contract Function",
+  },
+  "classic-other": {
+    icon: Layers,
+    bg: "bg-muted/30",
+    fg: "text-muted-foreground",
+    label: "Operation",
+  },
+  "manage-buy-offer": {
+    icon: TrendingUp,
+    bg: "bg-amber-500/10",
+    fg: "text-amber-400",
+    label: "Manage Buy Offer",
+  },
+  "manage-sell-offer": {
+    icon: TrendingUp,
+    bg: "bg-amber-500/10",
+    fg: "text-amber-400",
+    label: "Manage Sell Offer",
+  },
+  "passive-sell-offer": {
+    icon: TrendingUp,
+    bg: "bg-amber-500/10",
+    fg: "text-amber-400",
+    label: "Create Passive Sell Offer",
+  },
+  "manage-data": {
+    icon: Layers,
+    bg: "bg-muted/30",
+    fg: "text-muted-foreground",
+    label: "Manage Data",
+  },
+  "set-options": {
+    icon: Layers,
+    bg: "bg-muted/30",
+    fg: "text-muted-foreground",
+    label: "Set Options",
+  },
+  "set-trustline-flags": {
+    icon: Layers,
+    bg: "bg-muted/30",
+    fg: "text-muted-foreground",
+    label: "Set Trustline Flags",
+  },
   "allow-trust": { icon: Shield, bg: "bg-blue-500/10", fg: "text-blue-400", label: "Allow Trust" },
-  "begin-sponsoring": { icon: Layers, bg: "bg-muted/30", fg: "text-muted-foreground", label: "Begin Sponsoring Future Reserves" },
-  "end-sponsoring": { icon: Layers, bg: "bg-muted/30", fg: "text-muted-foreground", label: "End Sponsoring Future Reserves" },
-  "revoke-sponsorship": { icon: Layers, bg: "bg-muted/30", fg: "text-muted-foreground", label: "Revoke Sponsorship" },
+  "begin-sponsoring": {
+    icon: Layers,
+    bg: "bg-muted/30",
+    fg: "text-muted-foreground",
+    label: "Begin Sponsoring Future Reserves",
+  },
+  "end-sponsoring": {
+    icon: Layers,
+    bg: "bg-muted/30",
+    fg: "text-muted-foreground",
+    label: "End Sponsoring Future Reserves",
+  },
+  "revoke-sponsorship": {
+    icon: Layers,
+    bg: "bg-muted/30",
+    fg: "text-muted-foreground",
+    label: "Revoke Sponsorship",
+  },
   clawback: { icon: Layers, bg: "bg-muted/30", fg: "text-muted-foreground", label: "Clawback" },
-  "bump-sequence": { icon: Layers, bg: "bg-muted/30", fg: "text-muted-foreground", label: "Bump Sequence" },
+  "bump-sequence": {
+    icon: Layers,
+    bg: "bg-muted/30",
+    fg: "text-muted-foreground",
+    label: "Bump Sequence",
+  },
   inflation: { icon: Layers, bg: "bg-muted/30", fg: "text-muted-foreground", label: "Inflation" },
-  "extend-footprint-ttl": { icon: Layers, bg: "bg-muted/30", fg: "text-muted-foreground", label: "Extend Footprint TTL" },
-  "restore-footprint": { icon: Layers, bg: "bg-muted/30", fg: "text-muted-foreground", label: "Restore Footprint" },
-  "soroban-token-mint": { icon: Layers, bg: "bg-muted/30", fg: "text-muted-foreground", label: "Mint" },
+  "extend-footprint-ttl": {
+    icon: Layers,
+    bg: "bg-muted/30",
+    fg: "text-muted-foreground",
+    label: "Extend Footprint TTL",
+  },
+  "restore-footprint": {
+    icon: Layers,
+    bg: "bg-muted/30",
+    fg: "text-muted-foreground",
+    label: "Restore Footprint",
+  },
+  "soroban-token-mint": {
+    icon: Layers,
+    bg: "bg-muted/30",
+    fg: "text-muted-foreground",
+    label: "Mint",
+  },
 };
 
 const FAILED_ICON: IconStyle = {
@@ -166,7 +308,7 @@ export function presentRow(group: TxGroup, _viewer: string): RowPresentation {
   const date = formatRowDate(new Date(group.createdAt));
   const more = moreOpsLabel(group);
   const withCommon = <T extends Omit<RowPresentation, "date" | "moreOpsLabel">>(
-    base: T,
+    base: T
   ): RowPresentation => ({
     ...base,
     date,
@@ -361,12 +503,12 @@ export function presentRow(group: TxGroup, _viewer: string): RowPresentation {
           ? ({ kind: "none" } as const)
           : distinct.size > 1 || deltas.length > 1
             ? ({ kind: "multiple" } as const)
-            : ({
+            : {
                 kind: "single" as const,
                 value: deltas[0]!.amount,
                 code: deltas[0]!.code,
                 isCredit: deltas[0]!.isCredit,
-              });
+              };
       return withCommon({
         title: "Contract Function",
         subline: "Interacted",

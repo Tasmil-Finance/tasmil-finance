@@ -46,20 +46,14 @@ describe("AssetPicker", () => {
         value={{ code: "USDC", issuer: "GUSDC" }}
         onChange={() => {}}
         excludeKeys={new Set()}
-      />,
+      />
     );
     expect(screen.getByRole("button")).toHaveTextContent("USDC");
   });
 
   it("filters out assets in excludeKeys", async () => {
     const user = userEvent.setup();
-    wrap(
-      <AssetPicker
-        value={null}
-        onChange={() => {}}
-        excludeKeys={new Set(["USDC:GUSDC"])}
-      />,
-    );
+    wrap(<AssetPicker value={null} onChange={() => {}} excludeKeys={new Set(["USDC:GUSDC"])} />);
 
     await user.click(screen.getByRole("button", { name: /select asset/i }));
     await waitFor(() => expect(screen.getByText(/Blend/)).toBeInTheDocument());

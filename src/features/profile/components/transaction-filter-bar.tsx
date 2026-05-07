@@ -22,10 +22,9 @@ export interface FilterState {
 interface Props {
   value: FilterState;
   onChange: (next: FilterState) => void;
-  totalCount?: number;
 }
 
-export function TransactionFilterBar({ value, onChange, totalCount }: Props) {
+export function TransactionFilterBar({ value, onChange }: Props) {
   const isActive = (chip: FilterCategory) => {
     if (chip === "all") return value.filters.length === 0;
     return value.filters.includes(chip);
@@ -53,17 +52,12 @@ export function TransactionFilterBar({ value, onChange, totalCount }: Props) {
             "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
             isActive(c.value)
               ? "border-primary/40 bg-primary/10 text-primary"
-              : "border-border/60 bg-card text-muted-foreground hover:text-foreground",
+              : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
           )}
         >
           {c.label}
         </button>
       ))}
-      {totalCount != null && (
-        <span className="text-sm text-muted-foreground tabular-nums">
-          {totalCount} transactions
-        </span>
-      )}
       <div className="relative ml-auto">
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <input

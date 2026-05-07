@@ -21,7 +21,7 @@ function pickPrimary(ops: DecodedOp[]): DecodedOp {
   for (const o of ops) {
     const abs = o.deltas.reduce(
       (acc, d) => acc.plus(new BigNumber(d.amount).abs()),
-      new BigNumber(0),
+      new BigNumber(0)
     );
     if (abs.gt(bestAbs)) {
       bestAbs = abs;
@@ -33,7 +33,7 @@ function pickPrimary(ops: DecodedOp[]): DecodedOp {
 
 export function groupByTransaction(
   ops: DecodedOp[],
-  attrsByTx: Record<string, TxAttrs>,
+  attrsByTx: Record<string, TxAttrs>
 ): TxGroup[] {
   const map = new Map<string, DecodedOp[]>();
   for (const o of ops) {

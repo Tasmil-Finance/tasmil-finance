@@ -1,22 +1,13 @@
 "use client";
 
-import {
-  Address,
-  Contract,
-  rpc,
-  scValToNative,
-  TransactionBuilder,
-} from "@stellar/stellar-sdk";
+import { Address, Contract, rpc, scValToNative, TransactionBuilder } from "@stellar/stellar-sdk";
 import { useQueries } from "@tanstack/react-query";
 import { activeNetwork } from "@/shared/config/stellar";
 import type { SorobanTokenMeta } from "../lib/types";
 
 const SOURCE_ACCOUNT_FOR_SIM = "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 
-async function simulateRead(
-  contractId: string,
-  method: "decimals" | "symbol",
-): Promise<unknown> {
+async function simulateRead(contractId: string, method: "decimals" | "symbol"): Promise<unknown> {
   const server = new rpc.Server(activeNetwork.sorobanRpcUrl, { allowHttp: false });
   const account = await server.getAccount(SOURCE_ACCOUNT_FOR_SIM).catch(() => ({
     accountId: () => SOURCE_ACCOUNT_FOR_SIM,
@@ -36,7 +27,7 @@ async function simulateRead(
     throw new Error(
       typeof (sim as { error?: unknown }).error === "string"
         ? (sim as { error: string }).error
-        : "simulate failed",
+        : "simulate failed"
     );
   }
   return scValToNative(sim.result.retval);

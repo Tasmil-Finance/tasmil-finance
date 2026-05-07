@@ -384,88 +384,88 @@ export function ProtocolPositions({
       <h2 className="text-xl font-semibold text-foreground">Protocol Positions</h2>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-      {/* Summary card with pie chart */}
-      <motion.div
-        className="overflow-hidden rounded-xl border border-border bg-card"
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.05 }}
-      >
-        <div className="flex items-center gap-2.5 px-6 py-4">
-          <PieChartIcon className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
-          <span className="text-lg font-medium text-foreground tabular-nums">
-            Protocols - {formatUsd(totalValueUsd)}
-          </span>
-          <span className="text-base text-muted-foreground">
-            - {cards.length} protocol{cards.length !== 1 ? "s" : ""}
-          </span>
-        </div>
+        {/* Summary card with pie chart */}
+        <motion.div
+          className="overflow-hidden rounded-xl border border-border bg-card"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.05 }}
+        >
+          <div className="flex items-center gap-2.5 px-6 py-4">
+            <PieChartIcon className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
+            <span className="text-lg font-medium text-foreground tabular-nums">
+              Protocols - {formatUsd(totalValueUsd)}
+            </span>
+            <span className="text-base text-muted-foreground">
+              - {cards.length} protocol{cards.length !== 1 ? "s" : ""}
+            </span>
+          </div>
 
-        {/* Pie chart + legend */}
-        {pieData.length > 0 && (
-          <div className="border-t border-border px-6 py-5">
-            <div className="flex items-center gap-8">
-              {/* Donut chart */}
-              <div className="h-[140px] w-[140px] shrink-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={40}
-                      outerRadius={65}
-                      paddingAngle={3}
-                      dataKey="value"
-                      stroke="none"
-                      animationBegin={100}
-                      animationDuration={800}
-                    >
-                      {pieData.map((entry) => (
-                        <Cell key={entry.name} fill={entry.fill} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      content={({ active, payload }) => {
-                        if (!active || !payload?.length) return null;
-                        const d = payload[0]?.payload as (typeof pieData)[0];
-                        return (
-                          <div className="rounded-lg border border-border bg-popover px-3 py-2 shadow-md">
-                            <p className="text-sm font-medium text-foreground">{d.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {d.positions} position
-                              {d.positions !== 1 ? "s" : ""}
-                              {d.value > 0 && ` · ${formatUsd(d.value)}`}
-                            </p>
-                          </div>
-                        );
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
+          {/* Pie chart + legend */}
+          {pieData.length > 0 && (
+            <div className="border-t border-border px-6 py-5">
+              <div className="flex items-center gap-8">
+                {/* Donut chart */}
+                <div className="h-[140px] w-[140px] shrink-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={pieData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={40}
+                        outerRadius={65}
+                        paddingAngle={3}
+                        dataKey="value"
+                        stroke="none"
+                        animationBegin={100}
+                        animationDuration={800}
+                      >
+                        {pieData.map((entry) => (
+                          <Cell key={entry.name} fill={entry.fill} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        content={({ active, payload }) => {
+                          if (!active || !payload?.length) return null;
+                          const d = payload[0]?.payload as (typeof pieData)[0];
+                          return (
+                            <div className="rounded-lg border border-border bg-popover px-3 py-2 shadow-md">
+                              <p className="text-sm font-medium text-foreground">{d.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {d.positions} position
+                                {d.positions !== 1 ? "s" : ""}
+                                {d.value > 0 && ` · ${formatUsd(d.value)}`}
+                              </p>
+                            </div>
+                          );
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
 
-              {/* Legend */}
-              <div className="flex flex-1 flex-col gap-2.5">
-                {pieData.map((entry) => (
-                  <div key={entry.name} className="flex items-center gap-3">
-                    <div
-                      className="h-3.5 w-3.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: entry.fill }}
-                    />
-                    <span className="text-base text-foreground">{entry.name}</span>
-                    <span className="ml-auto text-base font-medium text-foreground">
-                      {entry.value > 0 ? formatUsd(entry.value) : `${entry.positions} pos`}
-                    </span>
-                  </div>
-                ))}
+                {/* Legend */}
+                <div className="flex flex-1 flex-col gap-2.5">
+                  {pieData.map((entry) => (
+                    <div key={entry.name} className="flex items-center gap-3">
+                      <div
+                        className="h-3.5 w-3.5 shrink-0 rounded-full"
+                        style={{ backgroundColor: entry.fill }}
+                      />
+                      <span className="text-base text-foreground">{entry.name}</span>
+                      <span className="ml-auto text-base font-medium text-foreground">
+                        {entry.value > 0 ? formatUsd(entry.value) : `${entry.positions} pos`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </motion.div>
+          )}
+        </motion.div>
 
-      <ProtocolRewardsCard groups={groups} />
+        <ProtocolRewardsCard groups={groups} />
       </div>
 
       {/* Protocol cards — one card per protocol, pools as sub-sections */}

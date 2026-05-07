@@ -58,7 +58,7 @@ export function HistorySidebar({ address, onSeeAll }: HistorySidebarProps) {
   const allRaw = data?.pages.flatMap((p) => p.ops) ?? [];
   const allAttrs = (data?.pages ?? []).reduce<Record<string, NonNullable<TxGroup["attrs"]>>>(
     (acc, p) => Object.assign(acc, p.attrsByTx),
-    {},
+    {}
   );
 
   const contractIds = useMemo(() => {
@@ -72,8 +72,14 @@ export function HistorySidebar({ address, onSeeAll }: HistorySidebarProps) {
   }, [allRaw]);
 
   const { lookup } = useSorobanTokenMeta(contractIds);
-  const decoded = useMemo(() => allRaw.map((r) => decodeOperation(r, address, lookup)), [allRaw, address, lookup]);
-  const groups = useMemo(() => groupByTransaction(decoded, allAttrs).slice(0, 5), [decoded, allAttrs]);
+  const decoded = useMemo(
+    () => allRaw.map((r) => decodeOperation(r, address, lookup)),
+    [allRaw, address, lookup]
+  );
+  const groups = useMemo(
+    () => groupByTransaction(decoded, allAttrs).slice(0, 5),
+    [decoded, allAttrs]
+  );
 
   return (
     <motion.div
@@ -122,15 +128,26 @@ export function HistorySidebar({ address, onSeeAll }: HistorySidebarProps) {
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 px-6 py-3.5 transition-colors hover:bg-muted/20"
               >
-                <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-full", style.bg)}>
+                <div
+                  className={cn(
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+                    style.bg
+                  )}
+                >
                   <Icon className={cn("h-3.5 w-3.5", style.fg)} />
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate text-sm font-medium text-foreground">{style.label}</span>
-                  <span className="text-xs text-muted-foreground">{formatRelativeTime(group.createdAt)}</span>
+                  <span className="truncate text-sm font-medium text-foreground">
+                    {style.label}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {formatRelativeTime(group.createdAt)}
+                  </span>
                 </div>
                 {sum && (
-                  <span className={cn("shrink-0 text-sm font-semibold", sum.color)}>{sum.text}</span>
+                  <span className={cn("shrink-0 text-sm font-semibold", sum.color)}>
+                    {sum.text}
+                  </span>
                 )}
               </a>
             );

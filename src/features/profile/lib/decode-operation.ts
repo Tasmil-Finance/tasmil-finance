@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
-import type { AssetDelta, DecodedOp, OpKind, Protocol, TokenMetaLookup } from "./types";
 import { lookupProtocol } from "./protocol-registry";
+import type { AssetDelta, DecodedOp, OpKind, Protocol, TokenMetaLookup } from "./types";
 
 const HARVEST_FN_NAMES = new Set(["claim", "claim_emissions", "claim_rewards", "harvest"]);
 
@@ -74,7 +74,7 @@ function paymentDelta(
   isCredit: boolean,
   type: string | undefined,
   code: string | undefined,
-  issuer: string | undefined,
+  issuer: string | undefined
 ): AssetDelta {
   return {
     code: classicAssetCode(type, code),
@@ -101,7 +101,7 @@ function emptyDecoded(op: RawHorizonOp, kind: OpKind): DecodedOp {
 export function decodeOperation(
   op: RawHorizonOp,
   address: string,
-  tokenMeta: TokenMetaLookup,
+  tokenMeta: TokenMetaLookup
 ): DecodedOp {
   const successful = op.transaction_successful !== false;
 
@@ -114,7 +114,7 @@ export function decodeOperation(
       !outgoing,
       op.asset_type,
       op.asset_code,
-      op.asset_issuer,
+      op.asset_issuer
     );
     return {
       ...emptyDecoded(op, kind),
@@ -130,15 +130,9 @@ export function decodeOperation(
       false,
       op.source_asset_type,
       op.source_asset_code,
-      op.source_asset_issuer,
+      op.source_asset_issuer
     );
-    const dst = paymentDelta(
-      op.amount ?? "0",
-      true,
-      op.asset_type,
-      op.asset_code,
-      op.asset_issuer,
-    );
+    const dst = paymentDelta(op.amount ?? "0", true, op.asset_type, op.asset_code, op.asset_issuer);
     return {
       ...emptyDecoded(op, "swap"),
       successful,
@@ -211,7 +205,10 @@ export function decodeOperation(
   if (op.type === "end_sponsoring_future_reserves") {
     return { ...emptyDecoded(op, "end-sponsoring"), successful };
   }
-  if (op.type === "revoke_sponsorship" || (op.type.startsWith("revoke_") && op.type.endsWith("_sponsorship"))) {
+  if (
+    op.type === "revoke_sponsorship" ||
+    (op.type.startsWith("revoke_") && op.type.endsWith("_sponsorship"))
+  ) {
     return { ...emptyDecoded(op, "revoke-sponsorship"), successful };
   }
   if (op.type === "clawback" || op.type === "clawback_claimable_balance") {
@@ -248,7 +245,7 @@ export function decodeOperation(
 function resolveCode(
   contractId: string | undefined,
   fallbackCode: string | undefined,
-  tokenMeta: TokenMetaLookup,
+  tokenMeta: TokenMetaLookup
 ): string {
   if (contractId) {
     const m = tokenMeta(contractId);
@@ -263,7 +260,7 @@ function resolveCode(
 function abcToDelta(
   change: NonNullable<RawHorizonOp["asset_balance_changes"]>[number],
   isCredit: boolean,
-  tokenMeta: TokenMetaLookup,
+  tokenMeta: TokenMetaLookup
 ): AssetDelta {
   const isNative = change.asset_type === "native";
   const contractId = isNative ? undefined : change.asset_issuer;
@@ -281,11 +278,11 @@ function decodeSoroban(
   op: RawHorizonOp,
   address: string,
   tokenMeta: TokenMetaLookup,
-  successful: boolean,
+  successful: boolean
 ): DecodedOp {
   const fnName = op.function ?? undefined;
   const userChanges = (op.asset_balance_changes ?? []).filter(
-    (c) => (c.from === address || c.to === address) && !new BigNumber(c.amount).isZero(),
+    (c) => (c.from === address || c.to === address) && !new BigNumber(c.amount).isZero()
   );
 
   if (userChanges.length === 0) {
@@ -310,14 +307,21 @@ function decodeSoroban(
   if (debits.length > 0 && credits.length > 0) {
     kind = "swap";
   } else if (debits.length === 1 && credits.length === 0) {
-    kind = protocol === "blend" ? "lend-deposit"
-      : protocol === "soroswap" || protocol === "aquarius" || protocol === "phoenix" ? "lp-deposit"
-      : "send";
+    kind =
+      protocol === "blend"
+        ? "lend-deposit"
+        : protocol === "soroswap" || protocol === "aquarius" || protocol === "phoenix"
+          ? "lp-deposit"
+          : "send";
   } else if (credits.length === 1 && debits.length === 0) {
-    kind = protocol === "blend" ? "lend-withdraw"
-      : protocol === "soroswap" || protocol === "aquarius" || protocol === "phoenix" ? "lp-withdraw"
-      : HARVEST_FN_NAMES.has(fnName ?? "") ? "harvest"
-      : "receive";
+    kind =
+      protocol === "blend"
+        ? "lend-withdraw"
+        : protocol === "soroswap" || protocol === "aquarius" || protocol === "phoenix"
+          ? "lp-withdraw"
+          : HARVEST_FN_NAMES.has(fnName ?? "")
+            ? "harvest"
+            : "receive";
   } else if (debits.length > 1 && credits.length === 0) {
     kind = "lp-deposit";
   } else if (credits.length > 1 && debits.length === 0) {

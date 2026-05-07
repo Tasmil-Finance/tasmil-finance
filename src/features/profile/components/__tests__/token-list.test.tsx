@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
-import { TokenList } from "../token-list";
 import type { WalletToken } from "../../hooks/use-wallet-tokens";
+import { TokenList } from "../token-list";
 
 jest.mock("../add-trustline-dialog", () => ({
   AddTrustlineDialog: () => null,

@@ -34,7 +34,7 @@ export function AssetPicker({ value, onChange, excludeKeys, disabled }: AssetPic
 
   const visible = useMemo(
     () => (data ?? []).filter((t) => !excludeKeys.has(`${t.symbol}:${t.issuer}`)),
-    [data, excludeKeys],
+    [data, excludeKeys]
   );
 
   return (

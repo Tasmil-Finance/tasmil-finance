@@ -25,7 +25,11 @@ interface AddTrustlineDialogProps {
   existingTokens: WalletToken[];
 }
 
-export function AddTrustlineDialog({ open, onOpenChange, existingTokens }: AddTrustlineDialogProps) {
+export function AddTrustlineDialog({
+  open,
+  onOpenChange,
+  existingTokens,
+}: AddTrustlineDialogProps) {
   const { address } = useWallet();
   const queryClient = useQueryClient();
 

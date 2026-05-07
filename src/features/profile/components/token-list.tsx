@@ -184,9 +184,7 @@ export function TokenList({ tokens, totalUsd, isLoading }: TokenListProps) {
                     className="h-8 w-8 shrink-0 rounded-full text-[11px]"
                   />
                   <div className="flex flex-col">
-                    <span className="text-base font-medium text-foreground">
-                      {token.assetCode}
-                    </span>
+                    <span className="text-base font-medium text-foreground">{token.assetCode}</span>
                     {token.assetIssuer && (
                       <span className="text-sm text-muted-foreground">
                         {shortenIssuer(token.assetIssuer)}
