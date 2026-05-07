@@ -32,7 +32,22 @@ const KIND_TO_CATEGORY: Record<OpKind, FilterCategory> = {
   "merge-account": "other",
   "claim-balance": "other",
   "lock-balance": "other",
-  "dex-offer": "other",
+  "manage-buy-offer": "other",
+  "manage-sell-offer": "other",
+  "passive-sell-offer": "other",
+  "manage-data": "other",
+  "set-options": "other",
+  "set-trustline-flags": "other",
+  "allow-trust": "other",
+  "begin-sponsoring": "other",
+  "end-sponsoring": "other",
+  "revoke-sponsorship": "other",
+  clawback: "other",
+  "bump-sequence": "other",
+  inflation: "other",
+  "extend-footprint-ttl": "other",
+  "restore-footprint": "other",
+  "soroban-token-mint": "defi",
   "contract-other": "other",
   "classic-other": "other",
 };
@@ -72,7 +87,7 @@ export function TransactionList({ address }: { address: string }) {
       filters: parseFilters(searchParams.get("filter")),
       query: searchParams.get("q") ?? "",
     }),
-    [searchParams],
+    [searchParams]
   );
 
   const setFilterState = useCallback(
@@ -85,7 +100,7 @@ export function TransactionList({ address }: { address: string }) {
       const qs = params.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname);
     },
-    [router, pathname, searchParams],
+    [router, pathname, searchParams]
   );
 
   const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } =
@@ -94,7 +109,7 @@ export function TransactionList({ address }: { address: string }) {
   const allRaw = data?.pages.flatMap((p) => p.ops) ?? [];
   const allAttrs = (data?.pages ?? []).reduce<Record<string, NonNullable<TxGroup["attrs"]>>>(
     (acc, p) => Object.assign(acc, p.attrsByTx),
-    {},
+    {}
   );
 
   const contractIds = useMemo(() => {
@@ -111,13 +126,13 @@ export function TransactionList({ address }: { address: string }) {
 
   const decoded: DecodedOp[] = useMemo(
     () => allRaw.map((r) => decodeOperation(r, address, lookup)),
-    [allRaw, address, lookup],
+    [allRaw, address, lookup]
   );
 
   const groups = useMemo(() => groupByTransaction(decoded, allAttrs), [decoded, allAttrs]);
   const filtered = useMemo(
     () => groups.filter((g) => passesFilters(g, filterState)),
-    [groups, filterState],
+    [groups, filterState]
   );
 
   const datedGroups = useMemo(() => groupByMonth<DatedGroup>(filtered), [filtered]);
@@ -134,7 +149,7 @@ export function TransactionList({ address }: { address: string }) {
       (entries) => {
         if (entries[0]?.isIntersecting) loadMore();
       },
-      { threshold: 0.1 },
+      { threshold: 0.1 }
     );
     obs.observe(el);
     return () => obs.disconnect();
@@ -145,19 +160,18 @@ export function TransactionList({ address }: { address: string }) {
       <div className="flex flex-col gap-6">
         <Skeleton className="h-6 w-52" />
         {[4, 3].map((count, gi) => (
-          <div key={gi} className="flex flex-col gap-2">
-            <Skeleton className="h-4 w-28" />
-            <div className="overflow-hidden rounded-xl border border-border bg-card divide-y divide-border">
+          <div key={gi} className="flex flex-col">
+            <Skeleton className="mt-4 mb-2 ml-2 h-3 w-12" />
+            <div className="flex flex-col">
               {Array.from({ length: count }).map((_, i) => (
-                <div key={i} className="flex items-center gap-4 px-5 py-3.5">
-                  <Skeleton className="h-9 w-9 shrink-0 rounded-full" />
+                <div key={i} className="flex items-center gap-4 px-3 py-3">
+                  <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
                   <div className="w-44 space-y-1.5">
-                    <Skeleton className="h-4 w-28" />
-                    <Skeleton className="h-3 w-14" />
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-20" />
                   </div>
-                  <div className="flex flex-1 items-center gap-2.5">
-                    <Skeleton className="h-7 w-7 shrink-0 rounded-full" />
-                    <Skeleton className="h-4 w-24" />
+                  <div className="ml-auto">
+                    <Skeleton className="h-3 w-14" />
                   </div>
                 </div>
               ))}
@@ -186,11 +200,7 @@ export function TransactionList({ address }: { address: string }) {
 
   return (
     <div className="flex flex-col gap-3">
-      <TransactionFilterBar
-        value={filterState}
-        onChange={setFilterState}
-        totalCount={groups.length}
-      />
+      <TransactionFilterBar value={filterState} onChange={setFilterState} />
 
       {filtered.length === 0 && (
         <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
@@ -199,9 +209,9 @@ export function TransactionList({ address }: { address: string }) {
       )}
 
       {datedGroups.map((dateGroup) => (
-        <div key={dateGroup.key} className="flex flex-col gap-2">
-          <p className="px-1 pt-2 text-sm font-semibold text-muted-foreground">{dateGroup.label}</p>
-          <div className="overflow-hidden rounded-xl border border-border bg-card divide-y divide-border/60">
+        <div key={dateGroup.key} className="flex flex-col">
+          <p className="px-2 pt-4 pb-2 text-muted-foreground text-xs">{dateGroup.label}</p>
+          <div className="flex flex-col">
             {dateGroup.items.map((g) => (
               <TransactionRow key={g.txHash} group={g} address={address} />
             ))}
