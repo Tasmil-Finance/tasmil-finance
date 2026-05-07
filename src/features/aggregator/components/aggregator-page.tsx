@@ -434,12 +434,12 @@ export function AggregatorPage() {
     agg.filteredChainsIn.length > 0 ? agg.filteredChainsIn : agg.chains.map((c) => c.id);
 
   return (
-    <div className="relative flex flex-col items-center justify-start min-h-full w-full overflow-y-auto px-4 pt-24 pb-16 xl:pt-32">
+    <div className="relative flex flex-col items-center justify-center xl:justify-start min-h-full w-full overflow-y-auto px-4 pt-12 pb-16 xl:pt-32">
       <BackgroundRippleEffect rows={10} cols={22} cellSize={72} />
 
       {/* Hero text — absolute left rail (xl+) so cards sit at strict viewport center.
           On smaller screens it stacks above the cards normally. */}
-      <div className="pointer-events-none relative z-20 mb-8 max-w-md space-y-3 text-center xl:absolute xl:top-1/2 xl:left-16 xl:mb-0 xl:max-w-[300px] xl:-translate-y-1/2 xl:text-left 2xl:max-w-[360px] 2xl:left-16">
+      <div className="pointer-events-none relative z-20 mb-4 max-w-md space-y-3 text-center xl:absolute xl:top-1/2 xl:left-16 xl:mb-0 xl:max-w-[300px] xl:-translate-y-[105%] xl:text-left 2xl:max-w-[360px] 2xl:left-16">
         <Typography
           as="h1"
           variant="h1"
