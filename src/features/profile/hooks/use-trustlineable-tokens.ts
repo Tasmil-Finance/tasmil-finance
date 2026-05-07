@@ -32,7 +32,7 @@ async function fetchTrustlineable(): Promise<TrustlineableToken[]> {
         Array.isArray(t.chains) &&
         t.chains.includes("stellar") &&
         typeof t.issuer === "string" &&
-        t.issuer.length > 0,
+        t.issuer.length > 0
     )
     .map((t) => ({
       symbol: t.symbol,

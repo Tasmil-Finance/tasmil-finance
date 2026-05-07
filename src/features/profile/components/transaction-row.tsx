@@ -14,9 +14,15 @@ import {
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/shared/ui/collapsible";
-import { presentRow } from "../lib/operation-presentation";
 import { formatAmount, signedAmount } from "../lib/format-amount";
-import type { AmountDisplay, RowAvatar, RowPresentation, SublineGlyph, TxGroup } from "../lib/types";
+import { presentRow } from "../lib/operation-presentation";
+import type {
+  AmountDisplay,
+  RowAvatar,
+  RowPresentation,
+  SublineGlyph,
+  TxGroup,
+} from "../lib/types";
 import { BorderedGlyphAvatar } from "./avatars/bordered-glyph-avatar";
 import { SwapAvatar } from "./avatars/swap-avatar";
 import { TokenAvatar } from "./avatars/token-avatar";
@@ -104,7 +110,7 @@ export function TransactionRow({ group, address }: TransactionRowProps) {
             <p
               className={cn(
                 "mt-1 flex items-center gap-1.5 truncate text-sm",
-                isFailed ? "text-destructive" : "text-muted-foreground",
+                isFailed ? "text-destructive" : "text-muted-foreground"
               )}
             >
               <SublineIcon className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />

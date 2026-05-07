@@ -43,8 +43,14 @@ export function TransactionDetailPanel({ group }: Props) {
         </div>
       ),
     },
-    { label: "Time", value: <span className="text-foreground">{new Date(group.createdAt).toISOString()}</span> },
-    { label: "Fee", value: <span className="text-foreground">{formatFeeXlm(feeChargedStroops)}</span> },
+    {
+      label: "Time",
+      value: <span className="text-foreground">{new Date(group.createdAt).toISOString()}</span>,
+    },
+    {
+      label: "Fee",
+      value: <span className="text-foreground">{formatFeeXlm(feeChargedStroops)}</span>,
+    },
   ];
 
   if (ledger !== undefined) {
@@ -82,14 +88,17 @@ export function TransactionDetailPanel({ group }: Props) {
         {group.ops.map((o) => {
           const label = getOpLabel(o.kind);
           return (
-            <div key={o.id} className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-foreground">
+            <div
+              key={o.id}
+              className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-foreground"
+            >
               <span className="font-medium">{label}</span>
               {o.deltas.map((d, i) => (
                 <span
                   key={i}
                   className={cn(
                     "font-medium tabular-nums",
-                    d.isCredit ? "text-emerald-400" : "text-destructive",
+                    d.isCredit ? "text-emerald-400" : "text-destructive"
                   )}
                 >
                   {signedAmount(formatAmount(d.amount), d.isCredit)} {d.code}

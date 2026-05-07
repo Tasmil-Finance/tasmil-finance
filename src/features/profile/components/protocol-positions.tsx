@@ -64,7 +64,7 @@ function TypeBadge({ type }: { type: PositionItem["type"] }) {
   return (
     <span
       className={cn(
-        "inline-block rounded-md px-2 py-0.5 font-medium text-xs",
+        "inline-block rounded-md px-2 py-0.5 text-xs font-medium",
         config.color,
         config.bg
       )}
@@ -89,13 +89,13 @@ function TokenPairIcon({
     <div className="relative flex shrink-0" style={{ width: 44, height: 28 }}>
       <TokenImage
         alt={token0}
-        className={cn(size, "absolute bottom-0 left-0 rounded-full text-[9px] ring-2 ring-card")}
+        className={cn(size, "absolute left-0 bottom-0 rounded-full ring-2 ring-card text-[9px]")}
       />
       <TokenImage
         alt={token1}
         className={cn(
           size,
-          "absolute top-0 left-[18px] z-[1] rounded-full text-[9px] ring-2 ring-card"
+          "absolute left-[18px] top-0 z-[1] rounded-full ring-2 ring-card text-[9px]"
         )}
       />
     </div>
@@ -112,13 +112,13 @@ function PositionAssetCell({ pos }: { pos: PositionItem }) {
       <div className="flex items-center gap-3">
         <TokenPairIcon token0={pair.token0} token1={pair.token1} />
         <div className="flex flex-col">
-          <span className="font-medium text-base text-foreground">
+          <span className="text-base font-medium text-foreground">
             {pair.token0}/{pair.token1}
           </span>
           {(pair.poolType || pair.fee) && (
             <div className="flex items-center gap-1.5">
               {pair.poolType && (
-                <span className="font-medium text-[11px] text-muted-foreground/70">
+                <span className="text-[11px] font-medium text-muted-foreground/70">
                   {pair.poolType}
                 </span>
               )}
@@ -133,7 +133,7 @@ function PositionAssetCell({ pos }: { pos: PositionItem }) {
   return (
     <div className="flex items-center gap-3">
       <TokenImage alt={pos.asset} className="h-7 w-7 shrink-0 rounded-full text-[10px]" />
-      <span className="font-medium text-base text-foreground">{pos.name}</span>
+      <span className="text-base font-medium text-foreground">{pos.name}</span>
     </div>
   );
 }
@@ -141,17 +141,17 @@ function PositionAssetCell({ pos }: { pos: PositionItem }) {
 function PositionAmountCell({ pos }: { pos: PositionItem }) {
   const pair = pos.pair;
 
-  if (pair?.pooled0 && pair.pooled1) {
+  if (pair && pair.pooled0 && pair.pooled1) {
     return (
       <div className="flex flex-col">
-        <span className="text-foreground text-sm">
+        <span className="text-sm text-foreground">
           {pair.pooled0} {pair.token0}
         </span>
-        <span className="text-foreground text-sm">
+        <span className="text-sm text-foreground">
           {pair.pooled1} {pair.token1}
         </span>
         {pair.shares && (
-          <span className="text-muted-foreground text-xs">
+          <span className="text-xs text-muted-foreground">
             {pair.shares} shares ({pair.sharePct}%)
           </span>
         )}
@@ -186,15 +186,15 @@ function PositionRewardsCell({
 }) {
   const rewards = pos.rewards ?? groupRewards;
   if (!rewards || rewards.amount <= 0)
-    return <span className="text-muted-foreground text-sm">—</span>;
+    return <span className="text-sm text-muted-foreground">—</span>;
 
   return (
     <div className="flex flex-col">
-      <span className="font-medium text-amber-400 text-sm">
+      <span className="text-sm font-medium text-amber-400">
         {formatRewardAmount(rewards.amount)} {rewards.token}
       </span>
       {pos.rewards?.daily != null && pos.rewards.daily > 0 && (
-        <span className="text-muted-foreground text-xs">
+        <span className="text-xs text-muted-foreground">
           +{formatRewardAmount(pos.rewards.daily)}/day
         </span>
       )}
@@ -303,7 +303,7 @@ export function ProtocolPositions({
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
       >
-        <h2 className="font-semibold text-foreground text-xl">Protocol Positions</h2>
+        <h2 className="text-xl font-semibold text-foreground">Protocol Positions</h2>
         {/* Skeleton summary */}
         <div className="overflow-hidden rounded-xl border border-border bg-card">
           <div className="flex items-center gap-3 px-6 py-4">
@@ -337,7 +337,7 @@ export function ProtocolPositions({
                 <Skeleton className="h-4 w-20" />
               </div>
             </div>
-            <div className="border-border border-t px-6 py-3">
+            <div className="border-t border-border px-6 py-3">
               {Array.from({ length: 2 }).map((_, j) => (
                 <div key={j} className="flex items-center gap-3 py-2.5">
                   <Skeleton className="h-7 w-7 rounded-full" />
@@ -365,7 +365,7 @@ export function ProtocolPositions({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <h2 className="font-semibold text-foreground text-xl">Protocol Positions</h2>
+        <h2 className="text-xl font-semibold text-foreground">Protocol Positions</h2>
         <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-card p-12 text-muted-foreground">
           <Layers className="h-8 w-8 opacity-40" />
           <p className="text-sm">No protocol positions found</p>
@@ -381,91 +381,91 @@ export function ProtocolPositions({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      <h2 className="font-semibold text-foreground text-xl">Protocol Positions</h2>
+      <h2 className="text-xl font-semibold text-foreground">Protocol Positions</h2>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-      {/* Summary card with pie chart */}
-      <motion.div
-        className="overflow-hidden rounded-xl border border-border bg-card"
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.05 }}
-      >
-        <div className="flex items-center gap-2.5 px-6 py-4">
-          <PieChartIcon className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
-          <span className="text-lg font-medium text-foreground tabular-nums">
-            Protocols - {formatUsd(totalValueUsd)}
-          </span>
-          <span className="text-base text-muted-foreground">
-            - {cards.length} protocol{cards.length !== 1 ? "s" : ""}
-          </span>
-        </div>
+        {/* Summary card with pie chart */}
+        <motion.div
+          className="overflow-hidden rounded-xl border border-border bg-card"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.05 }}
+        >
+          <div className="flex items-center gap-2.5 px-6 py-4">
+            <PieChartIcon className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
+            <span className="text-lg font-medium text-foreground tabular-nums">
+              Protocols - {formatUsd(totalValueUsd)}
+            </span>
+            <span className="text-base text-muted-foreground">
+              - {cards.length} protocol{cards.length !== 1 ? "s" : ""}
+            </span>
+          </div>
 
-        {/* Pie chart + legend */}
-        {pieData.length > 0 && (
-          <div className="border-border border-t px-6 py-5">
-            <div className="flex items-center gap-8">
-              {/* Donut chart */}
-              <div className="h-[140px] w-[140px] shrink-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={40}
-                      outerRadius={65}
-                      paddingAngle={3}
-                      dataKey="value"
-                      stroke="none"
-                      animationBegin={100}
-                      animationDuration={800}
-                    >
-                      {pieData.map((entry) => (
-                        <Cell key={entry.name} fill={entry.fill} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      content={({ active, payload }) => {
-                        if (!active || !payload?.length) return null;
-                        const d = payload[0]?.payload as (typeof pieData)[0];
-                        return (
-                          <div className="rounded-lg border border-border bg-popover px-3 py-2 shadow-md">
-                            <p className="font-medium text-foreground text-sm">{d.name}</p>
-                            <p className="text-muted-foreground text-xs">
-                              {d.positions} position
-                              {d.positions !== 1 ? "s" : ""}
-                              {d.value > 0 && ` · ${formatUsd(d.value)}`}
-                            </p>
-                          </div>
-                        );
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
+          {/* Pie chart + legend */}
+          {pieData.length > 0 && (
+            <div className="border-t border-border px-6 py-5">
+              <div className="flex items-center gap-8">
+                {/* Donut chart */}
+                <div className="h-[140px] w-[140px] shrink-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={pieData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={40}
+                        outerRadius={65}
+                        paddingAngle={3}
+                        dataKey="value"
+                        stroke="none"
+                        animationBegin={100}
+                        animationDuration={800}
+                      >
+                        {pieData.map((entry) => (
+                          <Cell key={entry.name} fill={entry.fill} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        content={({ active, payload }) => {
+                          if (!active || !payload?.length) return null;
+                          const d = payload[0]?.payload as (typeof pieData)[0];
+                          return (
+                            <div className="rounded-lg border border-border bg-popover px-3 py-2 shadow-md">
+                              <p className="text-sm font-medium text-foreground">{d.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {d.positions} position
+                                {d.positions !== 1 ? "s" : ""}
+                                {d.value > 0 && ` · ${formatUsd(d.value)}`}
+                              </p>
+                            </div>
+                          );
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
 
-              {/* Legend */}
-              <div className="flex flex-1 flex-col gap-2.5">
-                {pieData.map((entry) => (
-                  <div key={entry.name} className="flex items-center gap-3">
-                    <div
-                      className="h-3.5 w-3.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: entry.fill }}
-                    />
-                    <span className="text-base text-foreground">{entry.name}</span>
-                    <span className="ml-auto font-medium text-base text-foreground">
-                      {entry.value > 0 ? formatUsd(entry.value) : `${entry.positions} pos`}
-                    </span>
-                  </div>
-                ))}
+                {/* Legend */}
+                <div className="flex flex-1 flex-col gap-2.5">
+                  {pieData.map((entry) => (
+                    <div key={entry.name} className="flex items-center gap-3">
+                      <div
+                        className="h-3.5 w-3.5 shrink-0 rounded-full"
+                        style={{ backgroundColor: entry.fill }}
+                      />
+                      <span className="text-base text-foreground">{entry.name}</span>
+                      <span className="ml-auto text-base font-medium text-foreground">
+                        {entry.value > 0 ? formatUsd(entry.value) : `${entry.positions} pos`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </motion.div>
+          )}
+        </motion.div>
 
-      <ProtocolRewardsCard groups={groups} />
+        <ProtocolRewardsCard groups={groups} />
       </div>
 
       {/* Protocol cards — one card per protocol, pools as sub-sections */}
@@ -503,8 +503,8 @@ export function ProtocolPositions({
                   className="h-8 w-8 shrink-0 rounded-full text-[11px]"
                 />
               )}
-              <span className="font-semibold text-base text-foreground">{card.displayName}</span>
-              <span className="text-muted-foreground text-sm">
+              <span className="text-base font-semibold text-foreground">{card.displayName}</span>
+              <span className="text-sm text-muted-foreground">
                 {card.totalPositions} position
                 {card.totalPositions !== 1 ? "s" : ""}
               </span>
@@ -512,7 +512,7 @@ export function ProtocolPositions({
                 {card.pnl && card.pnl.profitUsd !== 0 && (
                   <span
                     className={cn(
-                      "font-medium text-xs",
+                      "text-xs font-medium",
                       card.pnl.profitUsd >= 0 ? "text-emerald-400" : "text-destructive"
                     )}
                   >
@@ -520,7 +520,7 @@ export function ProtocolPositions({
                     {formatUsd(card.pnl.profitUsd)} ({card.pnl.profitPercent.toFixed(1)}%)
                   </span>
                 )}
-                <span className="font-medium text-base text-foreground">
+                <span className="text-base font-medium text-foreground">
                   {card.totalValueUsd > 0 ? formatUsd(card.totalValueUsd) : "—"}
                 </span>
               </div>
@@ -547,23 +547,23 @@ export function ProtocolPositions({
                     className="overflow-hidden"
                   >
                     {/* Column headers */}
-                    <div className={cn(POS_GRID, "border-border border-t px-6 py-2.5")}>
-                      <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+                    <div className={cn(POS_GRID, "border-t border-border px-6 py-2.5")}>
+                      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                         Pool / Asset
                       </span>
-                      <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                         Type
                       </span>
-                      <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                         APY
                       </span>
-                      <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                         Rewards
                       </span>
-                      <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                         Amount
                       </span>
-                      <span className="text-right font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+                      <span className="text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                         Value
                       </span>
                     </div>
@@ -573,19 +573,19 @@ export function ProtocolPositions({
                         key={`${pos.name}-${idx}`}
                         className={cn(
                           POS_GRID,
-                          "border-border/60 border-t px-6 py-3.5 transition-colors hover:bg-muted/20"
+                          "border-t border-border/60 px-6 py-3.5 transition-colors hover:bg-muted/20"
                         )}
                       >
                         <PositionAssetCell pos={pos} />
                         <div>
                           <TypeBadge type={pos.type} />
                         </div>
-                        <span className="font-medium text-emerald-400 text-sm">
+                        <span className="text-sm font-medium text-emerald-400">
                           {pos.apy != null ? `${pos.apy.toFixed(2)}%` : "—"}
                         </span>
                         <PositionRewardsCell pos={pos} groupRewards={pool.rewards} />
                         <PositionAmountCell pos={pos} />
-                        <span className="text-right font-medium text-base text-foreground">
+                        <span className="text-right text-base font-medium text-foreground">
                           {pos.valueUsd > 0 ? formatUsd(pos.valueUsd) : "—"}
                         </span>
                       </div>
@@ -600,7 +600,7 @@ export function ProtocolPositions({
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.25, ease: "easeInOut" }}
-                  className="overflow-hidden border-border border-t px-4 pt-2 pb-4"
+                  className="overflow-hidden border-t border-border px-4 pb-4 pt-2"
                 >
                   {card.pools.map((pool, poolIdx) => {
                     const isLast = poolIdx === card.pools.length - 1;
@@ -609,12 +609,12 @@ export function ProtocolPositions({
                         {/* Vertical tree line */}
                         <div
                           className={cn(
-                            "absolute top-0 left-0 w-0.5 bg-border",
+                            "absolute left-0 top-0 w-0.5 bg-border",
                             isLast ? "h-5" : "h-full"
                           )}
                         />
                         {/* Horizontal branch */}
-                        <div className="absolute top-5 left-0 h-0.5 w-4 bg-border" />
+                        <div className="absolute left-0 top-5 h-0.5 w-4 bg-border" />
 
                         {/* Pool content — indented past the tree branch */}
                         <div className="pl-6">
@@ -628,10 +628,10 @@ export function ProtocolPositions({
                                 className="h-6 w-6 shrink-0 rounded-full"
                               />
                             )}
-                            <span className="font-medium text-base text-foreground/80">
+                            <span className="text-base font-medium text-foreground/80">
                               {extractPoolName(pool.displayName)}
                             </span>
-                            <span className="text-muted-foreground text-sm">
+                            <span className="text-sm text-muted-foreground">
                               {pool.positions.length} position
                               {pool.positions.length !== 1 ? "s" : ""}
                             </span>
@@ -641,22 +641,22 @@ export function ProtocolPositions({
                           <div className="overflow-hidden rounded-lg border border-border bg-muted/5">
                             {/* Column headers */}
                             <div className={cn(POS_GRID, "px-4 py-2")}>
-                              <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+                              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                 Asset
                               </span>
-                              <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+                              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                 Type
                               </span>
-                              <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+                              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                 APY
                               </span>
-                              <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+                              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                 Rewards
                               </span>
-                              <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+                              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                 Amount
                               </span>
-                              <span className="text-right font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+                              <span className="text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                 Value
                               </span>
                             </div>
@@ -667,19 +667,19 @@ export function ProtocolPositions({
                                 key={`${pos.name}-${idx}`}
                                 className={cn(
                                   POS_GRID,
-                                  "border-border/40 border-t px-4 py-3 transition-colors hover:bg-muted/20"
+                                  "border-t border-border/40 px-4 py-3 transition-colors hover:bg-muted/20"
                                 )}
                               >
                                 <PositionAssetCell pos={pos} />
                                 <div>
                                   <TypeBadge type={pos.type} />
                                 </div>
-                                <span className="font-medium text-emerald-400 text-sm">
+                                <span className="text-sm font-medium text-emerald-400">
                                   {pos.apy != null ? `${pos.apy.toFixed(2)}%` : "—"}
                                 </span>
                                 <PositionRewardsCell pos={pos} groupRewards={pool.rewards} />
                                 <PositionAmountCell pos={pos} />
-                                <span className="text-right font-medium text-base text-foreground">
+                                <span className="text-right text-base font-medium text-foreground">
                                   {pos.valueUsd > 0 ? formatUsd(pos.valueUsd) : "—"}
                                 </span>
                               </div>
@@ -722,13 +722,13 @@ export function ProtocolPositions({
               ) : (
                 <Skeleton className="h-8 w-8 shrink-0 rounded-full" />
               )}
-              <span className="font-semibold text-base text-foreground/60">{name}</span>
-              <span className="flex items-center gap-1.5 text-muted-foreground text-sm">
+              <span className="text-base font-semibold text-foreground/60">{name}</span>
+              <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 Loading positions...
               </span>
             </div>
-            <div className="border-border border-t px-6 py-3">
+            <div className="border-t border-border px-6 py-3">
               {Array.from({ length: 2 }).map((_, j) => (
                 <div key={j} className="flex items-center gap-3 py-2.5">
                   <Skeleton className="h-7 w-7 rounded-full" />

@@ -89,7 +89,7 @@ export function HistorySidebar({ address, onSeeAll }: HistorySidebarProps) {
       transition={{ duration: 0.4, delay: 0.1 }}
     >
       <div className="px-6 pt-6 pb-4">
-        <h3 className="font-semibold text-foreground text-xl">History</h3>
+        <h3 className="text-xl font-semibold text-foreground">History</h3>
       </div>
 
       {isLoading ? (
@@ -108,8 +108,8 @@ export function HistorySidebar({ address, onSeeAll }: HistorySidebarProps) {
       ) : groups.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center px-6 pb-8">
           <Clock className="mb-3 h-8 w-8 text-muted-foreground/40" />
-          <p className="mb-1 font-medium text-muted-foreground text-sm">No transactions yet</p>
-          <p className="text-center text-muted-foreground/60 text-xs">
+          <p className="mb-1 text-sm font-medium text-muted-foreground">No transactions yet</p>
+          <p className="text-center text-xs text-muted-foreground/60">
             Stellar operations will appear here.
           </p>
         </div>
@@ -137,15 +137,15 @@ export function HistorySidebar({ address, onSeeAll }: HistorySidebarProps) {
                   <Icon className={cn("h-3.5 w-3.5", style.fg)} />
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate font-medium text-foreground text-sm">
+                  <span className="truncate text-sm font-medium text-foreground">
                     {style.label}
                   </span>
-                  <span className="text-muted-foreground text-xs">
+                  <span className="text-xs text-muted-foreground">
                     {formatRelativeTime(group.createdAt)}
                   </span>
                 </div>
                 {sum && (
-                  <span className={cn("shrink-0 font-semibold text-sm", sum.color)}>
+                  <span className={cn("shrink-0 text-sm font-semibold", sum.color)}>
                     {sum.text}
                   </span>
                 )}
@@ -155,10 +155,10 @@ export function HistorySidebar({ address, onSeeAll }: HistorySidebarProps) {
         </div>
       )}
 
-      <div className="mt-auto border-border border-t px-4 py-3">
+      <div className="mt-auto border-t border-border px-4 py-3">
         <Button
           variant="ghost"
-          className="w-full font-medium text-muted-foreground text-sm hover:text-foreground"
+          className="w-full text-sm font-medium text-muted-foreground hover:text-foreground"
           onClick={onSeeAll}
         >
           See all

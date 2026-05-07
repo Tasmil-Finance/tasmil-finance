@@ -18,6 +18,8 @@ export interface PositionItem {
   extra?: string;
   /** Claimable rewards for this position */
   rewards?: { amount: number; token: string; daily?: number };
+  /** On-chain pool/contract address — required for per-position claim TXs. */
+  poolAddress?: string;
   /** LP pair info — if set, the UI shows two overlapping token icons */
   pair?: {
     token0: string;
@@ -39,6 +41,8 @@ export interface ProtocolPositionGroup {
   positions: PositionItem[];
   /** Group-level claimable rewards (e.g. BLND emissions per pool) */
   rewards?: { amount: number; token: string };
+  /** On-chain pool address for group-level claim (Blend uses this). */
+  poolAddress?: string;
   pnl?: {
     profitUsd: number;
     profitPercent: number;

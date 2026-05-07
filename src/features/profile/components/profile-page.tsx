@@ -199,14 +199,14 @@ function ProfileContent({ packages }: ProfileContentProps) {
             {activeTab === "credits" && (
               <motion.div
                 key="credits"
-                className="relative mx-auto flex w-full max-w-5xl flex-col gap-10"
+                className="relative mx-auto flex w-full max-w-4xl flex-col gap-12"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.25 }}
               >
                 <ReferralsBody />
-                <section className="relative flex flex-col gap-5">
+                <section className="relative flex flex-col gap-8">
                   <div className="flex flex-col gap-1.5">
                     <h2 className="font-semibold text-2xl text-foreground tracking-tight">
                       Top up credits
