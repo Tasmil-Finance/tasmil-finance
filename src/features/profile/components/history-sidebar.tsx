@@ -12,7 +12,7 @@ import { useStellarTransactions } from "../hooks/use-stellar-transactions";
 import { decodeOperation } from "../lib/decode-operation";
 import { formatAmount, signedAmount } from "../lib/format-amount";
 import { groupByTransaction } from "../lib/group-by-transaction";
-import { getIconStyle } from "../lib/icons";
+import { getOpIconStyle } from "../lib/operation-presentation";
 import type { TxGroup } from "../lib/types";
 
 function formatRelativeTime(iso: string): string {
@@ -110,7 +110,7 @@ export function HistorySidebar({ address, onSeeAll }: HistorySidebarProps) {
       ) : (
         <div className="flex flex-col divide-y divide-border">
           {groups.map((group) => {
-            const style = getIconStyle(group.primary.kind, group.successful);
+            const style = getOpIconStyle(group.primary.kind, group.successful);
             const Icon = style.icon;
             const sum = summary(group);
             const explorerLink = getExplorerUrl("tx", group.txHash);
