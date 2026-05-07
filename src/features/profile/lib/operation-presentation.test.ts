@@ -103,3 +103,138 @@ describe("presentRow — payment kinds", () => {
     expect(row.amount).toEqual({ kind: "single", value: "23.5", code: "USDC", isCredit: true });
   });
 });
+
+describe("presentRow — defi / trustline / create-account / claim", () => {
+  function single(kind: TxGroup["primary"]["kind"], delta: { code: string; amount: string; isCredit: boolean }) {
+    const g = makeGroup({ primary: { ...makeGroup().primary, kind, deltas: [delta] } });
+    g.ops = [g.primary];
+    return g;
+  }
+
+  it("lp-deposit", () => {
+    const row = presentRow(single("lp-deposit", { code: "USDC", amount: "5", isCredit: false }), VIEWER);
+    expect(row.title).toBe("Liquidity Pool Deposit");
+    expect(row.subline).toBe("Sent");
+    expect(row.sublineGlyph).toBe("sent");
+    expect(row.avatar).toEqual({ kind: "token", code: "USDC" });
+    expect(row.amount).toEqual({ kind: "single", value: "5", code: "USDC", isCredit: false });
+  });
+
+  it("lp-withdraw", () => {
+    const row = presentRow(single("lp-withdraw", { code: "USDC", amount: "5", isCredit: true }), VIEWER);
+    expect(row.title).toBe("Liquidity Pool Withdraw");
+    expect(row.subline).toBe("Received");
+    expect(row.sublineGlyph).toBe("received");
+  });
+
+  it("lend-deposit", () => {
+    const row = presentRow(single("lend-deposit", { code: "XLM", amount: "1", isCredit: false }), VIEWER);
+    expect(row.title).toBe("Deposit");
+    expect(row.subline).toBe("Sent");
+  });
+
+  it("lend-withdraw", () => {
+    const row = presentRow(single("lend-withdraw", { code: "XLM", amount: "1", isCredit: true }), VIEWER);
+    expect(row.title).toBe("Withdraw");
+    expect(row.subline).toBe("Received");
+  });
+
+  it("harvest", () => {
+    const row = presentRow(single("harvest", { code: "BLND", amount: "12", isCredit: true }), VIEWER);
+    expect(row.title).toBe("Harvest");
+    expect(row.subline).toBe("Received");
+    expect(row.sublineGlyph).toBe("received");
+  });
+
+  it("trustline-add", () => {
+    const g = makeGroup({
+      primary: {
+        ...makeGroup().primary,
+        kind: "trustline-add",
+        deltas: [{ code: "AQUA", amount: "0", isCredit: false }],
+      },
+    });
+    g.ops = [g.primary];
+    const row = presentRow(g, VIEWER);
+    expect(row.title).toBe("Add trustline");
+    expect(row.subline).toBe("Added");
+    expect(row.sublineGlyph).toBe("add");
+    expect(row.avatar).toEqual({ kind: "token", code: "AQUA" });
+  });
+
+  it("trustline-remove", () => {
+    const g = makeGroup({
+      primary: {
+        ...makeGroup().primary,
+        kind: "trustline-remove",
+        deltas: [{ code: "AQUA", amount: "0", isCredit: false }],
+      },
+    });
+    g.ops = [g.primary];
+    const row = presentRow(g, VIEWER);
+    expect(row.title).toBe("Remove trustline");
+    expect(row.subline).toBe("Removed");
+    expect(row.sublineGlyph).toBe("remove");
+  });
+
+  it("create-account received", () => {
+    const g = makeGroup({
+      primary: {
+        ...makeGroup().primary,
+        kind: "create-account",
+        deltas: [{ code: "XLM", amount: "5", isCredit: true }],
+      },
+    });
+    g.ops = [g.primary];
+    const row = presentRow(g, VIEWER);
+    expect(row.title).toBe("Create Account");
+    expect(row.subline).toBe("Received");
+    expect(row.avatar).toEqual({
+      kind: "bordered-glyph",
+      glyph: "user",
+      corner: { glyph: "plus", tone: "primary" },
+    });
+  });
+
+  it("create-account sent", () => {
+    const g = makeGroup({
+      primary: {
+        ...makeGroup().primary,
+        kind: "create-account",
+        deltas: [{ code: "XLM", amount: "5", isCredit: false }],
+      },
+    });
+    g.ops = [g.primary];
+    const row = presentRow(g, VIEWER);
+    expect(row.title).toBe("Create Account");
+    expect(row.subline).toBe("Sent");
+    expect(row.avatar).toEqual({
+      kind: "bordered-glyph",
+      glyph: "user",
+      corner: { glyph: "arrow-up", tone: "primary" },
+    });
+  });
+
+  it("merge-account uses bordered user", () => {
+    const g = makeGroup({ primary: { ...makeGroup().primary, kind: "merge-account", deltas: [] } });
+    g.ops = [g.primary];
+    const row = presentRow(g, VIEWER);
+    expect(row.title).toBe("Account Merge");
+    expect(row.subline).toBe("Operation");
+    expect(row.sublineGlyph).toBe("generic");
+    expect(row.avatar).toEqual({ kind: "bordered-glyph", glyph: "user" });
+  });
+
+  it("claim-balance is treated as Received", () => {
+    const row = presentRow(single("claim-balance", { code: "USDC", amount: "10", isCredit: true }), VIEWER);
+    expect(row.title).toBe("Claim Claimable Balance");
+    expect(row.subline).toBe("Received");
+    expect(row.avatar).toEqual({ kind: "token", code: "USDC" });
+  });
+
+  it("lock-balance is treated as Sent", () => {
+    const row = presentRow(single("lock-balance", { code: "USDC", amount: "10", isCredit: false }), VIEWER);
+    expect(row.title).toBe("Create Claimable Balance");
+    expect(row.subline).toBe("Sent");
+  });
+});
