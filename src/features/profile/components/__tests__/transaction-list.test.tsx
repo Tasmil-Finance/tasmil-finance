@@ -76,7 +76,7 @@ function renderList() {
   return render(
     <QueryClientProvider client={qc}>
       <TransactionList address="GA" />
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
 }
 
@@ -84,8 +84,8 @@ describe("<TransactionList>", () => {
   it("renders one row per transaction (3 tx hashes → 3 rows)", async () => {
     renderList();
     await waitFor(() => {
-      expect(screen.getByText("Sent")).toBeInTheDocument();
-      expect(screen.getByText("Swapped")).toBeInTheDocument();
+      expect(screen.getByText("XLM")).toBeInTheDocument();
+      expect(screen.getByText("XLM to USDC")).toBeInTheDocument();
       expect(screen.getByText("Transaction Failed")).toBeInTheDocument();
     });
   });
@@ -93,8 +93,7 @@ describe("<TransactionList>", () => {
   it("renders the swap source/destination", () => {
     renderList();
     expect(screen.getAllByText("XLM").length).toBeGreaterThan(0);
-    expect(screen.getByText("USDC")).toBeInTheDocument();
-    expect(screen.getByText("→")).toBeInTheDocument();
+    expect(screen.getByText("XLM to USDC")).toBeInTheDocument();
   });
 
   it("renders the filter bar", () => {
