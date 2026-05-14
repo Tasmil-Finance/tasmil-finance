@@ -1,9 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { requireEnv } from "@/lib/env";
 
 const BACKEND_URL =
   process.env.BACKEND_INTERNAL_URL ??
   process.env.NEXT_PUBLIC_BACKEND_URL ??
-  "http://localhost:6756";
+  requireEnv("BACKEND_INTERNAL_URL", "http://localhost:6756");
 
 function unwrap<T>(payload: T | { success?: boolean; data?: T }): T {
   if (payload && typeof payload === "object" && "data" in payload) return payload.data as T;

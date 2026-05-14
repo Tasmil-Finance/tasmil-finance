@@ -8,7 +8,7 @@ function trimTrailingSlash(url: string): string {
 }
 
 export function getPublicAiBaseUrl(env: NodeJS.ProcessEnv = process.env): string {
-  const url = env.NEXT_PUBLIC_AI_URL ?? "";
+  const url = env["NEXT_PUBLIC_AI_URL"] ?? "";
   return url ? trimTrailingSlash(url) : "";
 }
 
@@ -18,18 +18,26 @@ export function getBrowserAiBaseUrl(
     ? window.location.origin
     : undefined
 ): string {
-  const url = locationOrigin ?? env.NEXT_PUBLIC_AI_URL ?? "";
+  const url = locationOrigin ?? env["NEXT_PUBLIC_AI_URL"] ?? "";
   return url ? trimTrailingSlash(url) : "";
 }
 
 export function getServerAiBaseUrl(env: NodeJS.ProcessEnv = process.env): string {
-  const url = env.AI_INTERNAL_URL ?? "http://localhost:8001";
-  return trimTrailingSlash(url);
+  const url = env["AI_INTERNAL_URL"];
+  if (url) return trimTrailingSlash(url);
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("Missing required environment variable: AI_INTERNAL_URL");
+  }
+  return "http://localhost:8001";
 }
 
 export function getServerBackendBaseUrl(env: NodeJS.ProcessEnv = process.env): string {
-  const url = env.BACKEND_INTERNAL_URL ?? env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:6756";
-  return trimTrailingSlash(url);
+  const url = env["BACKEND_INTERNAL_URL"] ?? env["NEXT_PUBLIC_BACKEND_URL"];
+  if (url) return trimTrailingSlash(url);
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("Missing required environment variable: BACKEND_INTERNAL_URL");
+  }
+  return "http://localhost:6756";
 }
 
 export function getBrowserBackendBaseUrl(

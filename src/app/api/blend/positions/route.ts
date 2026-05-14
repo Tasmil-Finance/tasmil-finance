@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getBlendClient } from "../_sdk";
+import { requireEnv } from "@/lib/env";
 
 export async function GET(req: NextRequest) {
   const pool = req.nextUrl.searchParams.get("pool");
@@ -117,7 +118,7 @@ export async function GET(req: NextRequest) {
   }
 
   // Fallback: MCP-stellar
-  const MCP_URL = process.env.NEXT_PUBLIC_MCP_STELLAR_URL ?? "http://localhost:3009";
+  const MCP_URL = requireEnv("NEXT_PUBLIC_MCP_STELLAR_URL", "http://localhost:3009");
   try {
     const r = await fetch(`${MCP_URL}/blend-v2/query/positions?pool=${pool}&user=${user}`);
     const d = await r.json();

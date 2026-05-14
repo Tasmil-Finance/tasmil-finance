@@ -4,16 +4,6 @@ import { getAiProxyRewrites, getBackendProxyRewrites } from "./src/lib/runtime-u
 const nextConfig: NextConfig = {
   serverExternalPackages: ["@blend-capital/blend-sdk", "@stellar/stellar-sdk"],
   reactStrictMode: false,
-  // Dev-mode `rewrites()` proxy default is 30 s; the withdraw endpoint
-  // chains 3–4 sequential Soroban TXs (~12 s each) and routinely runs
-  // 40–60 s on mainnet. Raising the proxy timeout to 2 min eliminates
-  // the spurious "socket hang up → 500" the UI surfaces while the BE
-  // keeps running and the on-chain TXs all confirm. Production goes
-  // through nginx/CDN (separate timeout config), so this only affects
-  // local dev.
-  experimental: {
-    proxyTimeout: 120_000,
-  },
   // Disable built-in compression — SSE (text/event-stream) responses get
   // gzip'd which forces the browser to buffer the entire response before
   // decompressing, killing real-time streaming.  In production, nginx/CDN
@@ -36,7 +26,14 @@ const nextConfig: NextConfig = {
         // Next.js compress:false handles this, but tunnel proxies may
         // add their own gzip layer that corrupts SSE streams.
         source: "/:path*",
-        headers: [{ key: "Cache-Control", value: "no-transform" }],
+        headers: [
+          { key: "Cache-Control", value: "no-transform" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
+          { key: "X-XSS-Protection", value: "0" },
+        ],
       },
     ];
   },
@@ -90,13 +87,9 @@ const nextConfig: NextConfig = {
     config.watchOptions = {
       ...config.watchOptions,
       ignored: [
-        ...(Array.isArray(config.watchOptions?.ignored)
-          ? config.watchOptions.ignored
-          : config.watchOptions?.ignored
-            ? [config.watchOptions.ignored]
-            : []),
-        "**/e2e/test-results/**",
-        "**/node_modules/**",
+        ...(Array.isArray(config.watchOptions?.ignored) ? config.watchOptions.ignored : config.watchOptions?.ignored ? [config.watchOptions.ignored] : []),
+        '**/e2e/test-results/**',
+        '**/node_modules/**',
       ],
     };
 

@@ -1,7 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getNetwork, getSoroswapClient } from "../_sdk";
+import { requireEnv } from "@/lib/env";
 
-const MCP_URL = process.env.NEXT_PUBLIC_MCP_STELLAR_URL ?? "http://localhost:3009";
+const MCP_URL = requireEnv("NEXT_PUBLIC_MCP_STELLAR_URL", "http://localhost:3009");
 
 /**
  * GET /api/soroswap/pools?protocol=soroswap&page=1&limit=10

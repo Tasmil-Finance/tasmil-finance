@@ -1,4 +1,5 @@
 import "server-only";
+import { requireEnv } from "@/lib/env";
 import type { CreditPackage } from "../types";
 
 interface BackendEnvelope<T> {
@@ -11,7 +12,7 @@ function resolveBackendBaseUrl(): string {
   if (internal && internal.length > 0) return internal.replace(/\/$/, "");
   const publicUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   if (publicUrl && publicUrl.length > 0) return publicUrl.replace(/\/$/, "");
-  return "http://localhost:6756";
+  return requireEnv("BACKEND_INTERNAL_URL", "http://localhost:6756");
 }
 
 export async function fetchCreditPackages(): Promise<CreditPackage[]> {

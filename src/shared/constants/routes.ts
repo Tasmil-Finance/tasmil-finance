@@ -1,3 +1,5 @@
+import { requireEnv } from "@/lib/env";
+
 export const PATHS = {
   DASHBOARD: "/dashboard",
   CHAT: "/chat",
@@ -31,4 +33,4 @@ export const SECTION_IDS = {
   FOOTER: "footer",
 };
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:6756";
+export const API_BASE_URL = requireEnv("NEXT_PUBLIC_BACKEND_URL", "http://localhost:6756");

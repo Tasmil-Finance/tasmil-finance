@@ -77,12 +77,11 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "auth-storage",
-      // SECURITY: accessToken is kept in memory for backward compat with code that
-      // reads it directly. The PRIMARY protection is the httpOnly 'tasmil_auth' cookie
-      // set by the backend on verify/login — browser auto-sends it, JS can't read it.
       partialize: (state) => ({
+        // SECURITY: accessToken is NOT persisted — it lives only in memory.
+        // The backend sets it in an httpOnly cookie; JS reads it from this store.
+        // Persisting it would expose the JWT in localStorage (XSS risk).
         isAuthenticated: state.isAuthenticated,
-        accessToken: state.accessToken,
         user: state.user,
         expiresAt: state.expiresAt,
       }),

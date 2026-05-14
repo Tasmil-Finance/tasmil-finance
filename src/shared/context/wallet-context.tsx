@@ -95,8 +95,11 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
 
-    // E2E test fast-path: skip StellarWalletsKit init entirely
-    const e2eWallet = typeof window !== "undefined" ? (window as any).__TASMIL_E2E_WALLET__ : null;
+    // E2E test fast-path: skip StellarWalletsKit init entirely (dev/test only)
+    const e2eWallet =
+      process.env.NODE_ENV !== "production" && typeof window !== "undefined"
+        ? (window as any).__TASMIL_E2E_WALLET__
+        : null;
     if (e2eWallet?.connected && e2eWallet?.publicKey) {
       console.warn(
         "[WalletContext] E2E fast-path: using mock wallet",
@@ -202,9 +205,9 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const walletState = useWalletStore.getState();
     if (!walletState.connected || !walletState.account) return;
 
-    // E2E test bypass — when __TASMIL_E2E_WALLET__ is set, trust localStorage
-    // instead of querying StellarWalletsKit (no browser extension in Playwright)
-    const e2eWallet = (window as any).__TASMIL_E2E_WALLET__;
+    // E2E test bypass — dev/test only
+    const e2eWallet =
+      process.env.NODE_ENV !== "production" ? (window as any).__TASMIL_E2E_WALLET__ : null;
     if (e2eWallet?.connected && e2eWallet?.publicKey) {
       setAddress(e2eWallet.publicKey);
       setIsConnected(true);
