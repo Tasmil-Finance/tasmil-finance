@@ -73,6 +73,7 @@ ENV NODE_ENV=production
 ENV PORT=3000
 
 RUN addgroup --system --gid 1001 app && adduser --system --uid 1001 --ingroup app app
+RUN chown -R app:app /app
 USER app
 
 CMD ["pnpm", "exec", "next", "start"]
