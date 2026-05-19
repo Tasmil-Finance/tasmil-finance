@@ -22,8 +22,9 @@ export const SyntaxHighlighter: FC<SyntaxHighlighterProps> = ({
   language,
   className,
 }) => {
+  const Prism = SyntaxHighlighterPrism as any;
   return (
-    <SyntaxHighlighterPrism
+    <Prism
       language={language}
       style={coldarkDark}
       customStyle={{
@@ -35,6 +36,6 @@ export const SyntaxHighlighter: FC<SyntaxHighlighterProps> = ({
       className={className}
     >
       {children}
-    </SyntaxHighlighterPrism>
+    </Prism>
   );
 };

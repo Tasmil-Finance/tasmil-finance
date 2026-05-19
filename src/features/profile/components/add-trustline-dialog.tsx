@@ -129,29 +129,6 @@ export function AddTrustlineDialog({
 
         <div className="flex flex-col gap-4 py-2">
           <div className="flex flex-col gap-1.5">
-<<<<<<< HEAD
-            <label className="font-medium text-foreground text-sm">Asset Code</label>
-            <Input
-              placeholder="e.g. USDC, BLND, AQUA"
-              value={assetCode}
-              onChange={(e) => setAssetCode(e.target.value.toUpperCase())}
-              maxLength={12}
-              disabled={loading}
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="font-medium text-foreground text-sm">Issuer Address</label>
-            <Input
-              placeholder="G..."
-              value={issuer}
-              onChange={(e) => setIssuer(e.target.value)}
-              maxLength={56}
-              disabled={loading}
-              className="font-mono text-xs"
-            />
-          </div>
-=======
             <label className="text-sm font-medium text-foreground">Asset</label>
             <AssetPicker
               value={selected}
@@ -160,7 +137,6 @@ export function AddTrustlineDialog({
               disabled={loading}
             />
           </div>
->>>>>>> fb4df5e8 (refactor(profile): replace text inputs with AssetPicker in AddTrustlineDialog)
         </div>
 
         <DialogFooter>
