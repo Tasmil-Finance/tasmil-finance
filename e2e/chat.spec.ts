@@ -336,4 +336,36 @@ test.describe("Chat (/chat)", () => {
     const hasAlert = await alert.isVisible().catch(() => false);
     expect(hasAlert).toBeFalsy();
   });
+
+  // T26 — Regression for two bugs that surface as "Chat request was
+  // missing a usable wallet identity":
+  //   1. ai/api/api/agui.py _require_auth had a broken import → 500
+  //   2. Frontend lacked /api/auth/me rehydrate → 403 SESSION_INVALID
+  // This test asserts neither failure shape appears when the user sends
+  // a message after a normal login.
+  test("chat send: agui call has Bearer header and is not 403 or 500", async ({ page }) => {
+    const wallet = freshWallet();
+    await loginAsWallet(page, wallet);
+
+    const aguiRequestPromise = page.waitForRequest(
+      (req) => /\/agui\//.test(req.url()) && req.method() === "POST",
+      { timeout: 20_000 }
+    );
+
+    await page.goto("/chat/new");
+    const input = page.locator("textarea, input[type=text]").first();
+    await input.waitFor({ timeout: 10_000 });
+    await input.fill("Ping");
+    await input.press("Enter");
+
+    const aguiRequest = await aguiRequestPromise;
+    expect(aguiRequest.headers()["authorization"]).toMatch(/^Bearer\s+\S+/);
+
+    const aguiResponse = await aguiRequest.response();
+    const status = aguiResponse?.status() ?? 0;
+    expect(status).not.toBe(403);
+    expect(status).not.toBe(500);
+
+    await expect(page.getByText(/missing a usable wallet identity/i)).toHaveCount(0);
+  });
 });
