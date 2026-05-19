@@ -1,6 +1,5 @@
 "use client";
 
-import { HeroVideoDialog } from "@/shared/ui/hero-video-dialog";
 import { Typography } from "@/shared/ui/typography";
 
 export const VideoSection = () => {
@@ -36,21 +35,16 @@ export const VideoSection = () => {
         </div>
 
         {/* Video Demo */}
-        <div className="relative w-full max-w-4xl">
-          <HeroVideoDialog
-            animationStyle="from-center"
-            className="block dark:hidden"
-            thumbnailAlt="Tasmil Finance Demo Video"
-            thumbnailSrc="/images/landing-v3/video-thumbnail.png"
-            videoSrc="https://www.youtube.com/embed/VoLY1gjz5mg"
-          />
-          <HeroVideoDialog
-            animationStyle="from-center"
-            className="hidden dark:block"
-            thumbnailAlt="Tasmil Finance Demo Video"
-            thumbnailSrc="/images/landing-v3/video-thumbnail.png"
-            videoSrc="https://www.youtube.com/embed/VoLY1gjz5mg"
-          />
+        <div className="relative w-full max-w-4xl overflow-hidden rounded-xl border border-white/10 shadow-2xl">
+          <div className="aspect-video">
+            <iframe
+              src="https://www.youtube.com/embed/VoLY1gjz5mg"
+              className="size-full"
+              allowFullScreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              title="Tasmil Finance Demo Video"
+            />
+          </div>
         </div>
 
         {/* Additional Features */}
