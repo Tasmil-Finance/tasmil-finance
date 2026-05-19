@@ -1,15 +1,13 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
-import { getPublicAiBaseUrl } from "@/lib/runtime-urls";
+import { getBrowserAiBaseUrl } from "@/lib/runtime-urls";
 import { useAuthStore } from "@/store/use-auth";
 
 export const getApiBaseUrl = () => {
-  return getPublicAiBaseUrl();
+  return getBrowserAiBaseUrl();
 };
 
-const API_BASE_URL = getApiBaseUrl();
-
+// Lazy-initialize baseURL so window.location.origin is available at call time
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -18,8 +16,12 @@ const apiClient = axios.create({
   timeout: 30000,
 });
 
+// Set baseURL dynamically on each request (handles devtunnels/port-forwarding)
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    if (!config.baseURL) {
+      config.baseURL = getBrowserAiBaseUrl();
+    }
     const token = useAuthStore.getState().accessToken;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
