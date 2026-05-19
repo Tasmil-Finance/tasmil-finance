@@ -23,15 +23,11 @@ export function AuthBootstrap() {
     if (ranRef.current) return;
     ranRef.current = true;
 
-    const { isAuthenticated, accessToken, user, isTokenExpired, setAuthState, logout } =
+    const { accessToken, setAuthState, logout } =
       useAuthStore.getState();
 
-    // Only run when we have a persisted user but no in-memory token.
-    if (!isAuthenticated || !user || accessToken) return;
-    if (isTokenExpired()) {
-      logout();
-      return;
-    }
+    // Already have a token in memory — nothing to rehydrate.
+    if (accessToken) return;
 
     const url = `${getBrowserBackendBaseUrl()}/api/auth/me`;
     void fetch(url, {
