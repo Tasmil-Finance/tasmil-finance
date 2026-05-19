@@ -96,3 +96,71 @@ export async function loginAsWallet(page: Page, walletAddress: string): Promise<
 
   return { walletAddress, jwt, userId };
 }
+
+/**
+ * Minimal sibling of `loginAsWallet` that exercises the cookie-only
+ * rehydrate path. The backend still sets the `tasmil_auth` cookie via
+ * `Set-Cookie`, but the persisted Zustand state is seeded WITHOUT
+ * accessToken — mimicking what survives a real page reload.
+ *
+ * The `<AuthBootstrap />` effect must call `GET /api/auth/me` to
+ * repopulate the in-memory token before any chat call goes out.
+ */
+export async function loginViaCookieOnly(
+  page: Page,
+  walletAddress: string
+): Promise<AuthedSession> {
+  const response = await page.request.post(`${BACKEND}/api/auth/wallet/test-login`, {
+    data: { walletAddress },
+  });
+  if (!response.ok()) {
+    throw new Error(`test-login failed ${response.status()}: ${await response.text()}`);
+  }
+  const body = await response.json();
+  const jwt: string = body?.data?.accessToken ?? body?.accessToken;
+  const userId: string = body?.data?.user?.id ?? body?.user?.id;
+  expect(jwt).toBeTruthy();
+  expect(userId).toBeTruthy();
+
+  await page.addInitScript(
+    ({ walletAddress }) => {
+      // Persisted Zustand state AS IT EXISTS AFTER A REAL RELOAD:
+      // - isAuthenticated: true
+      // - user: present
+      // - expiresAt: future
+      // - accessToken: ABSENT (Zustand persist drops it via `partialize`)
+      localStorage.setItem(
+        "auth-storage",
+        JSON.stringify({
+          state: {
+            isAuthenticated: true,
+            user: {
+              id: walletAddress,
+              walletAddress,
+              type: "regular",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+            expiresAt: Date.now() + 60 * 60 * 1000,
+          },
+          version: 0,
+        })
+      );
+      localStorage.setItem(
+        "wallet-storage",
+        JSON.stringify({
+          state: { connected: true, account: walletAddress },
+          version: 0,
+        })
+      );
+      (window as unknown as { __TASMIL_E2E_BYPASS_KIT__?: boolean }).__TASMIL_E2E_BYPASS_KIT__ = true;
+      localStorage.setItem(
+        "tasmil-onboarding",
+        JSON.stringify({ state: { hasCompletedWelcome: true }, version: 0 })
+      );
+    },
+    { walletAddress }
+  );
+
+  return { walletAddress, jwt, userId };
+}
