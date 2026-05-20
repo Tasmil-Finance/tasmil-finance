@@ -52,7 +52,7 @@ function MobileHeader({ sidebarData }: { sidebarData: SidebarData }) {
 function MobileLayout({
   children,
   showRightSidebar,
-  showHeader,
+  showHeader: _showHeader,
   sidebarData,
 }: {
   children: React.ReactNode;
