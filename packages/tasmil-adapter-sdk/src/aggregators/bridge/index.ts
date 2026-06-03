@@ -13,9 +13,6 @@ import type {
   BridgeProvider,
 } from "../../types/bridge.js";
 import { withTimeout } from "../../utils/timeout.js";
-import { createLogger } from "../../utils/logger.js";
-
-const log = createLogger("bridge-aggregator");
 const TIMEOUT_MS = 15_000;
 
 // ─── NEAR Intents client ──────────────────────────────────────────
