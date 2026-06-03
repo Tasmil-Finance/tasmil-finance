@@ -1,0 +1,26 @@
+name: Mirror to deployer
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Mirror and trigger deploy
+        env:
+          PAT: ${{ secrets.DEPLOYER_PAT }}
+        run: |
+          PAT_CLEAN=$(printf '%s' "$PAT" | tr -d '[:space:]')
+
+          git config user.name "the-morca-deployer"
+          git config user.email "the-morca-deployer@users.noreply.github.com"
+          git commit --allow-empty -m "chore: deploy"
+
+          git -c "url.https://${PAT_CLEAN}@github.com/.insteadOf=https://github.com/" push https://github.com/the-morca-deployer/tasmil-finance.git HEAD:refs/heads/main --force
