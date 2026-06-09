@@ -21,7 +21,7 @@ export function useAccountActivity(
 ): UseAccountActivityResult {
   const query = useAccountControllerGetActivity(
     walletAddress ?? "",
-    { limit: "50" },
+    { limit: "50", cursor: "", category: "" },
     { query: { enabled: !!walletAddress } }
   );
 

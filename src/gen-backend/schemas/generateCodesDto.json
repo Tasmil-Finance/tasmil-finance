@@ -1,6 +1,1 @@
-{
-  "type": "object",
-  "properties": { "quantity": { "type": "number", "minimum": 1, "maximum": 100 } },
-  "required": ["quantity"],
-  "x-readme-ref-name": "GenerateCodesDto"
-}
+{"type":"object","properties":{"quantity":{"type":"number","minimum":1,"maximum":100}},"required":["quantity"],"x-readme-ref-name":"GenerateCodesDto"}

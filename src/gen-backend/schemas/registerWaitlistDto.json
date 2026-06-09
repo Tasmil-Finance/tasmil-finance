@@ -1,9 +1,1 @@
-{
-  "type": "object",
-  "properties": {
-    "email": { "type": "string", "example": "user@example.com" },
-    "source": { "type": "string", "example": "direct" }
-  },
-  "required": ["email"],
-  "x-readme-ref-name": "RegisterWaitlistDto"
-}
+{"type":"object","properties":{"email":{"type":"string","example":"user@example.com"},"source":{"type":"string","example":"direct"}},"required":["email"],"x-readme-ref-name":"RegisterWaitlistDto"}

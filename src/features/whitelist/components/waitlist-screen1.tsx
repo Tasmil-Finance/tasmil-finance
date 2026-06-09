@@ -40,10 +40,55 @@ export function WaitlistScreen1({ referredByCode, onJoined }: WaitlistScreen1Pro
     if (!address) return;
     const challengeResult = await requestChallenge.mutateAsync({ walletAddress: address });
 
+    // Sign the challenge with Freighter wallet
+    const { signMessage } = await import("@stellar/freighter-api");
+    const sigResult = await signMessage(challengeResult.challenge, { address });
+    if (sigResult.error || !sigResult.signedMessage) {
+      const msg = sigResult.error?.message ?? "";
+      if (
+        msg.toLowerCase().includes("reject") ||
+        msg.toLowerCase().includes("cancel") ||
+        msg.toLowerCase().includes("denied")
+      ) {
+        return;
+      }
+      throw new Error(msg || "Wallet signing failed");
+    }
+    const raw = sigResult.signedMessage;
+    console.warn("[waitlist] signedMessage:", typeof raw, JSON.stringify(raw)?.slice(0, 80));
+
+    const signedChallenge = (() => {
+      if (!raw) return "";
+      // Buffer / Uint8Array
+      if (typeof raw !== "string") {
+        const buf = Buffer.from(raw as Uint8Array);
+        return buf.length > 0 ? buf.toString("base64") : "";
+      }
+      if (raw.length === 0) return "";
+      // 0x-prefixed hex
+      if (raw.startsWith("0x") && raw.length > 2) {
+        return Buffer.from(raw.slice(2), "hex").toString("base64");
+      }
+      // Valid hex (even-length)
+      if (/^[0-9a-fA-F]+$/.test(raw) && raw.length % 2 === 0) {
+        const fromHex = Buffer.from(raw, "hex");
+        if (fromHex.length > 0) return fromHex.toString("base64");
+      }
+      // Already looks like base64
+      if (/^[A-Za-z0-9+/]+=*$/.test(raw) && raw.length % 4 === 0) return raw;
+      // Last resort: binary string → base64
+      return Buffer.from(raw, "binary").toString("base64");
+    })();
+
+    if (!signedChallenge) {
+      console.warn("[waitlist] signedChallenge is empty, raw was:", raw);
+      throw new Error("Wallet signing produced empty result. Please try again.");
+    }
+
     const payload: Parameters<typeof registerWallet.mutateAsync>[0] = {
       walletAddress: address,
       walletProvider: "FREIGHTER",
-      signedChallenge: challengeResult.challenge,
+      signedChallenge,
       source: "whitelist_page",
     };
     if (referredByCode) payload.referredByCode = referredByCode;

@@ -1,4 +1,4 @@
-import { createTasmilClient } from "@tasmil/adapter-sdk";
+import { createTasmilClient } from "@tasmil-finance/adapter-sdk";
 import { STELLAR_NETWORK } from "@/shared/config/stellar-server";
 
 export function getAllbridgeClient() {

@@ -7,6 +7,7 @@ import type {
   ActivityListResponse,
 } from "@/features/account/types";
 import { accountControllerGetActivity } from "@/gen-backend/client/account-controller-get-activity";
+import type { AccountControllerGetActivityQueryParams } from "@/gen-backend/types/account-controller-get-activity";
 
 interface BackendEnvelope<T> {
   success?: boolean;
@@ -41,10 +42,9 @@ export function useAccountActivityInfinite(
       const params: Record<string, string> = { limit: String(PAGE_SIZE) };
       if (pageParam) params.cursor = String(pageParam);
       if (category) params.category = category;
-      // Generated client types only know { limit }; cast through unknown.
       const res = await accountControllerGetActivity(
         walletAddress ?? "",
-        params as unknown as { limit: string }
+        params as unknown as AccountControllerGetActivityQueryParams
       );
       return res as BackendEnvelope<ActivityListResponse> | ActivityListResponse;
     },

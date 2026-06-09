@@ -1,12 +1,72 @@
 "use client";
 
 import { ShieldCheck, Sparkles, Waypoints } from "lucide-react";
-import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { ReferralLoopCard } from "@/features/whitelist/components/referral-loop-card";
 import { WaitlistPhaseBoard } from "@/features/whitelist/components/waitlist-phase-board";
 import { PATHS } from "@/shared/constants/routes";
 import { Typography } from "@/shared/ui/typography";
+
+function AccessCodeCard() {
+  const router = useRouter();
+  const [code, setCode] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleRedeem() {
+    if (!code.trim()) return;
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/waitlist/redeem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: code.trim().toUpperCase(), walletAddress: "unknown" }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        const msgs: Record<number, string> = {
+          404: "Code not found.",
+          409: "This code has already been fully used.",
+          410: "This code has been revoked.",
+        };
+        setError(msgs[res.status] ?? data.message ?? "Invalid code.");
+        return;
+      }
+      router.push("/dashboard");
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="mx-auto max-w-[440px] px-6 pb-10 sm:px-8">
+      <div className="rounded-xl border border-border bg-card p-5">
+        <p className="mb-3 text-sm font-medium text-muted-foreground">Have an access code?</p>
+        <div className="flex gap-3">
+          <input
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleRedeem()}
+            placeholder="Enter your access code"
+            className="flex-1 rounded-lg border border-border bg-background px-4 py-2 font-mono text-sm tracking-widest text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+          />
+          <button
+            onClick={handleRedeem}
+            disabled={!code || loading}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+          >
+            {loading ? "..." : "Enter →"}
+          </button>
+        </div>
+        {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
+      </div>
+    </div>
+  );
+}
 
 const hybridSections = [
   {
@@ -107,6 +167,8 @@ export default function WhitelistPage() {
       <section className="mx-auto max-w-[440px] px-6 py-10 sm:px-8">
         <ReferralLoopCard />
       </section>
+
+      <AccessCodeCard />
 
       <section className="mx-auto max-w-6xl px-6 py-20 sm:px-8 lg:px-12">
         <div className="mb-10 max-w-2xl">

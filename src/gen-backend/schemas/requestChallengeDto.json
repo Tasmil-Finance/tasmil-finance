@@ -1,12 +1,1 @@
-{
-  "type": "object",
-  "properties": {
-    "walletAddress": {
-      "type": "string",
-      "example": "GBX...",
-      "description": "Stellar public key (G...)"
-    }
-  },
-  "required": ["walletAddress"],
-  "x-readme-ref-name": "RequestChallengeDto"
-}
+{"type":"object","properties":{"walletAddress":{"type":"string","example":"GBX...","description":"Stellar public key (G...)"}},"required":["walletAddress"],"x-readme-ref-name":"RequestChallengeDto"}

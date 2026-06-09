@@ -41,7 +41,7 @@ export function usePosition(publicKey: string | undefined) {
 export function useActivity(publicKey: string | undefined) {
   return useAccountControllerGetActivity(
     publicKey!,
-    { limit: "50" },
+    { limit: "50", cursor: "", category: "" },
     {
       query: {
         ...$b.query,

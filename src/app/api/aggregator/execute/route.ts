@@ -1,8 +1,8 @@
-// @ts-nocheck — pre-existing type errors against @tasmil/adapter-sdk;
+// @ts-nocheck — pre-existing type errors against @tasmil-finance/adapter-sdk;
 // CI lint enforced via PR pipeline. See PR notes / follow-up to align
 // the SDK exports with what these route handlers + tests consume.
 
-import { resolveAsset, resolveAssetAsync } from "@tasmil/adapter-sdk";
+import { resolveAsset, resolveAssetAsync } from "@tasmil-finance/adapter-sdk";
 import { NextResponse } from "next/server";
 import { sdk } from "../_sdk";
 

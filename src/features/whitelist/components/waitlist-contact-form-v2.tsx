@@ -43,12 +43,51 @@ export function WaitlistContactFormV2({ onSuccess }: WaitlistContactFormV2Props)
     setError(null);
 
     try {
+      // Step 1: Request challenge
+      const challengeRes = await fetch("/api/waitlist/challenge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ walletAddress: address ?? "" }),
+      });
+      if (!challengeRes.ok) throw new Error("Failed to get challenge");
+      const { challenge } = await challengeRes.json();
+
+      // Step 2: Sign with Freighter
+      const { signMessage } = await import("@stellar/freighter-api");
+      const sigResult = await signMessage(challenge, { address: address ?? "" });
+      if (sigResult.error || !sigResult.signedMessage) {
+        const msg = sigResult.error?.message ?? "";
+        if (
+          msg.toLowerCase().includes("reject") ||
+          msg.toLowerCase().includes("cancel") ||
+          msg.toLowerCase().includes("denied")
+        ) {
+          setIsSubmitting(false);
+          return;
+        }
+        throw new Error(msg || "Wallet signing failed");
+      }
+      const raw = sigResult.signedMessage;
+      const signedChallenge = (() => {
+        if (typeof raw !== "string") return Buffer.from(raw as Uint8Array).toString("base64");
+        if (raw.startsWith("0x") && raw.length > 2)
+          return Buffer.from(raw.slice(2), "hex").toString("base64");
+        if (/^[0-9a-fA-F]+$/.test(raw) && raw.length % 2 === 0) {
+          const b = Buffer.from(raw, "hex");
+          if (b.length > 0) return b.toString("base64");
+        }
+        if (/^[A-Za-z0-9+/]+=*$/.test(raw) && raw.length % 4 === 0) return raw;
+        return Buffer.from(raw, "binary").toString("base64");
+      })();
+
+      // Step 3: Attach email with proof
       const res = await fetch("/api/waitlist/contact", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           walletAddress: address ?? "",
           email: email.trim().toLowerCase(),
+          signedChallenge,
         }),
       });
 

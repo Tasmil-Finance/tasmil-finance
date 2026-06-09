@@ -113,9 +113,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.85.5
         version: 5.101.0(react@19.2.7)
-      '@tasmil/adapter-sdk':
-        specifier: workspace:*
-        version: link:packages/tasmil-adapter-sdk
+      '@tasmil-finance/adapter-sdk':
+        specifier: ^0.1.1
+        version: 0.1.1(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.25.76)
       '@types/qrcode.react':
         specifier: ^3.0.0
         version: 3.0.0(react@19.2.7)
@@ -167,6 +167,9 @@ importers:
       https-browserify:
         specifier: ^1.0.0
         version: 1.0.0
+      jose:
+        specifier: ^6.2.3
+        version: 6.2.3
       katex:
         specifier: ^0.16.45
         version: 0.16.47
@@ -4138,6 +4141,9 @@ packages:
     resolution: {integrity: sha512-rLlJXSpkqfizLWgkR5+eLeIk0MvTx/meEIR7LRjxic+qxiQP8zVjq7BqQkiCMNLQBlLfuOLqqr6KO5GtrDlmSg==}
     peerDependencies:
       react: ^18 || ^19
+
+  '@tasmil-finance/adapter-sdk@0.1.1':
+    resolution: {integrity: sha512-VD8Llf4quU3lAVpaRJYe2sORPujw/U2P/2dNTwbHBZ2NOGICk85xnxdoAAM1nW+SeejSL0wx3lHqM9w+ZqgQDQ==, tarball: https://npm.pkg.github.com/download/@tasmil-finance/adapter-sdk/0.1.1/9234d3b0b2f9ad38d604ebfd417e795469c93d27}
 
   '@testing-library/dom@10.4.1':
     resolution: {integrity: sha512-o4PXJQidqJl82ckFaXUeoAW+XysPLauYI43Abki5hABd853iMhitooc6znOnczgbTYmEP6U6/y1ZyKAIsvMKGg==}
@@ -12752,7 +12758,7 @@ snapshots:
       '@noble/hashes': 1.8.0
       '@scure/base': 1.2.6
       '@types/debug': 4.1.13
-      debug: 4.3.4
+      debug: 4.4.3
       pony-cause: 2.1.11
       semver: 7.8.1
       uuid: 9.0.1
@@ -12766,7 +12772,7 @@ snapshots:
       '@noble/hashes': 1.8.0
       '@scure/base': 1.2.6
       '@types/debug': 4.1.13
-      debug: 4.3.4
+      debug: 4.4.3
       pony-cause: 2.1.11
       semver: 7.8.1
       uuid: 9.0.1
@@ -16515,6 +16521,23 @@ snapshots:
     dependencies:
       '@tanstack/query-core': 5.101.0
       react: 19.2.7
+
+  '@tasmil-finance/adapter-sdk@0.1.1(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.25.76)':
+    dependencies:
+      '@allbridge/bridge-core-sdk': 3.31.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.5.4)(utf-8-validate@5.0.10)(zod@3.25.76)
+      '@blend-capital/blend-sdk': 3.2.2
+      '@stellar/stellar-sdk': 15.1.0
+    transitivePeerDependencies:
+      - '@gql.tada/svelte-support'
+      - '@gql.tada/vue-support'
+      - bufferutil
+      - debug
+      - encoding
+      - fastestsmallesttextencoderdecoder
+      - supports-color
+      - typescript
+      - utf-8-validate
+      - zod
 
   '@testing-library/dom@10.4.1':
     dependencies:

@@ -1,4 +1,4 @@
-import { createTasmilClient, type TasmilClient } from "@tasmil/adapter-sdk";
+import { createTasmilClient, type TasmilClient } from "@tasmil-finance/adapter-sdk";
 import { STELLAR_NETWORK } from "@/shared/config/stellar-server";
 
 let _cached: TasmilClient | null = null;

@@ -1,4 +1,4 @@
-// @ts-nocheck — pre-existing type errors against @tasmil/adapter-sdk;
+// @ts-nocheck — pre-existing type errors against @tasmil-finance/adapter-sdk;
 // CI lint enforced via PR pipeline. See PR notes / follow-up to align
 // the SDK exports with what these route handlers + tests consume.
 
@@ -8,7 +8,7 @@
  * /api/tokens, /api/tokens/filter, and /api/aggregator/quote.
  */
 
-import { createTasmilClient } from "@tasmil/adapter-sdk";
+import { createTasmilClient } from "@tasmil-finance/adapter-sdk";
 import { STELLAR_NETWORK } from "@/shared/config/stellar-server";
 
 export const sdk = createTasmilClient({ network: STELLAR_NETWORK });

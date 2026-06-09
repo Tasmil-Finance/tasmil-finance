@@ -1,12 +1,1 @@
-{
-  "type": "object",
-  "properties": {
-    "name": { "type": "string", "example": "Early Access Wave 1" },
-    "targetEmails": {
-      "type": "string",
-      "description": "Comma-separated emails. Empty = all eligible."
-    }
-  },
-  "required": ["name"],
-  "x-readme-ref-name": "CampaignSendDto"
-}
+{"type":"object","properties":{"name":{"type":"string","example":"Early Access Wave 1"},"targetEmails":{"type":"string","description":"Comma-separated emails. Empty = all eligible."}},"required":["name"],"x-readme-ref-name":"CampaignSendDto"}

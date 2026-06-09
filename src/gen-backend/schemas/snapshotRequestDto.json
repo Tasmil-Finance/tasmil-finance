@@ -1,6 +1,1 @@
-{
-  "type": "object",
-  "properties": { "address": { "type": "string", "description": "Stellar public key (G...)" } },
-  "required": ["address"],
-  "x-readme-ref-name": "SnapshotRequestDto"
-}
+{"type":"object","properties":{"address":{"type":"string","description":"Stellar public key (G...)"}},"required":["address"],"x-readme-ref-name":"SnapshotRequestDto"}

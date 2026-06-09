@@ -15,6 +15,7 @@ import type { RequestConfig, ResponseErrorConfig } from "@kubb/plugin-client/cli
 import backendAxios from "@/lib/kubb-backend";
 
 export type { RequestConfig, ResponseErrorConfig };
+export type Client = typeof fetch;
 
 /**
  * Drop-in for @kubb/plugin-client/clients/axios fetch.
